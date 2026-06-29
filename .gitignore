@@ -1,0 +1,13 @@
+# API key — contains live Anthropic credentials. NEVER commit this.
+config.js
+system-globe/config.js
+
+# Screenshots and generated assets
+*.png
+*.xlsx
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.url

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calastone · Pulse</title>
+<link rel="stylesheet" href="./design-system/tokens/colors.css">
+<link rel="stylesheet" href="./design-system/tokens/typography.css">
+<link rel="stylesheet" href="./design-system/tokens/spacing.css">
+<link rel="stylesheet" href="./design-system/tokens/effects.css">
+<link rel="stylesheet" href="./design-system/base.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: linear-gradient(180deg,#fbfdfe 0%,#f1f6f9 100%); min-height: 100vh; font-family: var(--font-sans); color: var(--ink-800); -webkit-font-smoothing: antialiased; }
+
+  /* Topbar */
+  header.pulse-header {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 24px;
+    height: 64px; padding: 0 28px;
+    background: rgba(255,255,255,.82);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--ink-100);
+  }
+  .ph-brand { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+  .ph-brand img { height: 22px; width: auto; display: block; }
+  .ph-brand .divider { width: 1px; height: 20px; background: var(--ink-200); }
+  .ph-brand .pulse-label { font-size: 12px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--teal-600); }
+  .ph-search { position: relative; width: 440px; max-width: 42vw; flex-shrink: 0; }
+  .ph-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+  .ph-search input {
+    width: 100%; height: 40px; padding: 0 16px 0 40px;
+    border: 1px solid var(--ink-200); border-radius: var(--radius-sm);
+    background: var(--ink-050); font-family: var(--font-sans);
+    font-size: 14px; color: var(--ink-800); outline: none;
+    transition: var(--transition-base);
+  }
+  .ph-search input:focus { border-color: var(--accent-500); background: #fff; box-shadow: var(--focus-ring); }
+  .ph-user { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex: 1; min-width: 0; }
+  .ph-user-name { text-align: right; line-height: 1.25; }
+  .ph-user-name strong { display: block; font-size: 13px; font-weight: 600; color: var(--ink-800); }
+  .ph-user-name span { font-size: 11px; color: var(--ink-500); }
+  .ph-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--teal-050); border: 1px solid var(--teal-200);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--teal-600); flex-shrink: 0;
+  }
+
+  /* Main content */
+  main { width: 100%; max-width: 1264px; margin: 0 auto; padding: 38px 28px 80px; }
+
+  /* Page header row */
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; }
+  .page-head h1 { font-size: 30px; font-weight: 700; color: var(--ink-900); letter-spacing: -.02em; margin: 8px 0 0; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-500); }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    height: 32px; padding: 0 15px;
+    background: var(--green-100); border: 1px solid #bfe6cf;
+    border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--green-700);
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green-500);
+    box-shadow: 0 0 0 3px rgba(53,181,126,.22);
+    animation: csBlink 2.4s ease-in-out infinite;
+  }
+
+  /* Tool card grid */
+  .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .tool-card {
+    position: relative; display: flex; flex-direction: column;
+    background: #fff; border: 1px solid var(--ink-100);
+    border-radius: var(--radius-lg); padding: 30px;
+    text-decoration: none; box-shadow: var(--shadow-sm);
+    transition: var(--transition-base); min-height: 222px;
+  }
+  .tool-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--teal-200); }
+  .tool-card:focus { box-shadow: var(--focus-ring); border-color: var(--accent-500); outline: none; }
+  .tool-card .card-num {
+    position: absolute; top: 24px; right: 26px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; color: var(--ink-300);
+  }
+  .tool-card .card-icon { margin-bottom: 22px; }
+  .tool-card h2 { font-size: 20px; font-weight: 700; color: var(--ink-900); letter-spacing: -.01em; margin: 0 0 8px; }
+  .tool-card p { font-size: 14px; line-height: 1.55; color: var(--ink-600); margin: 0; max-width: 32ch; }
+
+  /* Coming-soon cards */
+  .tool-card.coming-soon { opacity: 0.72; cursor: default; }
+  .tool-card.coming-soon:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--ink-100); }
+  .coming-soon-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: auto; padding-top: 18px;
+    font-size: 11px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-400);
+  }
+
+  /* Animations */
+  @keyframes csBlink { 0%,100%{opacity:1} 50%{opacity:.35} }
+  @keyframes csDash { to{stroke-dashoffset:-40} }
+  @keyframes csPulse { 0%{transform:scale(.38);opacity:.85} 70%{opacity:.12} 100%{transform:scale(1.45);opacity:0} }
+
+  /* Page transition veil */
+  #page-veil {
+    position: fixed; inset: 0; z-index: 100;
+    background: #fff; opacity: 0;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<header class="pulse-header">
+  <div class="ph-brand">
+    <img src="./assets/calastone-wordmark-black.png" alt="Calastone">
+    <span class="divider"></span>
+    <span class="pulse-label">Pulse</span>
+  </div>
+  <div class="ph-search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="7" stroke="#9aa6b0" stroke-width="2"></circle>
+      <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#9aa6b0" stroke-width="2" stroke-linecap="round"></line>
+    </svg>
+    <input type="text" placeholder="Search workspaces, accounts, markets…">
+  </div>
+  <div class="ph-user">
+    <div class="ph-user-name">
+      <strong>Alex Curtin</strong>
+      <span>Sales · EMEA</span>
+    </div>
+    <div class="ph-avatar">AC</div>
+  </div>
+</header>
+
+<div id="page-veil"></div>
+<main>
+  <div class="page-head">
+    <div>
+      <div class="eyebrow" id="greeting-date">Good morning · 26 Jun 2026</div>
+      <h1>Welcome back, Alex</h1>
+    </div>
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      Network live
+    </div>
+  </div>
+
+  <div class="tool-grid">
+
+    <!-- 01 Network Overview -->
+    <a href="./tools/network-overview/index.html" class="tool-card">
+      <span class="card-num">01</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="14" stroke="#c3cdd5" stroke-width="1.4"></circle>
+          <ellipse cx="24" cy="24" rx="6" ry="14" stroke="#dde4ea" stroke-width="1.2"></ellipse>
+          <line x1="10" y1="24" x2="38" y2="24" stroke="#dde4ea" stroke-width="1.2"></line>
+          <path d="M11 29 Q24 7 37 25" stroke="#0fb89c" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.5 5" style="animation:csDash 1.8s linear infinite"></path>
+          <path d="M13 32 Q26 18 38 31" stroke="#35b57e" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1.5 5" style="animation:csDash 2.6s linear infinite"></path>
+          <circle cx="11" cy="29" r="2" fill="#2d9a8e"></circle>
+          <circle cx="37" cy="25" r="2" fill="#0fb89c"></circle>
+          <circle cx="38" cy="31" r="2" fill="#35b57e"></circle>
+        </svg>
+      </div>
+      <h2>Network Overview</h2>
+      <p><strong style="color:var(--teal-600);font-weight:700">273.3m</strong> orders across <strong style="color:var(--teal-600);font-weight:700">51</strong> countries in 2025.</p>
+    </a>
+
+    <!-- 02 Market Research -->
+    <a href="./tools/market-research/index.html" class="tool-card">
+      <span class="card-num">02</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <defs><clipPath id="csHeat"><circle cx="24" cy="24" r="14"></circle></clipPath></defs>
+          <g clip-path="url(#csHeat)">
+            <rect x="8" y="8" width="14" height="12" rx="3" fill="#dcefec"></rect>
+            <rect x="22" y="8" width="18" height="10" rx="3" fill="#7cc4bb"></rect>
+            <rect x="8" y="20" width="12" height="20" rx="3" fill="#2d9a8e"></rect>
+            <rect x="20" y="18" width="11" height="12" rx="3" fill="#0fb89c"></rect>
+            <rect x="30" y="18" width="12" height="22" rx="3" fill="#b3ddd7"></rect>
+            <rect x="20" y="30" width="11" height="12" rx="3" fill="#35b57e"></rect>
+          </g>
+          <circle cx="24" cy="24" r="14" stroke="#c3cdd5" stroke-width="1.4"></circle>
+          <ellipse cx="24" cy="24" rx="6" ry="14" stroke="#ffffff" stroke-opacity=".55" stroke-width="1"></ellipse>
+          <line x1="10" y1="24" x2="38" y2="24" stroke="#ffffff" stroke-opacity=".55" stroke-width="1"></line>
+        </svg>
+      </div>
+      <h2>Market Research</h2>
+      <p>Opportunity scores by country and market maturity.</p>
+    </a>
+
+    <!-- 03 Product Demo -->
+    <a href="./tools/product-demo/index.html" class="tool-card">
+      <span class="card-num">03</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <defs><linearGradient id="csHub" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2d9a8e"></stop><stop offset="1" stop-color="#35b57e"></stop></linearGradient></defs>
+          <line x1="24" y1="24" x2="24" y2="11" stroke="#dde4ea" stroke-width="1.3"></line>
+          <line x1="24" y1="24" x2="13.5" y2="30" stroke="#dde4ea" stroke-width="1.3"></line>
+          <line x1="24" y1="24" x2="34.5" y2="30" stroke="#dde4ea" stroke-width="1.3"></line>
+          <polygon points="24,7 20.54,9 20.54,13 24,15 27.46,13 27.46,9" fill="none" stroke="#7cc4bb" stroke-width="1.4"></polygon>
+          <polygon points="13.5,26 10.04,28 10.04,32 13.5,34 16.96,32 16.96,28" fill="none" stroke="#7cc4bb" stroke-width="1.4"></polygon>
+          <polygon points="34.5,26 31.04,28 31.04,32 34.5,34 37.96,32 37.96,28" fill="none" stroke="#7cc4bb" stroke-width="1.4"></polygon>
+          <polygon points="24,17.5 18.37,20.75 18.37,27.25 24,30.5 29.63,27.25 29.63,20.75" fill="url(#csHub)" stroke="#1f7a72" stroke-width="1.2"></polygon>
+        </svg>
+      </div>
+      <h2>Product Demo</h2>
+      <p>Interactive Hub &amp; Spoke network architecture.</p>
+    </a>
+
+    <!-- 04 Agent Marketplace (coming soon) -->
+    <a href="./tools/agent-marketplace/index.html" class="tool-card coming-soon">
+      <span class="card-num">04</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <rect x="9" y="9" width="30" height="30" rx="4" stroke="#c3cdd5" stroke-width="1.4"></rect>
+          <path d="M24 20 V13" stroke="#0fb89c" stroke-width="1.6" stroke-linecap="round"></path>
+          <path d="M28 24 H35" stroke="#0fb89c" stroke-width="1.6" stroke-linecap="round"></path>
+          <path d="M24 28 V35" stroke="#2d9a8e" stroke-width="1.6" stroke-linecap="round"></path>
+          <path d="M20 24 H13" stroke="#2d9a8e" stroke-width="1.6" stroke-linecap="round"></path>
+          <path d="M20 20 H15.5 V15.5" stroke="#35b57e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M28 28 H32.5 V32.5" stroke="#35b57e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+          <rect x="19.5" y="19.5" width="9" height="9" rx="1.6" fill="#dcefec" stroke="#2d9a8e" stroke-width="1.3"></rect>
+          <circle cx="24" cy="13" r="2" fill="#0fb89c"></circle>
+          <circle cx="35" cy="24" r="2" fill="#0fb89c"></circle>
+          <circle cx="24" cy="35" r="2" fill="#2d9a8e"></circle>
+          <circle cx="13" cy="24" r="2" fill="#2d9a8e"></circle>
+          <circle cx="15.5" cy="15.5" r="1.8" fill="#35b57e"></circle>
+          <circle cx="32.5" cy="32.5" r="1.8" fill="#35b57e"></circle>
+        </svg>
+      </div>
+      <h2>Agent Marketplace</h2>
+      <p>Set up AI agents for email, CRM, and meeting prep.</p>
+      <span class="coming-soon-badge">Coming soon</span>
+    </a>
+
+    <!-- 05 Calastone Intelligence (coming soon) -->
+    <a href="./tools/calastone-intelligence/index.html" class="tool-card coming-soon">
+      <span class="card-num">05</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <path d="M13 8 H27 L33 14 V36 a2 2 0 0 1 -2 2 H13 a2 2 0 0 1 -2 -2 V10 a2 2 0 0 1 2 -2 Z" fill="#ffffff" stroke="#9aa6b0" stroke-width="1.4" stroke-linejoin="round"></path>
+          <path d="M27 8 V14 H33" stroke="#9aa6b0" stroke-width="1.4" stroke-linejoin="round" fill="none"></path>
+          <line x1="15.5" y1="18.5" x2="25.5" y2="18.5" stroke="#dde4ea" stroke-width="1.8" stroke-linecap="round"></line>
+          <line x1="15.5" y1="22.5" x2="28.5" y2="22.5" stroke="#dde4ea" stroke-width="1.8" stroke-linecap="round"></line>
+          <line x1="15.5" y1="26.5" x2="22" y2="26.5" stroke="#dde4ea" stroke-width="1.8" stroke-linecap="round"></line>
+          <circle cx="29.5" cy="30.5" r="6.5" fill="#ffffff" stroke="#0fb89c" stroke-width="1.9"></circle>
+          <line x1="34.4" y1="35.4" x2="39" y2="40" stroke="#0fb89c" stroke-width="2.1" stroke-linecap="round"></line>
+        </svg>
+      </div>
+      <h2>Calastone Intelligence</h2>
+      <p>Ask anything about Calastone products and markets.</p>
+      <span class="coming-soon-badge">Coming soon</span>
+    </a>
+
+    <!-- 06 Market Movement -->
+    <a href="./tools/market-movement/index.html" class="tool-card" id="card-market-movement">
+      <span class="card-num">06</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="11" stroke="#0fb89c" stroke-width="1.6" style="transform-box:fill-box;transform-origin:center;animation:csPulse 2.8s ease-out infinite"></circle>
+          <circle cx="24" cy="24" r="11" stroke="#35b57e" stroke-width="1.6" style="transform-box:fill-box;transform-origin:center;animation:csPulse 2.8s ease-out .95s infinite"></circle>
+          <circle cx="24" cy="24" r="11" stroke="#2d9a8e" stroke-width="1.6" style="transform-box:fill-box;transform-origin:center;animation:csPulse 2.8s ease-out 1.9s infinite"></circle>
+          <circle cx="24" cy="24" r="5.5" fill="url(#csHub)"></circle>
+          <ellipse cx="24" cy="24" rx="2.4" ry="5.5" stroke="#ffffff" stroke-opacity=".55" stroke-width="1"></ellipse>
+          <line x1="18.5" y1="24" x2="29.5" y2="24" stroke="#ffffff" stroke-opacity=".55" stroke-width="1"></line>
+        </svg>
+      </div>
+      <h2>Market Movement</h2>
+      <p>Live regulatory signals and competitor movements by country.</p>
+    </a>
+
+    <!-- 07 Account Tracker -->
+    <a href="./tools/account-tracker/index.html" class="tool-card">
+      <span class="card-num">07</span>
+      <div class="card-icon">
+        <svg width="54" height="54" viewBox="0 0 48 48" fill="none">
+          <circle cx="17" cy="15" r="5.5" stroke="#9aa6b0" stroke-width="1.5"></circle>
+          <path d="M8 35 C8 27 26 27 26 35" stroke="#9aa6b0" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
+          <polyline points="20,32 25,27 29,29 33,21.5 37,24 41,16" stroke="#0fb89c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <circle cx="41" cy="16" r="2.2" fill="#35b57e"></circle>
+        </svg>
+      </div>
+      <h2>Account Tracker</h2>
+      <p>Daily intelligence dossiers on your Salesforce accounts.</p>
+    </a>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script>
+(function () {
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const el = document.getElementById('greeting-date');
+  if (el) el.textContent = greeting + ' · ' + dateStr;
+})();
+
+// Seamless page transition for Market Movement card
+document.getElementById('card-market-movement').addEventListener('click', function(e) {
+  e.preventDefault();
+  const dest = this.href;
+  const veil = document.getElementById('page-veil');
+  veil.style.pointerEvents = 'all';
+  anime({ targets: '#page-veil', opacity: [0, 1], duration: 380, easing: 'easeInQuart',
+    complete: function() { window.location.href = dest; } });
+});
+</script>
+
+</body>
+</html>

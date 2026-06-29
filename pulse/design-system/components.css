@@ -1,0 +1,162 @@
+/* ============================================================
+   CALASTONE DESIGN SYSTEM — shared component classes
+   All values reference tokens; tool style.css may override.
+   Prefix .cs- avoids collisions with tool-local class names.
+   ============================================================ */
+
+/* ---- Buttons ---- */
+.cs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+.cs-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.cs-btn-primary {
+  background: var(--teal-500);
+  color: var(--white);
+}
+.cs-btn-primary:hover { background: var(--teal-600); color: var(--white); }
+.cs-btn-primary svg { stroke: var(--white); }
+
+.cs-btn-secondary {
+  background: var(--color-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-xs);
+}
+.cs-btn-secondary:hover {
+  border-color: var(--teal-500);
+  color: var(--text-strong);
+}
+
+.cs-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+.cs-btn-ghost:hover {
+  background: var(--color-bg-subtle);
+  color: var(--text-primary);
+}
+
+/* ---- Badges / status chips ---- */
+.cs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.cs-badge-success {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border-color: rgba(53, 181, 126, 0.2);
+}
+.cs-badge-warning {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+.cs-badge-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+}
+.cs-badge-info {
+  background: var(--status-info-bg);
+  color: var(--status-info);
+}
+
+/* Live badge with pulsing dot */
+.cs-badge-live {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border-color: rgba(53, 181, 126, 0.2);
+}
+.cs-badge-live .cs-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--status-success);
+  animation: cs-live-pulse 1.6s ease-in-out infinite;
+}
+@keyframes cs-live-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(53, 181, 126, 0.65); }
+  70%  { box-shadow: 0 0 0 7px rgba(53, 181, 126, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(53, 181, 126, 0); }
+}
+
+/* ---- Cards ---- */
+.cs-card {
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.cs-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- Inputs ---- */
+.cs-input {
+  width: 100%;
+  height: var(--control-h-md);
+  background: var(--color-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+.cs-input::placeholder { color: var(--text-muted); }
+.cs-input:focus {
+  border-color: var(--accent-500);
+  box-shadow: 0 0 0 3px rgba(15, 184, 156, 0.18);
+}
+
+/* ---- Filter chips / segmented control ---- */
+.cs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-medium);
+  border: 1px solid var(--border-subtle);
+  background: var(--color-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+.cs-chip:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+.cs-chip.active {
+  background: var(--ink-900);
+  border-color: var(--ink-900);
+  color: var(--white);
+}

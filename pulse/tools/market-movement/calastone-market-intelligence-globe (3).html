@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calastone · Market Intelligence 2026</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   SECTION: Tokens — Calastone design-system palette (LIGHT)
+   ============================================================ */
+:root{
+  --bg-top:    #f1f5f8;
+  --bg-bottom: #ffffff;
+  --card:      rgba(255,255,255,0.94);
+  --card-line: rgba(34,50,61,0.07);
+  --shadow:    0 12px 44px rgba(34,50,61,0.10), 0 2px 8px rgba(34,50,61,0.04);
+
+  /* exact Calastone brand gradient (sampled from logo): blue → teal → green */
+  --brand-blue:  #0082C4;
+  --brand-teal:  #2D999C;
+  --brand-green: #64B066;
+  --grad: linear-gradient(90deg, #0082C4 0%, #1194A6 38%, #2D999C 60%, #4FAA87 82%, #64B066 100%);
+
+  --teal:      #2D999C;
+  --teal-dk:   #1f7f82;
+  --navy:      #1c2b34;   /* near-black brand ink */
+  --ink:       #0D1418;
+  --blue:      #0082C4;
+  --grey:      #6b7a83;
+  --grey-lt:   #9aa6ad;
+  --grey-xlt:  #c3ccd2;
+
+  /* alert palette — muted, professional, brand-adjacent */
+  --reg:       #B5524E;   /* restrained brick */
+  --comp:      #C98A3C;   /* muted ochre */
+  --mkt:       #2D999C;   /* brand teal */
+  --call:      #8a98a0;   /* neutral grey */
+
+  --land:      #ffffff;
+  --land-line: rgba(108,123,131,0.5);
+  --active:    #bcd6dc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Inter',system-ui,sans-serif;color:var(--navy);
+  background:linear-gradient(170deg,var(--bg-top) 0%, #f6f9fb 42%, var(--bg-bottom) 100%);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(45,154,142,0.22)}
+.scroll::-webkit-scrollbar{width:6px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:rgba(125,144,151,0.28);border-radius:3px}
+.scroll::-webkit-scrollbar-thumb:hover{background:rgba(125,144,151,0.45)}
+
+/* ============================================================
+   SECTION: Shell
+   ============================================================ */
+#app{position:relative;height:100vh;width:100vw;overflow:hidden}
+#stage{position:absolute;inset:0}
+#globe-container{position:absolute;inset:0}
+#globe-container canvas{display:block}
+#stage::before{
+  content:"";position:absolute;top:50%;left:50%;width:82vh;height:82vh;
+  transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,0.95) 40%, rgba(236,243,247,0.55) 64%, rgba(236,243,247,0) 74%);
+  box-shadow:0 40px 100px rgba(34,50,61,0.07);pointer-events:none;z-index:0;
+}
+
+/* ============================================================
+   SECTION: Brand
+   ============================================================ */
+.brand{position:absolute;top:26px;left:36px;z-index:7;pointer-events:none}
+.wordmark{font-weight:400;font-size:21px;letter-spacing:.46em;color:var(--ink);text-indent:.46em;line-height:1}
+.wm-rule{height:3px;width:148px;margin-top:10px;border-radius:3px;background:var(--grad)}
+.subbrand{margin-top:9px;font-size:9.5px;font-weight:600;letter-spacing:.28em;color:var(--grey);text-transform:uppercase}
+
+.hero{position:absolute;top:34%;left:36px;z-index:6;pointer-events:none;max-width:340px}
+.hero .big{font-weight:700;font-size:52px;letter-spacing:-0.02em;color:var(--ink);line-height:.95}
+.hero .big .unit{color:var(--grey);font-weight:500;font-size:24px;margin-left:6px;letter-spacing:0}
+.hero .lead{margin-top:14px;font-size:13px;line-height:1.55;color:var(--grey);max-width:290px}
+.hero .lead b{color:var(--navy);font-weight:600}
+.hero .mini{display:flex;gap:30px;margin-top:24px}
+.hero .mini .v{font-weight:700;font-size:20px;color:var(--navy)}
+.hero .mini .v.alert{color:var(--reg)}
+.hero .mini .k{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--grey-lt);margin-top:4px;font-weight:500}
+
+/* ============================================================
+   SECTION: Flat flashing markers (globe, anime.js + CSS)
+   ============================================================ */
+.flash-marker{position:relative;width:0;height:0;cursor:pointer;pointer-events:auto}
+.flash-marker .fm-core{position:absolute;left:0;top:0;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;
+  border-radius:50%;background:var(--mc);box-shadow:0 0 0 2px rgba(255,255,255,.85), 0 1px 4px rgba(34,50,61,.4);
+  animation:fmcore 2s ease-in-out infinite;z-index:2}
+.flash-marker.high .fm-core{width:13px;height:13px;margin:-6.5px 0 0 -6.5px}
+@keyframes fmcore{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.82);opacity:.78}}
+.flash-marker .fm-ring{position:absolute;left:0;top:0;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;
+  border-radius:50%;border:1.5px solid var(--mc);opacity:0;animation:fmring 2s ease-out infinite;z-index:1}
+.flash-marker .fm-ring2{animation-delay:1s}
+.flash-marker.high .fm-ring{animation-duration:1.6s}
+.flash-marker.high .fm-ring2{animation-delay:.8s}
+@keyframes fmring{0%{transform:scale(.6);opacity:.7}80%{opacity:0}100%{transform:scale(4.2);opacity:0}}
+/* one-shot emphatic ping when selected */
+.flash-marker.ping .fm-core{animation:fmping .7s ease-out}
+@keyframes fmping{0%{transform:scale(1.9);box-shadow:0 0 0 6px var(--mc)}100%{transform:scale(1);box-shadow:0 0 0 2px rgba(255,255,255,.85)}}
+
+/* ============================================================
+   SECTION: Bottom-left pills
+   ============================================================ */
+.pills{position:absolute;bottom:30px;left:36px;z-index:7;display:flex;gap:8px}
+.pill{padding:9px 17px;border-radius:99px;border:1px solid var(--card-line);
+  background:var(--card);box-shadow:var(--shadow);color:var(--grey);
+  font-family:'Inter';font-weight:500;font-size:12px;cursor:pointer;transition:all .2s ease}
+.pill:hover{color:var(--navy);border-color:rgba(34,50,61,0.14)}
+.pill.active{background:var(--teal-dk);color:#fff;border-color:transparent;font-weight:600}
+
+/* ============================================================
+   SECTION: Legend (clickable filters)
+   ============================================================ */
+.legend{position:absolute;bottom:30px;left:calc((100% - 360px)/2 + 130px);transform:translateX(-50%);z-index:6;
+  transition:left .42s cubic-bezier(.7,0,.2,1);
+  background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--card-line);border-radius:13px;box-shadow:var(--shadow);
+  padding:10px 18px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+#app.feed-closed .legend{left:calc(50% + 130px)}
+.legend h4{font-size:9px;letter-spacing:.18em;color:var(--grey-lt);font-weight:600;text-transform:uppercase;margin-right:8px}
+.lg-item{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--navy);font-weight:500;
+  background:none;border:1px solid transparent;font-family:'Inter';cursor:pointer;
+  padding:5px 10px;border-radius:8px;transition:all .18s ease}
+.lg-item:hover{background:rgba(34,50,61,0.04)}
+.lg-item:not(.on){color:var(--grey-lt);opacity:.55}
+.lg-item:not(.on) .lg-dot{filter:grayscale(1);opacity:.5}
+.lg-item.on{background:rgba(34,50,61,0.03);border-color:var(--card-line)}
+.lg-dot{width:8px;height:8px;border-radius:50%;transition:all .18s ease}
+.lg-n{font-size:10px;color:var(--grey-lt);font-weight:600;margin-left:1px}
+
+/* ============================================================
+   SECTION: Collapsible feed rail
+   ============================================================ */
+#feed-rail{position:absolute;top:0;right:0;height:100vh;width:360px;z-index:8;
+  background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-left:1px solid var(--card-line);box-shadow:-8px 0 30px rgba(34,50,61,0.07);
+  display:flex;flex-direction:column;transition:transform .42s cubic-bezier(.7,0,.2,1)}
+#feed-rail.collapsed{transform:translateX(360px)}
+#feed-toggle{position:absolute;top:50%;left:-40px;transform:translateY(-50%);z-index:9;
+  width:40px;height:104px;cursor:pointer;
+  background:var(--card);border:1px solid var(--card-line);border-right:none;
+  border-radius:12px 0 0 12px;box-shadow:-6px 0 18px rgba(34,50,61,0.08);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+  color:var(--teal-dk);font-weight:600;font-size:9.5px;letter-spacing:.14em}
+#feed-toggle .chev{font-size:14px;transition:transform .42s ease;color:var(--grey)}
+#feed-rail.collapsed #feed-toggle .chev{transform:rotate(180deg)}
+#feed-toggle .vlabel{writing-mode:vertical-rl;text-orientation:mixed;text-transform:uppercase}
+#feed-toggle .pip{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blip 2s ease-in-out infinite}
+@keyframes blip{0%,100%{opacity:1}50%{opacity:.35}}
+
+.feed-head{padding:26px 24px 14px;border-bottom:1px solid var(--card-line)}
+.feed-head .ttl{font-weight:600;font-size:14px;color:var(--navy);display:flex;align-items:center;gap:9px;letter-spacing:.01em}
+.feed-head .ttl .live{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,153,156,.4)}70%{box-shadow:0 0 0 6px rgba(45,153,156,0)}100%{box-shadow:0 0 0 0 rgba(45,153,156,0)}}
+.feed-head .sub{margin-top:5px;font-size:10.5px;color:var(--grey-lt);letter-spacing:.03em}
+
+.feed{flex:1 1 auto;overflow-y:auto;padding:8px 14px 14px}
+.row{display:flex;gap:11px;padding:13px 11px;border-radius:11px;cursor:pointer;
+  border:1px solid transparent;transition:background .18s ease,border-color .18s ease}
+.row:hover{background:rgba(45,154,142,0.05);border-color:var(--card-line)}
+.row.sel{background:rgba(45,154,142,0.09);border-color:rgba(45,154,142,0.3)}
+.row-dot{position:relative;flex:0 0 auto;width:10px;height:10px;border-radius:50%;margin-top:5px}
+.row-dot.high::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid currentColor;animation:ripple 1.8s ease-out infinite}
+@keyframes ripple{0%{transform:scale(.5);opacity:.8}100%{transform:scale(1.9);opacity:0}}
+.row-body{flex:1;min-width:0}
+.row-top{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.flag{font-size:14px;line-height:1}
+.cty{font-size:12.5px;font-weight:600;color:var(--navy)}
+.cty .dash{color:var(--grey-lt);margin:0 1px;font-weight:400}
+.cty .ctype{font-weight:500;color:var(--teal-dk)}
+.ago{margin-left:auto;font-size:10px;color:var(--grey-lt);white-space:nowrap}
+.headline{font-size:11.5px;line-height:1.45;color:var(--grey)}
+.row-foot{display:flex;align-items:center;gap:10px;margin-top:8px}
+.badge{display:inline-block;font-size:8.5px;letter-spacing:.09em;font-weight:700;text-transform:uppercase;padding:3px 7px;border-radius:5px}
+.badge.regulatory{background:rgba(181,82,78,.13);color:#a8413e}
+.badge.competitor{background:rgba(201,138,60,.16);color:#a96f29}
+.badge.market{background:rgba(45,153,156,.13);color:#1f7d80}
+.badge.call{background:rgba(138,152,160,.16);color:#5f6e76}
+.moreinfo{margin-left:auto;border:none;background:none;cursor:pointer;font-family:'Inter';
+  font-size:10.5px;font-weight:600;color:var(--teal-dk);display:inline-flex;align-items:center;gap:4px;padding:2px 4px;border-radius:5px}
+.moreinfo:hover{background:rgba(45,153,156,.08)}
+.moreinfo .mi-chev{font-size:9px;transition:transform .3s ease}
+.moreinfo.on .mi-chev{transform:rotate(180deg)}
+
+/* inline expandable detail */
+.expand{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.5,0,.2,1)}
+.exp-inner{padding:13px 2px 4px;border-top:1px dashed var(--card-line);margin-top:11px}
+.exp-loc{font-size:10.5px;font-weight:600;color:var(--navy);margin-bottom:11px}
+.exp-inner h6{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--grey-lt);font-weight:700;margin:0 0 5px}
+.exp-inner p{font-size:11.5px;line-height:1.5;color:var(--grey);margin:0 0 13px}
+.exp-inner .facts{list-style:none;display:flex;flex-direction:column;gap:6px;margin:0}
+.exp-inner .facts li{font-size:11px;color:var(--navy);padding-left:15px;position:relative;line-height:1.35}
+.exp-inner .facts li::before{content:"";position:absolute;left:0;top:6px;width:5px;height:5px;border-radius:50%;background:var(--teal)}
+
+.globe-tooltip,.hover-card{font-family:'Inter',sans-serif;background:rgba(255,255,255,0.97);
+  backdrop-filter:blur(8px);border:1px solid var(--card-line);border-radius:9px;padding:10px 13px;
+  color:var(--navy);max-width:250px;box-shadow:var(--shadow)}
+.globe-tooltip .gt-cat{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;font-weight:700}
+.globe-tooltip .gt-cty{font-weight:600;font-size:13px;margin-bottom:3px}
+.globe-tooltip .gt-txt{font-size:11px;line-height:1.4;color:var(--grey)}
+.hover-card .hc-cty{font-weight:600;font-size:13px;margin-bottom:3px}
+.hover-card .hc-meta{font-size:11px;color:var(--grey)}
+.hover-card .hc-empty{font-size:11px;color:var(--grey-lt)}
+
+#globe-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:4;color:var(--grey-lt);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+#err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:9;background:rgba(241,245,248,.96);text-align:center;padding:40px}
+#err .box{max-width:360px;background:#fff;border:1px solid var(--card-line);border-radius:16px;box-shadow:var(--shadow);padding:30px 32px}
+#err .icon{width:44px;height:44px;margin:0 auto 16px;border-radius:50%;background:rgba(181,82,78,.1);display:flex;align-items:center;justify-content:center;color:var(--reg);font-size:22px}
+#err h3{font-weight:600;color:var(--navy);font-size:16px;margin-bottom:9px}
+#err p{font-size:12.5px;color:var(--grey);line-height:1.6;margin-bottom:20px}
+#retry-geo{padding:10px 22px;border-radius:9px;border:none;background:var(--teal-dk);color:#fff;font-family:'Inter';font-weight:600;font-size:12.5px;cursor:pointer;transition:background .2s ease}
+#retry-geo:hover{background:var(--teal)}
+
+@media (max-width:1280px){
+  .hero .big{font-size:48px}
+  .legend{gap:14px;padding:11px 16px}
+  #feed-rail{width:320px}
+  #feed-rail.collapsed{transform:translateX(320px)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <div id="globe-container"></div>
+    <div id="globe-loading">Initialising network…</div>
+    <div id="err"><div class="box">
+      <div class="icon">⟳</div>
+      <h3>Network map couldn't load</h3>
+      <p>The country boundary data didn't reach your browser. This is usually a temporary connection issue — the dashboard and live feed still work.</p>
+      <button id="retry-geo">Retry loading map</button>
+    </div></div>
+  </div>
+
+  <div class="brand">
+    <div class="wordmark">CALASTONE</div>
+    <div class="wm-rule"></div>
+    <div class="subbrand">Market Intelligence · 2026</div>
+  </div>
+
+  <div class="hero">
+    <div class="big"><span data-count="25">0</span><span class="unit">alerts</span></div>
+    <div class="lead">live across <b>18</b> markets — regulatory shifts, competitor moves and order-flow signals, <b>tracked in real time</b>.</div>
+    <div class="mini">
+      <div><div class="v">18</div><div class="k">Countries Monitored</div></div>
+      <div><div class="v">8</div><div class="k">Competitor Events</div></div>
+      <div><div class="v alert" data-count="3">0</div><div class="k">High Priority</div></div>
+    </div>
+  </div>
+
+  <div class="legend" id="legend">
+    <h4>Order Intelligence</h4>
+    <button class="lg-item on" data-cat="regulatory"><span class="lg-dot" style="background:var(--reg)"></span>Regulatory<span class="lg-n" id="c-reg"></span></button>
+    <button class="lg-item on" data-cat="competitor"><span class="lg-dot" style="background:var(--comp)"></span>Competitor<span class="lg-n" id="c-comp"></span></button>
+    <button class="lg-item on" data-cat="market"><span class="lg-dot" style="background:var(--mkt)"></span>Market<span class="lg-n" id="c-mkt"></span></button>
+    <button class="lg-item on" data-cat="call"><span class="lg-dot" style="background:var(--call)"></span>Call note<span class="lg-n" id="c-call"></span></button>
+  </div>
+
+  <div class="pills">
+    <button class="pill active" data-view="rotate">Auto-rotate</button>
+    <button class="pill" data-view="pause">Pause spin</button>
+    <button class="pill" data-view="reset">Reset view</button>
+  </div>
+
+  <aside id="feed-rail">
+    <button id="feed-toggle" aria-label="Toggle live feed">
+      <span class="chev">›</span>
+      <span class="pip"></span>
+      <span class="vlabel">Live feed</span>
+    </button>
+    <div class="feed-head">
+      <div class="ttl"><span class="live"></span>Live Alert Feed</div>
+      <div class="sub" id="feed-sub"></div>
+    </div>
+    <div class="feed scroll" id="feed"></div>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.27.1/dist/globe.gl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+
+<script>
+/* ============================================================
+   SECTION: Category meta
+   ============================================================ */
+const CAT = {
+  regulatory:{color:'#C0504D', label:'REGULATORY', badge:'regulatory'},
+  competitor:{color:'#E08A2B', label:'COMPETITOR', badge:'competitor'},
+  market:    {color:'#2D9A8E', label:'MARKET',     badge:'market'},
+  call:      {color:'#7D9097', label:'CALL NOTE',  badge:'call'},
+};
+
+/* ============================================================
+   SECTION: Mock data — ALERT_EVENTS
+   Each event: city-precise lat/lng (origin of the change),
+   title ("Country – Type"), plain summary, and an expandable
+   `details` block written purely informationally + simplified.
+   ============================================================ */
+const ALERT_EVENTS = [
+  {iso:'NLD', flag:'🇳🇱', cty:'Netherlands', city:'The Hague', lat:52.0799, lng:4.3113,
+   cat:'regulatory', type:'Pension Reform', sev:'high', days:2,
+   summary:'New law forces Dutch pension money to move into new fund structures.',
+   details:{
+     what:'A new Dutch pension law opens a mandatory window for defined-contribution (DC) pension assets to be transferred into new PPI vehicles, with the move required to complete by September 2026.',
+     why:'Large-scale pension transfers mean a wave of fund order and transfer-instruction activity. Pension providers will need transfer connectivity quickly — a direct fit for Calastone.',
+     facts:['~€180bn of assets expected to move','Transfer window opens Q3 2026','Deadline: September 2026']
+   }},
+  {iso:'MEX', flag:'🇲🇽', cty:'Mexico', city:'Mexico City', lat:19.4326, lng:-99.1332,
+   cat:'regulatory', type:'Transfer Portability Rule', sev:'high', days:5,
+   summary:'Mexican pension funds must accept digital transfer instructions fast.',
+   details:{
+     what:'Regulator CONSAR (Circular 27-2) requires Siefore pension operators to accept digital transfer instructions within 48 hours, effective July 2026.',
+     why:'A 48-hour digital mandate pushes operators toward automated transfer messaging. Calastone’s automated order routing answers exactly this requirement.',
+     facts:['Affects ~12m pension accounts','48-hour digital instruction rule','Effective July 2026']
+   }},
+  {iso:'GBR', flag:'🇬🇧', cty:'United Kingdom', city:'London', lat:51.5074, lng:-0.1278,
+   cat:'regulatory', type:'T+1 Settlement Consultation', sev:'high', days:3,
+   summary:'UK regulator is consulting on faster (T+1) fund settlement.',
+   details:{
+     what:'The FCA consultation paper CP26/4 proposes moving UK collective investment schemes to T+1 settlement. The comment period closes in August 2026.',
+     why:'Faster settlement forces firms to modernise back-office processing. That re-engineering is where automated networks like Calastone add value.',
+     facts:['Proposes T+1 settlement','Comment period closes Aug 2026','Affects UK collective investment schemes']
+   }},
+  {iso:'AUS', flag:'🇦🇺', cty:'Australia', city:'Sydney', lat:-33.8688, lng:151.2093,
+   cat:'regulatory', type:'Super Fund Liquidity Rules', sev:'high', days:9,
+   summary:'Tighter rules push big super funds to rebalance assets.',
+   details:{
+     what:'An APRA amendment (SPS 530) tightens liquidity requirements for superannuation funds, expected to trigger rebalancing of unlisted assets at 14 major funds.',
+     why:'Rebalancing means increased buy/sell and transfer activity across fund managers — more order flow that benefits from automated routing.',
+     facts:['14 major super funds affected','Unlisted asset rebalancing expected','Driven by APRA SPS 530']
+   }},
+  {iso:'IND', flag:'🇮🇳', cty:'India', city:'Mumbai', lat:19.0760, lng:72.8777,
+   cat:'regulatory', type:'Direct Plan Migration', sev:'high', days:12,
+   summary:'Large Indian investors must move to direct fund plans.',
+   details:{
+     what:'A SEBI/AMFI circular requires institutional investors holding above ₹10 crore to migrate to direct mutual-fund plans, effective October 2026.',
+     why:'Mass migration sharply increases transfer-agent workload, creating demand for scalable, automated transfer processing.',
+     facts:['Threshold: ₹10 crore+','Institutional investors','Effective October 2026']
+   }},
+
+  {iso:'LUX', flag:'🇱🇺', cty:'Luxembourg', city:'Luxembourg City', lat:49.6116, lng:6.1319,
+   cat:'competitor', type:'Clearstream FundsDLT', sev:'med', days:6,
+   summary:'Competitor Clearstream is pushing same-day fund settlement.',
+   details:{
+     what:'Clearstream announced a FundsDLT platform integration with three major European CSDs, targeting same-day UCITS settlement by Q4 2026.',
+     why:'A competitor moving toward same-day settlement raises the bar in a core European market. Worth tracking for competitive positioning.',
+     facts:['3 European CSDs integrated','Targets same-day UCITS settlement','Goal: Q4 2026']
+   }},
+  {iso:'BEL', flag:'🇧🇪', cty:'Belgium', city:'Brussels', lat:50.8503, lng:4.3517,
+   cat:'competitor', type:'Euroclear EMX Upgrade', sev:'med', days:8,
+   summary:'Euroclear is changing its messaging standard — firms must migrate.',
+   details:{
+     what:'Euroclear’s EMX network is mandating the ISO 20022 messaging standard from January 2027, with a published migration timeline.',
+     why:'A forced migration creates a moment where connected firms reassess their network provider — an opening for switching conversations.',
+     facts:['ISO 20022 mandated Jan 2027','847 counterparties affected','Migration timeline published']
+   }},
+  {iso:'ESP', flag:'🇪🇸', cty:'Spain', city:'Madrid', lat:40.4168, lng:-3.7038,
+   cat:'competitor', type:'Allfunds–Santander Deal', sev:'med', days:4,
+   summary:'Competitor Allfunds won a big Spanish distribution deal.',
+   details:{
+     what:'Allfunds signed a distribution agreement with Santander Asset Management covering the Iberian market, with an estimated 400 funds onboarded.',
+     why:'A competitor strengthening its Spanish position is a direct pressure point on Calastone’s Spanish corridor.',
+     facts:['~400 funds onboarded','Covers Iberian market','Partner: Santander AM']
+   }},
+  {iso:'SGP', flag:'🇸🇬', cty:'Singapore', city:'Singapore', lat:1.3521, lng:103.8198,
+   cat:'competitor', type:'Clearstream–SGX Partnership', sev:'med', days:11,
+   summary:'Clearstream partnered with SGX for Asian fund passporting.',
+   details:{
+     what:'Clearstream announced a partnership with SGX for Asian fund passporting, with MAS regulatory sandbox approval granted.',
+     why:'Competitor expansion in APAC could affect Calastone’s regional corridors — relevant for defending Asian market share.',
+     facts:['Partner: SGX','MAS sandbox approval granted','Focus: Asian fund passporting']
+   }},
+  {iso:'IRL', flag:'🇮🇪', cty:'Ireland', city:'Dublin', lat:53.3498, lng:-6.2603,
+   cat:'competitor', type:'Allfunds Acquires FundRock', sev:'med', days:7,
+   summary:'Allfunds bought an Irish fund admin platform.',
+   details:{
+     what:'Allfunds acquired Irish fund administration platform FundRock for €85m, strengthening its transfer-agent connectivity in Ireland.',
+     why:'This builds a competitor’s connectivity in a core Calastone hub — directly competitive and worth monitoring.',
+     facts:['Deal value: €85m','Target: FundRock','Strengthens Irish TA connectivity']
+   }},
+
+  {iso:'USA', flag:'🇺🇸', cty:'United States', city:'Malvern, PA', lat:40.0362, lng:-75.5135,
+   cat:'market', type:'Vanguard APAC Expansion', sev:'med', days:1,
+   summary:'Vanguard is expanding into Asia with new Hong Kong funds.',
+   details:{
+     what:'Vanguard announced an Asia-Pacific expansion strategy, filing a new Hong Kong-domiciled fund range with the SFC and pushing into HK retail distribution.',
+     why:'A major manager entering a new market opens fresh distribution corridors — potential new connectivity opportunities.',
+     facts:['New HK-domiciled fund range','SFC filing made','First HK retail distribution push']
+   }},
+  {iso:'JPN', flag:'🇯🇵', cty:'Japan', city:'Tokyo', lat:35.6762, lng:139.6503,
+   cat:'market', type:'BlackRock ETF Milestone', sev:'med', days:3,
+   summary:'BlackRock’s Japan ETF assets passed ¥10 trillion; new RFP issued.',
+   details:{
+     what:'BlackRock’s iShares Japan ETF assets crossed ¥10 trillion, helped by NISA reform driving retail flows, and a new transfer-agent RFP has been issued.',
+     why:'A live transfer-agent RFP is a concrete opportunity to compete for connectivity work.',
+     facts:['ETF AUM > ¥10 trillion','NISA reform driving flows','New transfer-agent RFP issued']
+   }},
+  {iso:'HKG', flag:'🇭🇰', cty:'Hong Kong', city:'Hong Kong', lat:22.3193, lng:114.1694,
+   cat:'market', type:'Fidelity MPF Expansion', sev:'med', days:5,
+   summary:'Fidelity is expanding HK distribution via MPF partnerships.',
+   details:{
+     what:'Fidelity is expanding Hong Kong distribution through new MPF platform partnerships. Three new Calastone-connected distributors have been identified as targets.',
+     why:'Existing connected distributors becoming distribution targets is a warm, near-term opportunity.',
+     facts:['New MPF platform partnerships','3 connected distributors identified','Hong Kong retail focus']
+   }},
+  {iso:'DEU', flag:'🇩🇪', cty:'Germany', city:'Frankfurt', lat:50.1109, lng:8.6821,
+   cat:'market', type:'DWS Fund Range Restructure', sev:'med', days:6,
+   summary:'DWS is merging 14 retail sub-funds.',
+   details:{
+     what:'DWS is restructuring its German retail fund range, merging 14 sub-funds, with transfer-agent instructions expected in Q3.',
+     why:'Fund mergers generate large volumes of transfer instructions — an operational window to start connectivity conversations.',
+     facts:['14 sub-funds merging','TA instructions expected Q3','German retail range']
+   }},
+  {iso:'BRA', flag:'🇧🇷', cty:'Brazil', city:'São Paulo', lat:-23.5505, lng:-46.6333,
+   cat:'market', type:'Itaú UCITS Launch', sev:'med', days:10,
+   summary:'Itaú is launching its first cross-listed UCITS fund.',
+   details:{
+     what:'Itaú Asset Management is launching its first UCITS cross-listed fund structure, with CVM regulatory approval received.',
+     why:'A new Brazil-to-Europe fund structure needs cross-border connectivity — a clear bridge opportunity (Brazil–Luxembourg).',
+     facts:['First UCITS cross-listed fund','CVM approval received','Needs Brazil–Luxembourg bridge']
+   }},
+  {iso:'FRA', flag:'🇫🇷', cty:'France', city:'Paris', lat:48.8566, lng:2.3522,
+   cat:'market', type:'Amundi Fund Mergers', sev:'med', days:8,
+   summary:'Amundi is completing 230 fund mergers.',
+   details:{
+     what:'Amundi announced completion of merging its Pioneer and Lyxor product ranges, with 230 fund mergers requiring transfer instructions.',
+     why:'A very large set of fund mergers means a major spike in transfer-instruction volume — a significant operational event.',
+     facts:['230 fund mergers','Pioneer + Lyxor ranges','Large transfer-instruction volume']
+   }},
+  {iso:'ZAF', flag:'🇿🇦', cty:'South Africa', city:'Cape Town', lat:-33.9249, lng:18.4241,
+   cat:'market', type:'Allan Gray Feeder Fund', sev:'med', days:14,
+   summary:'Allan Gray got approval for a new foreign feeder fund.',
+   details:{
+     what:'Allan Gray received FSCA approval for a new foreign fund feeder structure, marking a first cross-border distribution push for SA retail investors.',
+     why:'A new cross-border feeder structure needs correspondent connectivity — an emerging-market opportunity.',
+     facts:['FSCA approval received','First SA retail cross-border push','Correspondent bank model']
+   }},
+  {iso:'TWN', flag:'🇹🇼', cty:'Taiwan', city:'Taipei', lat:25.0330, lng:121.5654,
+   cat:'market', type:'Cathay Platform RFP', sev:'med', days:13,
+   summary:'Cathay is expanding its fund platform and issued an RFP.',
+   details:{
+     what:'Cathay Securities is expanding its SITE fund platform to include offshore fund onboarding and has circulated an RFP to network providers, including Calastone.',
+     why:'A live RFP that already names Calastone is a direct, actionable opportunity.',
+     facts:['Offshore fund onboarding','RFP circulated','Calastone named']
+   }},
+  {iso:'ARE', flag:'🇦🇪', cty:'United Arab Emirates', city:'Dubai', lat:25.2048, lng:55.2708,
+   cat:'market', type:'Emirates NBD Fund Expansion', sev:'med', days:9,
+   summary:'Emirates NBD is expanding its DIFC fund range across the GCC.',
+   details:{
+     what:'Emirates NBD Asset Management is expanding its DIFC-domiciled fund range, with ADGM passporting approved for cross-border GCC distribution.',
+     why:'New GCC cross-border distribution opens a corridor opportunity in a growing region.',
+     facts:['DIFC-domiciled range','ADGM passporting approved','GCC cross-border distribution']
+   }},
+  {iso:'CAN', flag:'🇨🇦', cty:'Canada', city:'Toronto', lat:43.6532, lng:-79.3832,
+   cat:'market', type:'CI Financial RIA Deals', sev:'med', days:7,
+   summary:'CI Financial bought three US advisory firms.',
+   details:{
+     what:'CI Financial acquired three US RIA firms and is reviewing its cross-border fund distribution infrastructure.',
+     why:'An infrastructure review is the moment to position connectivity solutions; a Calastone meeting is already scheduled.',
+     facts:['3 US RIA firms acquired','Infrastructure review underway','Calastone meeting scheduled']
+   }},
+
+  {iso:'SWE', flag:'🇸🇪', cty:'Sweden', city:'Stockholm', lat:59.3293, lng:18.0686,
+   cat:'call', type:'Nordea Call Note', sev:'low', days:14,
+   summary:'Nordea is evaluating T+1 readiness and messaging vendors.',
+   details:{
+     what:'Call note from a Nordea meeting on 14 June: they discussed T+1 readiness and are evaluating ISO 20022 vendors, with a decision expected in Q4.',
+     why:'An active vendor evaluation with a Q4 decision is a timed opportunity. Follow-up: send technical spec.',
+     facts:['Met 14 June','Evaluating ISO 20022 vendors','Decision expected Q4']
+   }},
+  {iso:'CHE', flag:'🇨🇭', cty:'Switzerland', city:'Zurich', lat:47.3769, lng:8.5417,
+   cat:'call', type:'UBS Wealth Call Note', sev:'low', days:11,
+   summary:'UBS Wealth is worried about competitor migration costs.',
+   details:{
+     what:'Call note: UBS Wealth Management is concerned about Clearstream EMX migration costs and is a potential switcher.',
+     why:'A potential switcher worried about a competitor’s costs is a strong lead. The CCO is to follow up personally.',
+     facts:['Potential switcher','Concerned re: EMX migration cost','CCO to follow up']
+   }},
+  {iso:'NLD', flag:'🇳🇱', cty:'Netherlands', city:'Rotterdam', lat:51.9244, lng:4.4777,
+   cat:'call', type:'NN IP Call Note', sev:'low', days:6,
+   summary:'NN Investment Partners flagged the pension reform as urgent.',
+   details:{
+     what:'Call note: NN Investment Partners flagged the Dutch pension reform as urgent and said they need a transfer-agent partner. Logged as a hot lead at Stage 3.',
+     why:'A hot lead actively seeking a transfer-agent partner, tied to the live pension-reform event — high priority.',
+     facts:['Hot lead — Stage 3','Needs transfer-agent partner','Tied to pension reform']
+   }},
+];
+
+/* ============================================================
+   SECTION: COUNTRY_DETAILS
+   ============================================================ */
+const COUNTRY_DETAILS = {
+  NLD:{name:'Netherlands',flag:'🇳🇱',region:'Western Europe',corridors:14,monthlyOrders:'2.1m',topConnections:['Luxembourg','UK','Germany'],competitors:['Clearstream','Euroclear EMX'],opportunity:'High',oppNote:'Pension reform creates urgent transfer mandate',status:'Active — 14 corridors live'},
+  MEX:{name:'Mexico',flag:'🇲🇽',region:'Latin America',corridors:3,monthlyOrders:'0.4m',topConnections:['USA','Luxembourg','Spain'],competitors:['Allfunds'],opportunity:'High',oppNote:'CONSAR portability mandate opens 12m pension accounts',status:'Emerging — 3 corridors live'},
+  GBR:{name:'United Kingdom',flag:'🇬🇧',region:'Northern Europe',corridors:62,monthlyOrders:'11.4m',topConnections:['Luxembourg','Ireland','USA'],competitors:['Euroclear EMX','Calastone (home hub)'],opportunity:'Medium',oppNote:'T+1 consultation drives back-office re-engineering demand',status:'Core hub — 62 corridors live'},
+  AUS:{name:'Australia',flag:'🇦🇺',region:'Asia Pacific',corridors:21,monthlyOrders:'3.2m',topConnections:['UK','Singapore','USA'],competitors:['Clearstream'],opportunity:'Medium',oppNote:'APRA liquidity rules trigger super fund rebalancing',status:'Active — 21 corridors live'},
+  IND:{name:'India',flag:'🇮🇳',region:'Asia Pacific',corridors:6,monthlyOrders:'1.1m',topConnections:['Singapore','UK','UAE'],competitors:['Local TAs'],opportunity:'High',oppNote:'Direct plan migration spikes transfer agent load',status:'Growing — 6 corridors live'},
+  LUX:{name:'Luxembourg',flag:'🇱🇺',region:'Western Europe',corridors:48,monthlyOrders:'9.7m',topConnections:['UK','Germany','France'],competitors:['Clearstream','Allfunds'],opportunity:'Medium',oppNote:'Clearstream FundsDLT push threatens UCITS settlement corridor',status:'Core hub — 48 corridors live'},
+  BEL:{name:'Belgium',flag:'🇧🇪',region:'Western Europe',corridors:9,monthlyOrders:'0.8m',topConnections:['Luxembourg','France','Netherlands'],competitors:['Euroclear EMX'],opportunity:'Medium',oppNote:'EMX ISO 20022 migration creates switching window',status:'Active — 9 corridors live'},
+  ESP:{name:'Spain',flag:'🇪🇸',region:'Southern Europe',corridors:7,monthlyOrders:'0.6m',topConnections:['Luxembourg','Mexico','Portugal'],competitors:['Allfunds'],opportunity:'Medium',oppNote:'Allfunds–Santander deal pressures Iberian corridor',status:'Active — 7 corridors live'},
+  SGP:{name:'Singapore',flag:'🇸🇬',region:'Asia Pacific',corridors:18,monthlyOrders:'2.4m',topConnections:['Hong Kong','Australia','UK'],competitors:['Clearstream'],opportunity:'High',oppNote:'Clearstream–SGX passporting threatens APAC corridors',status:'APAC hub — 18 corridors live'},
+  IRL:{name:'Ireland',flag:'🇮🇪',region:'Northern Europe',corridors:33,monthlyOrders:'6.1m',topConnections:['UK','Luxembourg','USA'],competitors:['Allfunds','Clearstream'],opportunity:'Medium',oppNote:'Allfunds FundRock buy strengthens rival TA connectivity',status:'Core hub — 33 corridors live'},
+  USA:{name:'United States',flag:'🇺🇸',region:'North America',corridors:24,monthlyOrders:'4.9m',topConnections:['UK','Canada','Hong Kong'],competitors:['Local TAs','NSCC'],opportunity:'Medium',oppNote:'Vanguard APAC push opens HK corridor conversation',status:'Active — 24 corridors live'},
+  JPN:{name:'Japan',flag:'🇯🇵',region:'Asia Pacific',corridors:12,monthlyOrders:'1.9m',topConnections:['Hong Kong','Singapore','USA'],competitors:['Local TAs'],opportunity:'High',oppNote:'BlackRock ETF growth + NISA reform drives RFP',status:'Active — 12 corridors live'},
+  HKG:{name:'Hong Kong',flag:'🇭🇰',region:'Asia Pacific',corridors:16,monthlyOrders:'2.7m',topConnections:['Singapore','Japan','UK'],competitors:['Clearstream'],opportunity:'High',oppNote:'Fidelity MPF expansion adds 3 target distributors',status:'APAC hub — 16 corridors live'},
+  DEU:{name:'Germany',flag:'🇩🇪',region:'Western Europe',corridors:19,monthlyOrders:'3.0m',topConnections:['Luxembourg','France','UK'],competitors:['Clearstream'],opportunity:'Medium',oppNote:'DWS sub-fund mergers open connectivity window',status:'Active — 19 corridors live'},
+  BRA:{name:'Brazil',flag:'🇧🇷',region:'Latin America',corridors:2,monthlyOrders:'0.2m',topConnections:['Luxembourg','USA','Mexico'],competitors:['Local custodians'],opportunity:'High',oppNote:'Itaú UCITS launch needs Brazil–Luxembourg bridge',status:'Emerging — 2 corridors live'},
+  FRA:{name:'France',flag:'🇫🇷',region:'Western Europe',corridors:22,monthlyOrders:'3.6m',topConnections:['Luxembourg','Germany','UK'],competitors:['Euroclear EMX'],opportunity:'Medium',oppNote:'Amundi 230-fund merger is a large operational event',status:'Active — 22 corridors live'},
+  ZAF:{name:'South Africa',flag:'🇿🇦',region:'Africa',corridors:4,monthlyOrders:'0.3m',topConnections:['UK','Luxembourg','UAE'],competitors:['Local TAs'],opportunity:'High',oppNote:'Allan Gray feeder structure opens SA retail corridor',status:'Emerging — 4 corridors live'},
+  TWN:{name:'Taiwan',flag:'🇹🇼',region:'Asia Pacific',corridors:5,monthlyOrders:'0.5m',topConnections:['Hong Kong','Singapore','Japan'],competitors:['Local platforms'],opportunity:'High',oppNote:'Cathay SITE platform RFP includes Calastone',status:'Growing — 5 corridors live'},
+  ARE:{name:'United Arab Emirates',flag:'🇦🇪',region:'Middle East',corridors:8,monthlyOrders:'0.9m',topConnections:['UK','India','Singapore'],competitors:['Local custodians'],opportunity:'High',oppNote:'Emirates NBD DIFC/ADGM passporting opens GCC corridor',status:'Growing — 8 corridors live'},
+  CAN:{name:'Canada',flag:'🇨🇦',region:'North America',corridors:11,monthlyOrders:'1.5m',topConnections:['USA','UK','Luxembourg'],competitors:['Local TAs'],opportunity:'Medium',oppNote:'CI Financial RIA acquisitions trigger infra review',status:'Active — 11 corridors live'},
+  SWE:{name:'Sweden',flag:'🇸🇪',region:'Nordics',corridors:13,monthlyOrders:'1.7m',topConnections:['UK','Luxembourg','Germany'],competitors:['Euroclear EMX'],opportunity:'Medium',oppNote:'Nordea T+1 readiness — ISO 20022 vendor decision Q4',status:'Active — 13 corridors live'},
+  CHE:{name:'Switzerland',flag:'🇨🇭',region:'Western Europe',corridors:15,monthlyOrders:'2.2m',topConnections:['Luxembourg','UK','Germany'],competitors:['Clearstream','Euroclear EMX'],opportunity:'High',oppNote:'UBS Wealth flagged as potential EMX switcher — CCO lead',status:'Active — 15 corridors live'},
+};
+
+/* ============================================================
+   SECTION: Derived
+   ============================================================ */
+const catRank = {regulatory:4, competitor:3, market:2, call:1};
+const countryTopCat = {};
+ALERT_EVENTS.forEach((e,i)=>{
+  e.eid = 'ev'+i;                       // stable id per event
+  const cur = countryTopCat[e.iso];
+  if(!cur || catRank[e.cat] > cur.rank) countryTopCat[e.iso] = {cat:e.cat, rank:catRank[e.cat]};
+});
+const EVENT_BY_ID = {};
+ALERT_EVENTS.forEach(e=> EVENT_BY_ID[e.eid] = e);
+
+const activeCats = new Set(['regulatory','competitor','market','call']);
+let selectedEid = null;
+
+/* ============================================================
+   SECTION: Globe
+   ============================================================ */
+/* Multiple GeoJSON sources — try in order so a single CDN failure doesn't break the map */
+const GEO_URLS = [
+  'https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/country-capitals/ne_110m_admin_0_countries.geojson',
+  'https://cdn.jsdelivr.net/gh/vasturiano/globe.gl@master/example/country-capitals/ne_110m_admin_0_countries.geojson',
+  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson',
+  'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
+];
+let globe, autoResumeTimer, wantAutoRotate = true;
+
+function polygonCapColor(d){
+  const top = countryTopCat[d.properties.ISO_A3];
+  if(top && activeCats.has(top.cat)) return 'rgba(45, 153, 156, 0.32)';   /* brand-teal wash */
+  return 'rgba(255,255,255,0.96)';
+}
+function polygonSideColor(){ return 'rgba(108,123,131,0.10)'; }
+function polygonStroke(){ return 'rgba(108,123,131,0.42)'; }
+function visiblePoints(){ return ALERT_EVENTS.filter(e=>activeCats.has(e.cat)); }
+function activeAlt(d){ const t=countryTopCat[d.properties.ISO_A3]; return (t&&activeCats.has(t.cat))?0.014:0.006; }
+
+/* Build the flat flashing marker element for an event (anime.js-driven flash) */
+function makeFlashMarker(e){
+  const c = CAT[e.cat];
+  const wrap = document.createElement('div');
+  wrap.className = 'flash-marker' + (e.sev==='high'?' high':'');
+  wrap.dataset.eid = e.eid;
+  wrap.style.setProperty('--mc', c.color);
+  wrap.innerHTML = `<span class="fm-ring"></span><span class="fm-ring fm-ring2"></span><span class="fm-core"></span>`;
+  wrap.title = `${e.cty} – ${e.type}`;
+  wrap.addEventListener('click', ev=>{ ev.stopPropagation(); selectEvent(e.eid); });
+  return wrap;
+}
+
+function initGlobe(geo){
+  document.getElementById('globe-loading').style.display='none';
+  const stage = document.getElementById('stage');
+
+  globe = Globe()
+    .width(stage.clientWidth).height(stage.clientHeight)
+    .backgroundColor('rgba(0,0,0,0)')
+    .showGlobe(true).showGraticules(false).showAtmosphere(true)
+    .atmosphereColor('#9fc6d4').atmosphereAltitude(0.16)
+    .globeMaterial(makeGlobeMaterial())
+    .polygonsData(geo.features)
+    .polygonCapColor(polygonCapColor)
+    .polygonSideColor(polygonSideColor)
+    .polygonStrokeColor(polygonStroke)
+    .polygonAltitude(activeAlt)
+    .polygonLabel(d=>buildHoverCard(d))
+    .onPolygonHover(hoverP=>{
+      globe.polygonAltitude(d=> d===hoverP ? 0.03 : activeAlt(d));
+    })
+    .onPolygonClick(d=>{
+      const iso=d.properties.ISO_A3;
+      const ev = ALERT_EVENTS.find(x=>x.iso===iso && activeCats.has(x.cat));
+      if(ev){ selectEvent(ev.eid);
+        globe.pointOfView({lat:ev.lat,lng:ev.lng,altitude:1.6},1200); }
+    })
+    .htmlElementsData(visiblePoints())
+    .htmlLat('lat').htmlLng('lng')
+    .htmlAltitude(0.01)
+    .htmlElement(e=>makeFlashMarker(e))
+    (document.getElementById('globe-container'));
+
+  const ctrl=globe.controls();
+  ctrl.autoRotate=true; ctrl.autoRotateSpeed=0.34;
+  ctrl.enableZoom=true; ctrl.minDistance=180; ctrl.maxDistance=520;
+  globe.pointOfView({lat:25,lng:8,altitude:2.1},0);
+
+  // even, flat lighting so the globe reads uniformly pale (like the reference)
+  const scene = globe.scene();
+  scene.children.filter(c=>c.type.includes('Light')).forEach(l=>scene.remove(l));
+  scene.add(new THREE.AmbientLight(0xffffff, 1.05));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.25);
+  dir.position.set(1,1,1);
+  scene.add(dir);
+
+  const container=document.getElementById('globe-container');
+  container.addEventListener('pointerdown',()=>{ ctrl.autoRotate=false; clearTimeout(autoResumeTimer); });
+  container.addEventListener('pointerup',()=>{ clearTimeout(autoResumeTimer);
+    if(wantAutoRotate) autoResumeTimer=setTimeout(()=>{ctrl.autoRotate=true;},3000); });
+
+  window.addEventListener('resize',()=>globe.width(stage.clientWidth).height(stage.clientHeight));
+}
+
+function makeGlobeMaterial(){
+  return new THREE.MeshBasicMaterial({
+    color:0xf4f8fa, transparent:true, opacity:1
+  });
+}
+
+function buildHoverCard(d){
+  const iso=d.properties.ISO_A3, det=COUNTRY_DETAILS[iso];
+  const name=d.properties.NAME||d.properties.ADMIN||iso;
+  if(!det) return `<div class="hover-card"><div class="hc-cty">${name}</div><div class="hc-empty">No active alerts</div></div>`;
+  const evs=ALERT_EVENTS.filter(e=>e.iso===iso).length;
+  return `<div class="hover-card"><div class="hc-cty">${det.flag} ${det.name}</div>
+    <div class="hc-meta">${det.corridors} corridors · ${det.monthlyOrders}/mo · ${evs} alert${evs>1?'s':''}</div></div>`;
+}
+
+/* ============================================================
+   SECTION: Feed
+   ============================================================ */
+function visibleFeedEvents(){ return ALERT_EVENTS.filter(e=>activeCats.has(e.cat)).slice().sort((a,b)=>a.days-b.days); }
+function renderFeed(){
+  const feed=document.getElementById('feed');
+  const items=visibleFeedEvents();
+  document.getElementById('feed-sub').textContent=items.length+' active signals · sorted by recency';
+  feed.innerHTML='';
+  items.forEach(e=>{
+    const c=CAT[e.cat];
+    const row=document.createElement('div');
+    row.className='row'+(e.eid===selectedEid?' sel':'');
+    row.dataset.eid=e.eid;
+    row.style.opacity=0; row.style.transform='translateY(-8px)';
+    const factsHtml = e.details.facts.map(f=>`<li>${f}</li>`).join('');
+    row.innerHTML=`
+      <span class="row-dot ${e.sev==='high'?'high':''}" style="background:${c.color};color:${c.color}"></span>
+      <div class="row-body">
+        <div class="row-top">
+          <span class="flag">${e.flag}</span>
+          <span class="cty">${e.cty} <span class="dash">–</span> <span class="ctype">${e.type}</span></span>
+          <span class="ago">${agoLabel(e.days)}</span>
+        </div>
+        <div class="headline">${e.summary}</div>
+        <div class="row-foot">
+          <span class="badge ${c.badge}">${c.label}</span>
+          <button class="moreinfo" data-eid="${e.eid}">More info <span class="mi-chev">▾</span></button>
+        </div>
+        <div class="expand" id="exp-${e.eid}">
+          <div class="exp-inner">
+            <div class="exp-loc">📍 ${e.city}</div>
+            <h6>What's happening</h6><p>${e.details.what}</p>
+            <h6>Why it matters to Calastone</h6><p>${e.details.why}</p>
+            <h6>Key facts</h6><ul class="facts">${factsHtml}</ul>
+          </div>
+        </div>
+      </div>`;
+    // row click → fly + select (but not when clicking the More info button)
+    row.addEventListener('click',ev=>{
+      if(ev.target.closest('.moreinfo')) return;
+      selectEvent(e.eid);
+    });
+    feed.appendChild(row);
+  });
+  // wire expand buttons
+  feed.querySelectorAll('.moreinfo').forEach(btn=>{
+    btn.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      toggleExpand(btn.dataset.eid, btn);
+    });
+  });
+  anime({targets:'#feed .row',opacity:[0,1],translateY:[-8,0],delay:anime.stagger(40),duration:380,easing:'easeOutQuart'});
+}
+
+/* Expand / collapse the inline "more info" for a feed row */
+function toggleExpand(eid, btn){
+  const exp=document.getElementById('exp-'+eid);
+  const open=exp.classList.toggle('open');
+  btn.classList.toggle('on',open);
+  if(open){ exp.style.maxHeight=exp.querySelector('.exp-inner').scrollHeight+'px';
+    anime({targets:exp.querySelector('.exp-inner'),opacity:[0,1],translateY:[-6,0],duration:320,easing:'easeOutQuart'});
+  } else { exp.style.maxHeight='0px'; }
+}
+
+/* Select an event: fly globe to its city, highlight feed row, flash its marker */
+function selectEvent(eid){
+  const e=EVENT_BY_ID[eid]; if(!e) return;
+  // clicking the already-selected event deselects it
+  if(selectedEid===eid){ deselectEvent(); return; }
+  selectedEid=eid;
+  document.getElementById('feed-rail').classList.remove('collapsed');
+  document.getElementById('app').classList.remove('feed-closed');
+  if(globe) globe.pointOfView({lat:e.lat,lng:e.lng,altitude:1.6},1200);
+  // highlight feed
+  document.querySelectorAll('#feed .row').forEach(r=>r.classList.toggle('sel', r.dataset.eid===eid));
+  // scroll feed row into view + auto-expand its details
+  const row=document.querySelector('#feed .row[data-eid="'+eid+'"]');
+  if(row){ row.scrollIntoView({behavior:'smooth',block:'nearest'});
+    const btn=row.querySelector('.moreinfo'); const exp=document.getElementById('exp-'+eid);
+    if(exp && !exp.classList.contains('open')) toggleExpand(eid,btn);
+  }
+  // pulse the marker on the globe
+  const marker=document.querySelector('.flash-marker[data-eid="'+eid+'"]');
+  if(marker){ marker.classList.remove('ping'); void marker.offsetWidth; marker.classList.add('ping'); }
+}
+
+function deselectEvent(){
+  const prev=selectedEid;
+  selectedEid=null;
+  document.querySelectorAll('#feed .row').forEach(r=>r.classList.remove('sel'));
+  // collapse the previously-open details
+  if(prev){
+    const exp=document.getElementById('exp-'+prev);
+    const btn=document.querySelector('#feed .row[data-eid="'+prev+'"] .moreinfo');
+    if(exp && exp.classList.contains('open')) toggleExpand(prev, btn);
+  }
+  // ease the camera back out to the default overview
+  if(globe) globe.pointOfView({lat:25,lng:8,altitude:2.1},900);
+}
+
+/* ============================================================
+   SECTION: Filter (legend-driven)
+   ============================================================ */
+document.querySelectorAll('#legend .lg-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    const cat=item.dataset.cat;
+    if(activeCats.has(cat)){ activeCats.delete(cat); item.classList.remove('on'); }
+    else { activeCats.add(cat); item.classList.add('on'); }
+    applyFilter();
+  });
+});
+function updateCounts(){
+  const by=c=>ALERT_EVENTS.filter(e=>e.cat===c).length;
+  const set=(id,n)=>{const el=document.getElementById(id); if(el) el.textContent=n;};
+  set('c-reg',by('regulatory')); set('c-comp',by('competitor'));
+  set('c-mkt',by('market')); set('c-call',by('call'));
+}
+function applyFilter(){
+  renderFeed();
+  if(!globe) return;
+  globe.htmlElementsData(visiblePoints());
+  globe.polygonCapColor(polygonCapColor).polygonAltitude(activeAlt);
+}
+
+/* ============================================================
+   SECTION: Bottom pills
+   ============================================================ */
+document.querySelectorAll('.pill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    const v=p.dataset.view;
+    if(v==='reset'){ if(globe) globe.pointOfView({lat:25,lng:8,altitude:2.1},1000); return; }
+    document.querySelectorAll('.pill[data-view="rotate"],.pill[data-view="pause"]').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    if(!globe) return;
+    if(v==='rotate'){ wantAutoRotate=true; globe.controls().autoRotate=true; }
+    if(v==='pause'){ wantAutoRotate=false; globe.controls().autoRotate=false; clearTimeout(autoResumeTimer); }
+  });
+});
+
+/* ============================================================
+   SECTION: Collapsible feed rail
+   ============================================================ */
+document.getElementById('feed-toggle').addEventListener('click',()=>{
+  const collapsed = document.getElementById('feed-rail').classList.toggle('collapsed');
+  document.getElementById('app').classList.toggle('feed-closed', collapsed);
+  setTimeout(()=>{ if(globe){const s=document.getElementById('stage');globe.width(s.clientWidth).height(s.clientHeight);} },440);
+});
+
+/* ============================================================
+   SECTION: Helpers + boot
+   ============================================================ */
+function truncate(s,n){return s.length>n?s.slice(0,n).trim()+'…':s;}
+function agoLabel(d){if(d<=1)return d<=0?'today':'1 day ago';if(d<7)return d+' days ago';const w=Math.round(d/7);return w+(w===1?' week ago':' weeks ago');}
+function animateStats(){
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const t=+el.dataset.count,o={v:0};
+    anime({targets:o,v:t,duration:1400,easing:'easeOutExpo',round:1,update:()=>el.textContent=Math.round(o.v)});
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  animateStats(); updateCounts(); renderFeed();
+  loadGeo();
+});
+
+/* Try each source in turn; handle both GeoJSON and world-atlas TopoJSON. */
+async function loadGeo(){
+  const loadingEl = document.getElementById('globe-loading');
+  const errEl = document.getElementById('err');
+  errEl.style.display='none';
+  loadingEl.style.display='block';
+  loadingEl.textContent='Loading network map…';
+
+  for(let i=0;i<GEO_URLS.length;i++){
+    const url = GEO_URLS[i];
+    try{
+      const res = await fetch(url, {cache:'force-cache'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      let data = await res.json();
+      let features;
+
+      if(data.type === 'Topology'){
+        // world-atlas TopoJSON — convert via topojson-client (load on demand)
+        await ensureTopojson();
+        const obj = data.objects.countries || Object.values(data.objects)[0];
+        features = window.topojson.feature(data, obj).features;
+        // world-atlas uses numeric ids, not ISO_A3 — map id→ISO via name match fallback
+        features.forEach(f=>{ if(!f.properties) f.properties={};
+          if(!f.properties.ISO_A3 && f.properties.name) f.properties.ISO_A3 = NAME_TO_ISO[f.properties.name] || ''; });
+      } else {
+        features = data.features;
+      }
+
+      features = features.filter(f=> (f.properties.ISO_A3||f.properties.ISO_A3_EH) !== 'ATA');
+      // normalise ISO key + label coords if missing
+      features.forEach(f=>{
+        const p=f.properties;
+        if(!p.ISO_A3 && p.ISO_A3_EH) p.ISO_A3 = p.ISO_A3_EH;
+        if(p.LABEL_Y==null || p.LABEL_X==null){ const c=roughCentroid(f); p.LABEL_Y=c[1]; p.LABEL_X=c[0]; }
+      });
+
+      initGlobe({features});
+      return; // success
+    }catch(err){
+      console.warn('GeoJSON source failed:', url, err.message);
+    }
+  }
+  // all sources failed
+  loadingEl.style.display='none';
+  errEl.style.display='flex';
+}
+
+function ensureTopojson(){
+  return new Promise((resolve,reject)=>{
+    if(window.topojson) return resolve();
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+    s.onload=resolve; s.onerror=()=>reject(new Error('topojson load failed'));
+    document.head.appendChild(s);
+  });
+}
+
+/* rough polygon centroid for label fly-to when LABEL_X/Y absent */
+function roughCentroid(f){
+  let coords = f.geometry.coordinates;
+  if(f.geometry.type==='MultiPolygon') coords = coords.reduce((a,b)=>a[0].length>b[0].length?a:b);
+  const ring = coords[0]||[[0,0]];
+  let x=0,y=0; ring.forEach(p=>{x+=p[0];y+=p[1];});
+  return [x/ring.length, y/ring.length];
+}
+
+/* minimal name→ISO_A3 map for the alert countries (world-atlas fallback only) */
+const NAME_TO_ISO = {
+  'Netherlands':'NLD','Mexico':'MEX','United Kingdom':'GBR','Australia':'AUS','India':'IND',
+  'Luxembourg':'LUX','Belgium':'BEL','Spain':'ESP','Singapore':'SGP','Ireland':'IRL',
+  'United States of America':'USA','United States':'USA','Japan':'JPN','China':'CHN','Germany':'DEU',
+  'Brazil':'BRA','France':'FRA','South Africa':'ZAF','Taiwan':'TWN','United Arab Emirates':'ARE',
+  'Canada':'CAN','Sweden':'SWE','Switzerland':'CHE','Hong Kong':'HKG'
+};
+
+/* allow the error panel's retry button to re-attempt */
+document.addEventListener('click',e=>{ if(e.target && e.target.id==='retry-geo') loadGeo(); });
+</script>
+</body>
+</html>

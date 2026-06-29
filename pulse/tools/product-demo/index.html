@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calastone · Product Demo</title>
+<script type="module">
+import { animate, stagger, createTimeline } from 'https://esm.sh/animejs';
+window._hsAnimate = animate;
+window._hsStagger = stagger;
+window._hsTimeline = createTimeline;
+</script>
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/effects.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar" id="topbar">
+  <div class="topbar-left">
+    <img src="./assets/calastone-wordmark-black.png" alt="Calastone" class="topbar-logo">
+    <span class="topbar-divider">·</span>
+    <span class="topbar-title">Product Demo</span>
+  </div>
+  <a href="../../index.html" class="home-btn">&#8592; Pulse Home</a>
+</div>
+
+<!-- Hub & Spoke Mode UI -->
+<div id="hubSpokeUI" class="hs-open">
+  <div class="hs-inner">
+    <div class="hs-header">
+      <div>
+        <div class="hs-title">Calastone Network <span>Mutual Funds</span></div>
+        <div class="hs-tagline">Connect to Calastone using <b>any message type in any format</b> — removing complexity, cost and risk.</div>
+      </div>
+      <div class="hs-live-badge">
+        <span class="hs-live-dot"></span>
+        Interactive · toggle before / after
+      </div>
+    </div>
+    <div class="hs-grid">
+      <div class="hs-diagram-panel">
+        <div class="hs-panel-top">
+          <span class="hs-eyebrow" id="hs-stage-eyebrow">Before · point-to-point</span>
+          <div class="hs-controls">
+            <div class="hs-toggle">
+              <button id="hs-btn-before" class="hs-toggle-btn active">Before</button>
+              <button id="hs-btn-after" class="hs-toggle-btn">After</button>
+            </div>
+            <button id="hs-btn-auto" class="hs-auto-btn">
+              <span id="hs-auto-dot"></span>Auto
+            </button>
+          </div>
+        </div>
+        <div id="hs-diagram"></div>
+        <div class="hs-caption">Connect to Calastone using <b>any message type in any format</b> — removing complexity, cost and risk.</div>
+      </div>
+      <div class="hs-info-panel">
+        <span class="hs-side-eyebrow" id="hs-side-eyebrow">Before · the problem</span>
+        <div id="hs-side-before">
+          <h3 class="hs-side-title">Tangled point-to-point</h3>
+          <p class="hs-side-body">Every counterparty maintains a bespoke link to every other. Connectivity is costly, fragile and slow to change — each new participant multiplies the connections to build and maintain.</p>
+        </div>
+        <div id="hs-side-after" style="display:none">
+          <h3 class="hs-side-title">With the Calastone Network</h3>
+          <p class="hs-side-body">One connection to Calastone reaches the whole market — any message type, any format, translated and routed automatically.</p>
+        </div>
+        <div class="hs-participants">
+          <span class="hs-participants-label">Participants · hover to trace</span>
+          <div class="hs-role-list" id="hs-role-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hs-footer">
+      <span>© Calastone Limited 2026</span>
+      <span>The largest global funds network · Fully interoperable · Automated end-to-end</span>
+      <span>Calastone.com</span>
+    </div>
+  </div>
+</div>
+
+<!-- Order Routing Mode UI -->
+<div id="orderRoutingUI" style="display:none;position:fixed;inset:0;z-index:12;flex-direction:column;background:#fff;">
+  <div id="orModeStrip" style="display:none;flex:none;align-items:center;justify-content:space-between;gap:8px;padding:0 24px;height:44px;background:#fff;border-bottom:1px solid #e3e9ef;box-sizing:border-box;">
+    <div style="display:flex;align-items:center;gap:5px;background:#f1f5f8;border:1px solid #e3e9ef;border-radius:999px;padding:3px;">
+      <button id="orBtnRoute" onclick="window._orSetMode('route')" style="font:600 11px/1 -apple-system,sans-serif;letter-spacing:.04em;padding:5px 14px;border-radius:999px;border:none;cursor:pointer;background:#fff;color:#0d1418;box-shadow:0 1px 3px rgba(0,0,0,.12);transition:background .15s,color .15s;">Order Routing</button>
+      <button id="orBtnSettle" onclick="window._orSetMode('settlement')" style="font:600 11px/1 -apple-system,sans-serif;letter-spacing:.04em;padding:5px 14px;border-radius:999px;border:none;cursor:pointer;background:transparent;color:#8a98a3;transition:background .15s,color .15s;">Order Routing + Settlement</button>
+    </div>
+    <div id="orStepBar" style="display:none;align-items:center;gap:4px;">
+      <span style="font:600 9px/1 -apple-system,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9aa6b0;margin-right:4px;">STEP</span>
+    </div>
+  </div>
+  <div id="orLoadingIndicator" style="flex:1;display:flex;align-items:center;justify-content:center;font:13px/1 -apple-system,sans-serif;color:#9aa6b0;letter-spacing:.04em;">
+    <span style="width:16px;height:16px;border-radius:50%;border:2px solid #dde5ec;border-top-color:#2D9A8E;animation:orSpin 0.8s linear infinite;display:inline-block;margin-right:10px;"></span>
+    Loading…
+  </div>
+  <iframe id="orFlowFrame" src="" title="Order Routing Flow" style="flex:1;min-height:0;border:none;display:none;width:100%;will-change:transform;"></iframe>
+</div>
+<style>@keyframes orSpin{to{transform:rotate(360deg)}}</style>
+
+<!-- Products Navigation -->
+<div id="productNav" style="display:none">
+  <svg class="pn-lines-svg" id="pnLinesSvg" aria-hidden="true"></svg>
+  <div class="pn-hub" id="pnHub">
+    <div class="pn-hex pn-hex-hub">
+      <span class="pn-hub-label">PRODUCTS</span>
+    </div>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calastone · Pipeline Tracker</title>
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/effects.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a href="../../index.html" class="home-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    ← Pulse Home
+  </a>
+  <div class="topbar-divider"></div>
+  <div class="brand">
+    <div class="mark"><span class="logo-text">Calastone</span></div>
+    <div class="gradline"></div>
+  </div>
+  <span class="page-title">Pipeline Tracker</span>
+  <div class="topbar-spacer"></div>
+  <div class="live-badge"><span class="dot"></span>LIVE</div>
+  <div class="refresh-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M20.5 14a9 9 0 11-2.1-9.4L23 10"/></svg>
+    <span>Updated <b>07:15 AM</b></span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="left" id="leftPanel">
+    <div class="left-head">
+      <div class="left-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input placeholder="Filter pipeline…" id="filterInput">
+      </div>
+      <div class="chips" id="chips">
+        <div class="chip active" data-f="all">All <span class="cnt">4</span></div>
+        <div class="chip" data-f="news">News <span class="cnt">4</span></div>
+        <div class="chip" data-f="sf">Salesforce <span class="cnt">4</span></div>
+        <div class="chip" data-f="nocontact">No Contact <span class="cnt">1</span></div>
+      </div>
+    </div>
+    <div class="list-meta">
+      <span>Pipeline · 4 accounts</span>
+      <span class="sort">Signal urgency <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></span>
+    </div>
+    <div class="plist" id="plist"></div>
+  </div>
+
+  <div class="right" id="rightPanel">
+    <div class="mobile-back" id="mobileBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg> Back to pipeline
+    </div>
+    <div class="detail" id="detail"></div>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
