@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/pulse/index.html" },
+    { "source": "/(.*)", "destination": "/pulse/$1" }
+  ]
+}
