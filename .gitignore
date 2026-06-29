@@ -2,9 +2,12 @@
 config.js
 system-globe/config.js
 
-# Screenshots and generated assets
-*.png
+# Screenshots and generated assets (exclude bulk exports)
 *.xlsx
+
+# Exclude PNGs globally but allow brand assets in pulse/assets/
+*.png
+!pulse/assets/*.png
 
 # OS / editor noise
 .DS_Store
