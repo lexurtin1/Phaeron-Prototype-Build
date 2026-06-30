@@ -278,21 +278,32 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   fill:none;stroke:var(--c-teal);stroke-width:1.4;opacity:0;
   stroke-dasharray:1;stroke-dashoffset:1;
 }
-.nn-circle{fill:var(--c-surface);stroke:var(--c-teal);stroke-width:1.6}
-.nn-center-circle{fill:var(--c-teal)}
-.nn-abbr{
-  font-family:'Inter','Arial',sans-serif;font-size:8.5px;font-weight:700;
-  fill:var(--c-teal-hover);text-anchor:middle;dominant-baseline:middle;
-}
-.nn-label{
-  font-family:'Inter','Arial',sans-serif;font-size:9px;font-weight:500;
-  fill:var(--c-text-muted);text-anchor:middle;
-}
-.nn-center-txt{
-  font-family:'Inter','Arial',sans-serif;font-size:10px;font-weight:800;
-  fill:#fff;text-anchor:middle;dominant-baseline:middle;
-}
-#globeCenter{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .52s both}
+/* node base styles */
+.nn-circle{fill:rgba(255,255,255,0.9);stroke-width:1.8}
+.nn-abbr{font-family:'Inter','Arial',sans-serif;font-size:8.5px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+.nn-label{font-family:'Inter','Arial',sans-serif;font-size:9px;font-weight:600;text-anchor:middle}
+/* per-source colour coding */
+#nn-0 .nn-circle{stroke:#0082C4;fill:rgba(0,130,196,0.08)}    /* Salesforce – Calastone blue */
+#nn-1 .nn-circle{stroke:#22323D;fill:rgba(34,50,61,0.08)}     /* Contracts  – Navy */
+#nn-2 .nn-circle{stroke:#3B6FCC;fill:rgba(59,111,204,0.08)}   /* Jira       – Cobalt */
+#nn-3 .nn-circle{stroke:#2D9A8E;fill:rgba(45,154,142,0.08)}   /* PowerBI    – Teal */
+#nn-4 .nn-circle{stroke:#35B57E;fill:rgba(53,181,126,0.08)}   /* Billing    – Green */
+#nn-5 .nn-circle{stroke:#566571;fill:rgba(86,101,113,0.08)}   /* Procedures – Slate */
+#nn-0 .nn-abbr,#nn-0 .nn-label{fill:#0082C4}
+#nn-1 .nn-abbr,#nn-1 .nn-label{fill:#22323D}
+#nn-2 .nn-abbr,#nn-2 .nn-label{fill:#3B6FCC}
+#nn-3 .nn-abbr,#nn-3 .nn-label{fill:#2D9A8E}
+#nn-4 .nn-abbr,#nn-4 .nn-label{fill:#35B57E}
+#nn-5 .nn-abbr,#nn-5 .nn-label{fill:#566571}
+/* hex centre */
+#hexCenter{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .52s both}
+/* source toggle colour coding (matches nodes) */
+.ctx-toggle[data-ctx="Salesforce"].on{background:#0082C4;border-color:#0082C4}
+.ctx-toggle[data-ctx="Contracts"].on{background:#22323D;border-color:#22323D}
+.ctx-toggle[data-ctx="Jira"].on{background:#3B6FCC;border-color:#3B6FCC}
+.ctx-toggle[data-ctx="PowerBI"].on{background:#2D9A8E;border-color:#2D9A8E}
+.ctx-toggle[data-ctx="Billing"].on{background:#35B57E;border-color:#35B57E}
+.ctx-toggle[data-ctx="Procedures"].on{background:#566571;border-color:#566571}
 .net-line{animation:fadeIn .8s ease .58s both}
 #nn-0{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .66s both}
 #nn-1{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .74s both}
@@ -798,37 +809,29 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                 <div class="network-vis" id="networkVis" aria-hidden="true">
                   <svg viewBox="0 0 440 240" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                      <clipPath id="gc"><circle cx="220" cy="120" r="28"/></clipPath>
-                      <radialGradient id="gg" cx="35%" cy="28%" r="70%">
-                        <stop offset="0%" stop-color="#3BBFB0"/>
-                        <stop offset="60%" stop-color="#2D9A8E"/>
-                        <stop offset="100%" stop-color="#1A6B63"/>
-                      </radialGradient>
+                      <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%"   stop-color="#0082C4"/>
+                        <stop offset="50%"  stop-color="#2D9A8E"/>
+                        <stop offset="100%" stop-color="#35B57E"/>
+                      </linearGradient>
                     </defs>
-                    <!-- connection lines: draw from center outward -->
-                    <path class="net-line" id="nl-0" d="M220,120 L68,52" pathLength="1"/>
-                    <path class="net-line" id="nl-1" d="M220,120 L220,24" pathLength="1"/>
-                    <path class="net-line" id="nl-2" d="M220,120 L372,52" pathLength="1"/>
-                    <path class="net-line" id="nl-3" d="M220,120 L372,188" pathLength="1"/>
-                    <path class="net-line" id="nl-4" d="M220,120 L220,216" pathLength="1"/>
-                    <path class="net-line" id="nl-5" d="M220,120 L68,188" pathLength="1"/>
-                    <!-- spinning globe centre -->
-                    <g id="globeCenter">
-                      <circle cx="220" cy="120" r="30" fill="url(#gg)" stroke="rgba(45,154,142,0.55)" stroke-width="1.2"/>
-                      <g clip-path="url(#gc)">
-                        <!-- latitude lines (static) -->
-                        <ellipse cx="220" cy="107" rx="25" ry="7"  fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.7"/>
-                        <ellipse cx="220" cy="120" rx="28" ry="10" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.7"/>
-                        <ellipse cx="220" cy="133" rx="25" ry="7"  fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.7"/>
-                        <!-- longitude meridians (rx animated by spinGlobe) -->
-                        <ellipse id="glon1" cx="220" cy="120" rx="26" ry="28" fill="none" stroke="rgba(255,255,255,0.38)" stroke-width="0.8"/>
-                        <ellipse id="glon2" cx="220" cy="120" rx="13" ry="28" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="0.8"/>
-                        <ellipse id="glon3" cx="220" cy="120" rx="0"  ry="28" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/>
-                      </g>
-                      <!-- outer ring -->
-                      <circle cx="220" cy="120" r="30" fill="none" stroke="rgba(45,154,142,0.7)" stroke-width="1.5"/>
-                      <!-- subtle specular highlight -->
-                      <ellipse cx="213" cy="112" rx="9" ry="6" fill="rgba(255,255,255,0.09)"/>
+                    <!-- connection lines: draw from center outward, colour-coded per source -->
+                    <path class="net-line" id="nl-0" d="M220,120 L68,52"   pathLength="1" style="stroke:#0082C4"/>
+                    <path class="net-line" id="nl-1" d="M220,120 L220,24"  pathLength="1" style="stroke:#22323D"/>
+                    <path class="net-line" id="nl-2" d="M220,120 L372,52"  pathLength="1" style="stroke:#3B6FCC"/>
+                    <path class="net-line" id="nl-3" d="M220,120 L372,188" pathLength="1" style="stroke:#2D9A8E"/>
+                    <path class="net-line" id="nl-4" d="M220,120 L220,216" pathLength="1" style="stroke:#35B57E"/>
+                    <path class="net-line" id="nl-5" d="M220,120 L68,188"  pathLength="1" style="stroke:#566571"/>
+                    <!-- Calastone hexagon centre -->
+                    <g id="hexCenter">
+                      <!-- filled hex -->
+                      <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="url(#hexGrad)"/>
+                      <!-- Calastone A mark (white) -->
+                      <path d="M213,138 L220,116 L227,138 M215.5,131 H224.5" stroke="rgba(255,255,255,0.92)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <!-- animated border trace spark -->
+                      <path id="hexTrace" d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(180,240,230,0.85)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24 168"/>
+                      <!-- outer hex ring -->
+                      <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
                     </g>
                     <!-- source nodes -->
                     <g class="net-node" id="nn-0">
@@ -999,34 +1002,16 @@ function animateNetwork(){
     duration:380,
     easing:'easeOutBack'
   });
-  /* globe node scales up on network entrance */
-  anime({targets:'#globeCenter', scale:[0.7,1], opacity:[0,1], duration:500, delay:520, easing:'easeOutBack'});
+  /* hex centre scales up on network entrance */
+  anime({targets:'#hexCenter', scale:[0.7,1], opacity:[0,1], duration:500, delay:520, easing:'easeOutBack'});
 }
 animateNetwork();
 
-/* ───────────────────── spinning globe ───────────────────── */
-function spinGlobe(){
-  const period = 3200; // ms per full rotation
-  [
-    { id:'#glon1', delay: 0 },
-    { id:'#glon2', delay: period / 3 },
-    { id:'#glon3', delay: (period / 3) * 2 }
-  ].forEach(({id, delay}) => {
-    anime({
-      targets: id,
-      keyframes:[
-        { rx:26, opacity:0.5 },
-        { rx:0,  opacity:0.08 },
-        { rx:26, opacity:0.5 }
-      ],
-      duration: period,
-      delay: delay,
-      easing:'easeInOutSine',
-      loop: true
-    });
-  });
+/* ───────────────────── hex border trace ───────────────────── */
+function animateHexBorder(){
+  anime({targets:'#hexTrace', strokeDashoffset:[192,0], duration:2400, easing:'linear', loop:true});
 }
-spinGlobe();
+animateHexBorder();
 
 /* source ctx → network node mapping (for submit flash) */
 const CTX_NODE = {
@@ -1039,7 +1024,7 @@ function flashNodes(){
   const targets = activeCtx.map(c=>CTX_NODE[c]).filter(Boolean);
   if(!targets.length) return;
   anime.timeline({easing:'easeInOutSine'})
-    .add({targets:'#globeCenter circle:first-child', scale:[1,1.12,1], duration:500})
+    .add({targets:'#hexCenter', scale:[1,1.1,1], duration:500})
     .add({targets:targets.join(','), scale:[1,1.18,1], delay:anime.stagger(90), duration:480}, '-=300');
 }
 
