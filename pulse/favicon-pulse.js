@@ -193,7 +193,7 @@
     ghostWidth: 1.5,
     lineWidth:  3,
     lineAlpha:  0.97,
-    msPerLoop:  980,
+    msPerLoop:  2200,
     onFrame: function (c, ts, lastFav, setLastFav) {
       if (ts - lastFav < 33) return; // ~30 fps for toDataURL
       setLastFav(ts);
@@ -213,7 +213,7 @@
       ghostWidth: 1,
       lineWidth:  1.8,
       lineAlpha:  0.95,
-      msPerLoop:  980,
+      msPerLoop:  2200,
     });
   }
 
