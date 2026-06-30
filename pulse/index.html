@@ -26,6 +26,7 @@
   .ph-brand img { height: 32px; width: auto; display: block; mix-blend-mode: multiply; }
   .ph-brand .divider { width: 1px; height: 20px; background: var(--ink-200); }
   .ph-brand .pulse-label { font-size: 12px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--teal-600); }
+  #ph-ecg { display: block; flex-shrink: 0; opacity: 0.9; }
   .ph-search { position: relative; width: 440px; max-width: 42vw; flex-shrink: 0; }
   .ph-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
   .ph-search input {
@@ -120,6 +121,7 @@
     <img src="./assets/calastone-wordmark-black.png" alt="Calastone">
     <span class="divider"></span>
     <span class="pulse-label">Pulse</span>
+    <canvas id="ph-ecg" width="88" height="20"></canvas>
   </div>
   <div class="ph-search">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
