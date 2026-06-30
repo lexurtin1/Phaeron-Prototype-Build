@@ -213,6 +213,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .recent-item svg{width:14px;height:14px;flex:0 0 auto;color:var(--c-text-faint);stroke-width:1.8}
 .recent-item span{overflow:hidden;text-overflow:ellipsis}
 .recent-item:hover{background:var(--c-surface-3);color:var(--c-text)}
+.recent-item.active{background:var(--c-tint);color:var(--c-teal-hover);font-weight:500}
 
 .sidebar-foot{margin-top:auto;border-top:1px solid var(--c-border);padding:10px}
 .user-mini{display:flex;align-items:center;gap:10px;padding:6px 7px;border-radius:var(--radius-sm)}
@@ -445,6 +446,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .src-chip svg{width:12px;height:12px;stroke-width:2}
 .src-chip:hover{border-color:var(--c-teal);color:var(--c-teal);background:var(--c-tint)}
 .src-chip.active{border-color:var(--c-teal);color:var(--c-teal);background:var(--c-tint)}
+/* inline suggestions in fallback response */
+.dev-note{background:rgba(249,250,251,0.9);border:1px dashed var(--c-border);border-radius:var(--radius-md);padding:12px 14px;margin:10px 0 4px;font-size:12.5px;color:var(--c-text-muted)}
+.dev-note strong{color:var(--c-text)}
+.inline-suggests{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.inline-suggest{display:flex;align-items:center;gap:10px;text-align:left;background:var(--c-surface);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-teal);border-radius:var(--radius-sm);padding:9px 13px;font-size:13px;color:var(--c-text);font-weight:500;cursor:pointer;transition:background .14s,color .14s,box-shadow .14s}
+.inline-suggest:hover{background:var(--c-tint);color:var(--c-teal-hover);box-shadow:var(--shadow-sm)}
+.inline-suggest svg{width:14px;height:14px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8}
 
 /* typing */
 .typing{display:flex;gap:5px;align-items:center;padding:4px 0}
@@ -774,11 +782,11 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <span class="chev"><i data-lucide="chevron-down"></i></span>
         </button>
         <div class="recent-list" id="recentList">
-          <button class="recent-item"><i data-lucide="message-square"></i><span>Digital TA rollout status</span></button>
-          <button class="recent-item"><i data-lucide="message-square"></i><span>BlackRock billing &amp; renewal</span></button>
-          <button class="recent-item"><i data-lucide="message-square"></i><span>L&amp;G relationship review</span></button>
-          <button class="recent-item"><i data-lucide="message-square"></i><span>Q3 ETF pipeline weighting</span></button>
-          <button class="recent-item"><i data-lucide="message-square"></i><span>Thailand network presence</span></button>
+          <button class="recent-item" data-hist="digitalTA"><i data-lucide="message-square"></i><span>Digital TA rollout status</span></button>
+          <button class="recent-item" data-hist="blackrock"><i data-lucide="message-square"></i><span>BlackRock billing &amp; renewal</span></button>
+          <button class="recent-item" data-hist="lng"><i data-lucide="message-square"></i><span>L&amp;G relationship review</span></button>
+          <button class="recent-item" data-hist="pipeline"><i data-lucide="message-square"></i><span>Q3 ETF pipeline weighting</span></button>
+          <button class="recent-item" data-hist="thailand"><i data-lucide="message-square"></i><span>Thailand network presence</span></button>
         </div>
       </div>
       <div class="sidebar-foot">
@@ -1077,6 +1085,58 @@ $('#recentHead').addEventListener('click',()=>{
   $('#recentHead').setAttribute('aria-expanded', String(!r.classList.contains('collapsed-list')));
 });
 
+/* ───────────────────── historical chat loader ───────────────────── */
+const HISTORY = {
+  digitalTA:{ q:'What stage is Digital TA at?',          key:'digitalTA', stamp:'Yesterday, 14:32' },
+  blackrock: { q:'How are we charging BlackRock?',        key:'blackrock',  stamp:'Monday, 09:18'   },
+  lng:       { q:'Relationship status with Legal &amp; General', key:'lng', stamp:'Tuesday, 11:04' },
+  pipeline:  { q:'Q3 ETF pipeline weighting',             key:'pipeline',   stamp:'Wednesday, 16:51'},
+  thailand:  { q:'Thailand network presence',             key:'thailand',   stamp:'Thursday, 10:27' }
+};
+
+function loadChat(histKey){
+  const hist = HISTORY[histKey];
+  if(!hist) return;
+  const r = resolve(hist.q.replace(/&amp;/g,'&'));
+
+  /* reset view */
+  emptyChat.style.display = 'none';
+  thread.style.display = 'flex';
+  thread.innerHTML = '';
+
+  /* question bubble */
+  thread.insertAdjacentHTML('beforeend',
+    `<div class="msg user"><div class="bubble">${hist.q}</div><div class="stamp">${hist.stamp}</div></div>`);
+
+  /* answer */
+  const tid = 't'+Date.now();
+  thread.insertAdjacentHTML('beforeend',
+    `<div class="msg assistant" id="${tid}">
+      <div class="assistant-row"><div class="av">C</div>
+      <div class="assistant-body">${r.html}</div></div>
+    </div>`);
+  const node = $('#'+tid);
+  if(r.sources&&r.sources.length) node.insertAdjacentHTML('beforeend', sourceChipsHTML(r.sources));
+  node.insertAdjacentHTML('beforeend',
+    `<div class="msg-actions">
+      <button class="act-btn" title="Copy" data-act="copy"><i data-lucide="copy"></i></button>
+      <button class="act-btn" title="Good response" data-act="up"><i data-lucide="thumbs-up"></i></button>
+      <button class="act-btn" title="Bad response" data-act="down"><i data-lucide="thumbs-down"></i></button>
+    </div>`);
+  wireActions(node, r);
+  if(r.sources&&r.sources.length){ renderSources(r.sources); openSourcePanel(); }
+  icons();
+  scrollBottom();
+  anime({targets:thread, opacity:[0,1], duration:280, easing:'easeOutCubic'});
+
+  /* mark active in sidebar */
+  $$('.recent-item').forEach(b=>b.classList.remove('active'));
+  const btn = $(`.recent-item[data-hist="${histKey}"]`);
+  if(btn) btn.classList.add('active');
+}
+
+$$('.recent-item').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.hist) loadChat(b.dataset.hist); }));
+
 /* ───────────────────── context toggles ───────────────────── */
 $$('.ctx-toggle').forEach(b=>b.addEventListener('click',()=>{
   b.classList.toggle('on');
@@ -1162,6 +1222,10 @@ function submit(){
     if(chips.length) anime({targets:chips, opacity:[0,1], translateX:[-8,0], delay:anime.stagger(55,{start:200}), duration:320, easing:'easeOutCubic'});
 
     if(r.sources && r.sources.length){ renderSources(r.sources); openSourcePanel(); }
+    /* wire inline-suggest buttons in fallback response */
+    $$('.inline-suggest', node).forEach(btn=>btn.addEventListener('click',()=>{
+      input.value = btn.dataset.q; input.dispatchEvent(new Event('input')); submit();
+    }));
     icons();
     scrollBottom();
   }, 900 + Math.random()*500);
@@ -1336,9 +1400,18 @@ const ANS = {
     ]
   },
   generic:(q)=>({
-    html:`<p>Searching across Calastone data sources for <strong>"${esc(q)}"</strong>…</p>
-    <p>I found related records but nothing with a single definitive answer. The closest matches sit in Salesforce and the procedures library. Try narrowing by client name, ISIN, product, or project — for example <strong>BlackRock</strong>, <strong>L&amp;G</strong>, <strong>Digital TA</strong>, <strong>Thailand</strong>, or the <strong>ETF pipeline</strong>.</p>`,
-    sources:[{system:'Salesforce',icon:'cloud',title:'Search results — partial match',snippet:'Several account and opportunity records partially matched the query terms.',time:'Just now'}]
+    html:`<p>I searched across all connected sources for <strong>"${esc(q)}"</strong> but couldn't pull a definitive answer yet.</p>
+    <div class="dev-note"><strong>Still in development</strong> — live query coverage is expanding. Right now I can answer a growing set of topics; anything outside that returns here for now.</div>
+    <p style="margin-top:12px;font-size:13px;color:var(--c-text-muted)">Try one of these questions I can answer today:</p>
+    <div class="inline-suggests">
+      <button class="inline-suggest" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
+      <button class="inline-suggest" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
+      <button class="inline-suggest" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
+      <button class="inline-suggest" data-q="Thailand network presence"><i data-lucide="map-pin"></i>Thailand network presence</button>
+      <button class="inline-suggest" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this Goldman ISIN?</button>
+      <button class="inline-suggest" data-q="Q3 ETF pipeline weighting"><i data-lucide="bar-chart-2"></i>Q3 ETF pipeline weighting</button>
+    </div>`,
+    sources:[]
   })
 };
 
