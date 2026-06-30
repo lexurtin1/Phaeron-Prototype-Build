@@ -96,14 +96,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .nav-item:nth-child(2){animation-delay:.16s}
 
 .proto-badge{animation:fadeDown .5s cubic-bezier(.23,1,.32,1) .3s both}
-.empty-chat .mark-lg{animation:fadeScaleUp .6s cubic-bezier(.34,1.56,.64,1) .45s both}
-#emptyChat h1{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .52s both}
-#emptyChat .lead{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .6s both}
-.source-row{animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .68s both}
-.suggest-chip:nth-child(1){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .78s both}
-.suggest-chip:nth-child(2){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .85s both}
-.suggest-chip:nth-child(3){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .92s both}
-.suggest-chip:nth-child(4){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .99s both}
+.network-vis{animation:fadeScaleUp .7s cubic-bezier(.34,1.56,.64,1) .42s both}
+#emptyChat h1{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .7s both}
+#emptyChat .lead{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .8s both}
+.suggest-chip:nth-child(1){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .9s both}
+.suggest-chip:nth-child(2){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .97s both}
+.chip-more-btn{animation:fadeUp .45s cubic-bezier(.23,1,.32,1) 1.04s both}
 
 /* ── Top bar (light, consistent with Pulse design system) ── */
 .topbar{
@@ -241,6 +239,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 /* ── Main ── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--c-surface)}
+/* subtle diagonal gradient on empty state background */
+.empty-chat{background:linear-gradient(145deg,#f8fafb 0%,#ffffff 50%,#f0f9f7 100%)}
 .view{flex:1;min-height:0;display:none;flex-direction:column}
 .view.active{display:flex}
 
@@ -253,11 +253,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* ── Empty state ── */
 .empty-chat{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:30px;gap:0;
+  text-align:center;padding:24px 30px 30px;gap:0;
 }
 .proto-badge{
   display:inline-flex;align-items:center;gap:8px;
-  padding:5px 14px;border-radius:999px;margin-bottom:20px;
+  padding:5px 14px;border-radius:999px;margin-bottom:14px;
   background:rgba(45,154,142,0.07);border:1px solid rgba(45,154,142,0.18);
   font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--c-teal-hover);
@@ -266,44 +266,64 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   width:6px;height:6px;border-radius:50%;background:var(--c-teal);
   animation:livePulse 2.4s ease-in-out infinite;
 }
-.empty-chat .mark-lg{
-  width:60px;height:60px;border-radius:16px;
-  background:linear-gradient(135deg,var(--c-tint) 0%,var(--c-tint-2) 100%);
-  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
-  box-shadow:0 6px 20px rgba(45,154,142,0.15);
-}
-.empty-chat .mark-lg svg{width:32px;height:32px}
-.empty-chat h1{font-size:24px;font-weight:800;color:var(--c-navy);letter-spacing:-0.015em}
-.empty-chat .lead{font-size:14px;color:var(--c-text-muted);margin-top:8px;max-width:400px;line-height:1.6}
+#emptyChat h1{font-size:23px;font-weight:800;color:var(--c-navy);letter-spacing:-0.015em;margin-top:12px}
+#emptyChat .lead{font-size:13.5px;color:var(--c-text-muted);margin-top:7px;max-width:380px;line-height:1.6}
 
-/* source connectivity pills */
-.source-row{
-  display:flex;flex-wrap:wrap;gap:7px;justify-content:center;
-  margin-top:18px;margin-bottom:4px;
+/* network visualization */
+.network-vis{
+  width:100%;max-width:480px;margin:0 auto;
 }
-.source-pill-sm{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--c-surface);border:1px solid var(--c-border);
-  border-radius:20px;padding:5px 12px;font-size:11.5px;color:var(--c-text-muted);font-weight:500;
-  transition:border-color .15s,color .15s,background .15s;
+.network-vis svg{width:100%;height:auto;overflow:visible}
+.net-line{
+  fill:none;stroke:var(--c-teal);stroke-width:1.4;opacity:0;
+  stroke-dasharray:1;stroke-dashoffset:1;
 }
-.source-pill-sm svg{width:12px;height:12px;stroke-width:2;color:var(--c-teal);flex-shrink:0}
-.source-pill-sm:hover{border-color:var(--c-teal);background:var(--c-tint);color:var(--c-teal-hover)}
+.nn-circle{fill:var(--c-surface);stroke:var(--c-teal);stroke-width:1.6}
+.nn-center-circle{fill:var(--c-teal)}
+.nn-abbr{
+  font-family:'Inter','Arial',sans-serif;font-size:8.5px;font-weight:700;
+  fill:var(--c-teal-hover);text-anchor:middle;dominant-baseline:middle;
+}
+.nn-label{
+  font-family:'Inter','Arial',sans-serif;font-size:9px;font-weight:500;
+  fill:var(--c-text-muted);text-anchor:middle;
+}
+.nn-center-txt{
+  font-family:'Inter','Arial',sans-serif;font-size:10px;font-weight:800;
+  fill:#fff;text-anchor:middle;dominant-baseline:middle;
+}
+.net-node{opacity:0}
 
+/* suggest chips */
+.chips-area{width:100%;max-width:540px;margin-top:20px}
 .chips-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;
-  width:100%;max-width:560px;
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;
 }
 .suggest-chip{
-  display:flex;align-items:center;gap:10px;text-align:left;
-  background:var(--c-surface);border:1px solid var(--c-border);
-  border-radius:var(--radius-md);padding:13px 15px;
-  font-size:13px;color:var(--c-text);font-weight:500;
-  transition:border-color .15s,box-shadow .15s,color .15s;min-height:50px;
+  display:flex;align-items:flex-start;gap:10px;text-align:left;
+  background:var(--c-surface);
+  border:1px solid var(--c-border-soft);border-left:3px solid var(--c-teal);
+  border-radius:var(--radius-md);padding:12px 14px 12px 13px;
+  font-size:13px;color:var(--c-text);font-weight:500;line-height:1.4;
+  transition:background .15s,box-shadow .15s,color .15s;min-height:48px;
   will-change:transform;
 }
-.suggest-chip svg{width:16px;height:16px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8}
-.suggest-chip:hover{border-color:var(--c-teal);color:var(--c-teal);box-shadow:var(--shadow-sm)}
+.suggest-chip svg{width:15px;height:15px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8;margin-top:1px}
+.suggest-chip:hover{background:var(--c-tint);color:var(--c-teal-hover);box-shadow:var(--shadow-sm)}
+.chip-more-btn{
+  width:100%;margin-top:9px;padding:9px 14px;
+  background:none;border:1px dashed var(--c-border);border-radius:var(--radius-md);
+  font-size:12px;font-weight:600;color:var(--c-text-muted);text-align:center;
+  transition:border-color .15s,color .15s,background .15s;cursor:pointer;
+}
+.chip-more-btn:hover{border-color:var(--c-teal);color:var(--c-teal);background:var(--c-tint)}
+.chip-extra{display:none}
+.chip-extra.visible{display:flex}
+
+/* source querying animation — flash on submit */
+@keyframes nodeFlash{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+.net-node.querying .nn-circle{animation:nodeFlash .6s ease-in-out}
+.net-node.querying .nn-center-circle{animation:nodeFlash .6s ease-in-out}
 
 /* messages */
 .msg{display:flex;flex-direction:column}
@@ -765,24 +785,65 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
               <!-- empty state -->
               <div class="empty-chat" id="emptyChat">
                 <div class="proto-badge"><span class="proto-dot"></span>Internal Prototype · Commercial Preview</div>
-                <div class="mark-lg" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#2D9A8E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
+
+                <!-- animated data connectivity network -->
+                <div class="network-vis" id="networkVis" aria-hidden="true">
+                  <svg viewBox="0 0 440 240" xmlns="http://www.w3.org/2000/svg">
+                    <!-- connection lines: draw from center outward -->
+                    <path class="net-line" id="nl-0" d="M220,120 L68,52" pathLength="1"/>
+                    <path class="net-line" id="nl-1" d="M220,120 L220,24" pathLength="1"/>
+                    <path class="net-line" id="nl-2" d="M220,120 L372,52" pathLength="1"/>
+                    <path class="net-line" id="nl-3" d="M220,120 L372,188" pathLength="1"/>
+                    <path class="net-line" id="nl-4" d="M220,120 L220,216" pathLength="1"/>
+                    <path class="net-line" id="nl-5" d="M220,120 L68,188" pathLength="1"/>
+                    <!-- center AI node -->
+                    <circle class="nn-center-circle" cx="220" cy="120" r="29"/>
+                    <text class="nn-center-txt" x="220" y="120">AI</text>
+                    <!-- source nodes -->
+                    <g class="net-node" id="nn-0">
+                      <circle class="nn-circle" cx="68" cy="52" r="22"/>
+                      <text class="nn-abbr" x="68" y="52">SF</text>
+                      <text class="nn-label" x="68" y="82">Salesforce</text>
+                    </g>
+                    <g class="net-node" id="nn-1">
+                      <circle class="nn-circle" cx="220" cy="24" r="22"/>
+                      <text class="nn-abbr" x="220" y="24">CT</text>
+                      <text class="nn-label" x="220" y="54">Contracts</text>
+                    </g>
+                    <g class="net-node" id="nn-2">
+                      <circle class="nn-circle" cx="372" cy="52" r="22"/>
+                      <text class="nn-abbr" x="372" y="52">JR</text>
+                      <text class="nn-label" x="372" y="82">Jira</text>
+                    </g>
+                    <g class="net-node" id="nn-3">
+                      <circle class="nn-circle" cx="372" cy="188" r="22"/>
+                      <text class="nn-abbr" x="372" y="188">BI</text>
+                      <text class="nn-label" x="372" y="158">PowerBI</text>
+                    </g>
+                    <g class="net-node" id="nn-4">
+                      <circle class="nn-circle" cx="220" cy="216" r="22"/>
+                      <text class="nn-abbr" x="220" y="216">BL</text>
+                      <text class="nn-label" x="220" y="186">Billing</text>
+                    </g>
+                    <g class="net-node" id="nn-5">
+                      <circle class="nn-circle" cx="68" cy="188" r="22"/>
+                      <text class="nn-abbr" x="68" y="188">PR</text>
+                      <text class="nn-label" x="68" y="158">Procedures</text>
+                    </g>
+                  </svg>
                 </div>
+
                 <h1>What would you like to know?</h1>
-                <p class="lead">Your AI analyst — connected live to contracts, billing, Jira, PowerBI, Salesforce and procedures. Ask anything about clients, products, or pipeline.</p>
-                <div class="source-row">
-                  <span class="source-pill-sm"><i data-lucide="cloud"></i>Salesforce</span>
-                  <span class="source-pill-sm"><i data-lucide="file-text"></i>Contracts</span>
-                  <span class="source-pill-sm"><i data-lucide="git-branch"></i>Jira</span>
-                  <span class="source-pill-sm"><i data-lucide="bar-chart-3"></i>PowerBI</span>
-                  <span class="source-pill-sm"><i data-lucide="receipt"></i>Billing</span>
-                  <span class="source-pill-sm"><i data-lucide="book-open"></i>Procedures</span>
-                </div>
-                <div class="chips-grid">
-                  <button class="suggest-chip" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
-                  <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
-                  <button class="suggest-chip" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
-                  <button class="suggest-chip" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this ISIN?</button>
+                <p class="lead">Your AI analyst — pulling live answers from contracts, billing, Jira, PowerBI, Salesforce and procedures.</p>
+
+                <div class="chips-area">
+                  <div class="chips-grid">
+                    <button class="suggest-chip" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
+                    <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
+                    <button class="suggest-chip chip-extra" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
+                    <button class="suggest-chip chip-extra" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this ISIN?</button>
+                  </div>
+                  <button class="chip-more-btn" id="chipMoreBtn">More examples →</button>
                 </div>
               </div>
               <div class="thread-inner" id="threadInner" style="display:none"></div>
@@ -887,6 +948,70 @@ const now = ()=> new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2
 
 /* entrance animations handled via CSS @keyframes above */
 
+/* ───────────────────── network visualization ───────────────────── */
+function animateNetwork(){
+  /* lines draw outward from center */
+  anime({
+    targets:'.net-line',
+    strokeDashoffset:[1,0],
+    opacity:[0,0.45],
+    delay:anime.stagger(110,{start:520}),
+    duration:480,
+    easing:'easeOutCubic'
+  });
+  /* nodes pop in after their line */
+  anime({
+    targets:'.net-node',
+    opacity:[0,1],
+    scale:[0.55,1],
+    delay:anime.stagger(110,{start:640}),
+    duration:380,
+    easing:'easeOutBack'
+  });
+  /* center node subtle idle pulse */
+  setTimeout(()=>{
+    anime({
+      targets:'.nn-center-circle',
+      scale:[1,1.07,1],
+      duration:2000,
+      easing:'easeInOutSine',
+      loop:true
+    });
+  }, 1500);
+}
+animateNetwork();
+
+/* source ctx → network node mapping (for submit flash) */
+const CTX_NODE = {
+  'salesforce':'#nn-0','contracts':'#nn-1','jira':'#nn-2',
+  'powerbi':'#nn-3','billing':'#nn-4','procedures':'#nn-5'
+};
+
+function flashNodes(){
+  const activeCtx = $$('.ctx-toggle.on').map(b=>b.dataset.ctx.toLowerCase());
+  const targets = activeCtx.map(c=>CTX_NODE[c]).filter(Boolean);
+  if(!targets.length) return;
+  anime.timeline({easing:'easeInOutSine'})
+    .add({targets:'.nn-center-circle', scale:[1,1.15,1], duration:500})
+    .add({targets:targets.join(','), scale:[1,1.18,1], delay:anime.stagger(90), duration:480}, '-=300');
+}
+
+/* ───────────────────── chip expand ───────────────────── */
+let chipsExpanded = false;
+$('#chipMoreBtn').addEventListener('click',()=>{
+  chipsExpanded = !chipsExpanded;
+  $$('.chip-extra').forEach(c=>{
+    if(chipsExpanded){ c.classList.add('visible'); }
+    else { c.classList.remove('visible'); }
+  });
+  $('#chipMoreBtn').textContent = chipsExpanded ? 'Fewer examples ↑' : 'More examples →';
+  if(chipsExpanded){
+    anime({targets:$$('.chip-extra'), opacity:[0,1], translateY:[8,0], delay:anime.stagger(60), duration:300, easing:'easeOutCubic'});
+    wireChipHover();
+    wireChips();
+  }
+});
+
 /* ───────────────────── suggest chip hover ───────────────────── */
 function wireChipHover(){
   $$('.suggest-chip').forEach(chip => {
@@ -948,9 +1073,12 @@ input.addEventListener('keydown',e=>{
   if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); if(input.value.trim()) submit(); }
 });
 sendBtn.addEventListener('click',()=>{ if(input.value.trim()) submit(); });
-$$('.suggest-chip').forEach(c=>c.addEventListener('click',()=>{
-  input.value=c.dataset.q; input.dispatchEvent(new Event('input')); submit();
-}));
+function wireChips(){
+  $$('.suggest-chip').forEach(c=>c.addEventListener('click',()=>{
+    input.value=c.dataset.q; input.dispatchEvent(new Event('input')); submit();
+  }));
+}
+wireChips();
 $('#closeSrc').addEventListener('click',()=>{
   anime({targets:'#sourcePanel', translateX:[0,20], opacity:[1,0], duration:250, easing:'easeInQuad', complete:()=>srcPanel.classList.add('hidden')});
 });
@@ -974,6 +1102,7 @@ function submit(){
   anime({targets:userMsg, opacity:[0,1], translateY:[14,0], duration:320, easing:'easeOutCubic'});
 
   input.value=''; input.style.height='auto'; sendBtn.disabled=true;
+  flashNodes();
   scrollBottom();
 
   const tid='t'+Date.now();
