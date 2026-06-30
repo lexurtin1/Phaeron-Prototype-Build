@@ -807,7 +807,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 
                 <!-- animated data connectivity network -->
                 <div class="network-vis" id="networkVis" aria-hidden="true">
-                  <svg viewBox="0 0 440 240" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 -22 440 284" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%"   stop-color="#0082C4"/>
@@ -815,22 +815,17 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                         <stop offset="100%" stop-color="#35B57E"/>
                       </linearGradient>
                     </defs>
-                    <!-- connection lines: draw from center outward, colour-coded per source -->
-                    <path class="net-line" id="nl-0" d="M220,120 L68,52"   pathLength="1" style="stroke:#0082C4"/>
-                    <path class="net-line" id="nl-1" d="M220,120 L220,24"  pathLength="1" style="stroke:#22323D"/>
-                    <path class="net-line" id="nl-2" d="M220,120 L372,52"  pathLength="1" style="stroke:#3B6FCC"/>
-                    <path class="net-line" id="nl-3" d="M220,120 L372,188" pathLength="1" style="stroke:#2D9A8E"/>
-                    <path class="net-line" id="nl-4" d="M220,120 L220,216" pathLength="1" style="stroke:#35B57E"/>
-                    <path class="net-line" id="nl-5" d="M220,120 L68,188"  pathLength="1" style="stroke:#566571"/>
+                    <!-- lines stop at circle edge (r=22) so they never cross labels -->
+                    <path class="net-line" id="nl-0" d="M220,120 L88,61"   pathLength="1" style="stroke:#0082C4"/>
+                    <path class="net-line" id="nl-1" d="M220,120 L220,46"  pathLength="1" style="stroke:#22323D"/>
+                    <path class="net-line" id="nl-2" d="M220,120 L352,61"  pathLength="1" style="stroke:#3B6FCC"/>
+                    <path class="net-line" id="nl-3" d="M220,120 L352,179" pathLength="1" style="stroke:#2D9A8E"/>
+                    <path class="net-line" id="nl-4" d="M220,120 L220,194" pathLength="1" style="stroke:#35B57E"/>
+                    <path class="net-line" id="nl-5" d="M220,120 L88,179"  pathLength="1" style="stroke:#566571"/>
                     <!-- Calastone hexagon centre -->
                     <g id="hexCenter">
-                      <!-- filled hex -->
                       <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="url(#hexGrad)"/>
-                      <!-- Calastone A mark (white) -->
-                      <path d="M213,138 L220,116 L227,138 M215.5,131 H224.5" stroke="rgba(255,255,255,0.92)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                      <!-- animated border trace spark -->
                       <path id="hexTrace" d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(180,240,230,0.85)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24 168"/>
-                      <!-- outer hex ring -->
                       <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
                     </g>
                     <!-- source nodes -->
@@ -842,7 +837,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                     <g class="net-node" id="nn-1">
                       <circle class="nn-circle" cx="220" cy="24" r="22"/>
                       <text class="nn-abbr" x="220" y="24">CT</text>
-                      <text class="nn-label" x="220" y="54">Contracts</text>
+                      <text class="nn-label" x="220" y="-4">Contracts</text>
                     </g>
                     <g class="net-node" id="nn-2">
                       <circle class="nn-circle" cx="372" cy="52" r="22"/>
@@ -857,7 +852,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                     <g class="net-node" id="nn-4">
                       <circle class="nn-circle" cx="220" cy="216" r="22"/>
                       <text class="nn-abbr" x="220" y="216">BL</text>
-                      <text class="nn-label" x="220" y="186">Billing</text>
+                      <text class="nn-label" x="220" y="248">Billing</text>
                     </g>
                     <g class="net-node" id="nn-5">
                       <circle class="nn-circle" cx="68" cy="188" r="22"/>
