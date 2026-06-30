@@ -1,9 +1,23 @@
 <!DOCTYPE html>
+<!--
+  Calastone Intelligence Module — internal Pulse chat + data analysis interface.
+  Single self-contained HTML file. CDN deps: Lucide (icons), Chart.js (charts).
+
+  DESIGN SYSTEM derived from Calastone_Design_System.pptx (exact tokens):
+    Brand teal:        #2D9A8E (primary), #26867D (hover/deep), #2ECBB1 (bright accent)
+    Deep navy/ink:     #22323D (headers/primary text), #0D1418 (near-black surfaces)
+    Slate/muted:       #9AA6B0, #7D9097, #566571
+    Tint surfaces:     #EEF8F6, #DCEFEC, #B3DDD7
+    Support green:     #35B57E
+  TYPEFACE: deck uses Arial (clean geometric sans). On web we substitute the closest
+    freely-available geometric sans (Inter via Google Fonts) with Arial fallback,
+    matching the deck's letterspaced uppercase eyebrow/label treatment.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calastone · Intelligence Module</title>
+<title>Calastone Intelligence Module</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,20 +25,21 @@
 
 <style>
 :root{
-  --c-teal:        #2D9A8E;
+  /* ── Calastone palette (exact, from deck) ─────────────────── */
+  --c-teal:        #2D9A8E;   /* PRIMARY brand teal */
   --c-teal-hover:  #26867D;
-  --c-teal-bright: #2ECBB1;
+  --c-teal-bright: #2ECBB1;   /* accent highlight */
   --c-teal-soft:   rgba(45,154,142,0.08);
   --c-teal-soft-2: rgba(45,154,142,0.14);
 
-  --c-navy:        #22323D;
-  --c-ink:         #0D1418;
+  --c-navy:        #22323D;   /* headers / primary text */
+  --c-ink:         #0D1418;   /* near-black surfaces */
   --c-green:       #35B57E;
 
   --c-surface:     #FFFFFF;
   --c-surface-2:   #F6F8F8;
   --c-surface-3:   #EDF1F1;
-  --c-tint:        #EEF8F6;
+  --c-tint:        #EEF8F6;   /* teal-tinted surface */
   --c-tint-2:      #DCEFEC;
 
   --c-border:      rgba(34,50,61,0.12);
@@ -84,82 +99,47 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* ══════════ APP SHELL ══════════ */
 .app{display:flex;flex-direction:column;height:100vh}
 
-/* ── entrance animations (CSS — work in headless + real browsers) ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-@keyframes fadeScaleUp{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:none}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideInLeft{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
-
-.nav-item{animation:slideInLeft .35s cubic-bezier(.23,1,.32,1) both}
-.nav-item:nth-child(1){animation-delay:.1s}
-.nav-item:nth-child(2){animation-delay:.16s}
-
-.proto-badge{animation:fadeDown .5s cubic-bezier(.23,1,.32,1) .3s both}
-.empty-chat .mark-lg{animation:fadeScaleUp .6s cubic-bezier(.34,1.56,.64,1) .45s both}
-#emptyChat h1{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .52s both}
-#emptyChat .lead{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .6s both}
-.source-row{animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .68s both}
-.suggest-chip:nth-child(1){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .78s both}
-.suggest-chip:nth-child(2){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .85s both}
-.suggest-chip:nth-child(3){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .92s both}
-.suggest-chip:nth-child(4){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .99s both}
-
-/* ── Top bar (light, consistent with Pulse design system) ── */
+/* ── Top bar ── */
 .topbar{
   height:var(--topbar-h);flex:0 0 auto;
-  background:rgba(255,255,255,0.94);
-  backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
-  border-bottom:1px solid rgba(226,232,238,0.85);
-  box-shadow:0 1px 0 rgba(255,255,255,.8),0 4px 20px -8px rgba(15,34,48,.07);
-  display:flex;align-items:center;gap:12px;
-  padding:0 20px;z-index:30;
+  background:var(--c-ink);color:var(--c-text-inverse);
+  display:flex;align-items:center;gap:16px;
+  padding:0 18px;z-index:30;
 }
-.home-btn{
-  display:inline-flex;align-items:center;gap:7px;
-  font-size:12px;font-weight:600;color:var(--c-text-muted);
-  padding:7px 13px;border-radius:8px;
-  background:var(--c-surface-2);border:1px solid var(--c-border);
-  cursor:pointer;text-decoration:none;
-  transition:border-color .18s,color .18s,box-shadow .18s;
-  white-space:nowrap;flex-shrink:0;
+.topbar .logo{display:flex;align-items:center;gap:0;height:100%}
+.wordmark{
+  display:flex;align-items:center;font-weight:700;font-size:16px;
+  letter-spacing:.04em;color:#fff;user-select:none;
 }
-.home-btn svg{width:14px;height:14px;stroke:currentColor;flex-shrink:0}
-.home-btn:hover{border-color:var(--c-teal);color:var(--c-navy)}
-.topbar-divider{width:1px;height:22px;background:var(--c-border);flex-shrink:0}
-.brand{display:flex;flex-direction:column;line-height:1;flex-shrink:0}
-.brand img{height:30px;width:auto;display:block;mix-blend-mode:multiply}
-.gradline{height:3px;border-radius:3px;background:linear-gradient(90deg,#0082C4,#2D9A8E,#64B066);margin-top:4px}
-.topbar .module-name{font-size:13px;font-weight:500;color:var(--c-text-muted)}
+.wordmark .mark{
+  display:inline-flex;width:18px;height:18px;margin:0 1px;
+  align-items:center;justify-content:center;
+}
+.wordmark .mark svg{width:15px;height:15px}
+.topbar .pulse-tag{
+  font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--c-teal-bright);border:1px solid rgba(46,203,177,0.4);
+  padding:2px 7px;border-radius:20px;margin-left:9px;
+}
+.topbar .divider-v{width:1px;height:22px;background:rgba(255,255,255,0.14)}
+.topbar .module-name{
+  font-size:13px;font-weight:500;color:rgba(255,255,255,0.92);
+}
 .topbar .spacer{flex:1}
-.topbar .live-indicator{
-  display:flex;align-items:center;gap:7px;
-  font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--c-green);padding:5px 12px;border-radius:20px;
-  background:rgba(53,181,126,0.08);border:1px solid rgba(53,181,126,0.22);
-  flex-shrink:0;
-}
-.topbar .live-dot{
-  width:7px;height:7px;border-radius:50%;background:var(--c-green);
-  animation:livePulse 2.4s ease-in-out infinite;
-}
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.35}}
-.topbar .user{display:flex;align-items:center;gap:9px;flex-shrink:0}
-.topbar .user .user-meta{text-align:right}
-.topbar .user .name{font-size:12.5px;color:var(--c-text);font-weight:600;line-height:1.3}
-.topbar .user .role{font-size:10.5px;color:var(--c-text-muted)}
+.topbar .user{display:flex;align-items:center;gap:9px}
+.topbar .user .name{font-size:12.5px;color:rgba(255,255,255,0.9);font-weight:500}
+.topbar .user .role{font-size:10.5px;color:rgba(255,255,255,0.45)}
 .avatar{
-  width:32px;height:32px;border-radius:50%;flex:0 0 auto;
-  background:var(--c-tint-2);color:var(--c-teal-hover);font-weight:700;font-size:12px;
+  width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+  background:var(--c-teal);color:#fff;font-weight:700;font-size:12px;
   display:flex;align-items:center;justify-content:center;letter-spacing:.02em;
-  border:1.5px solid rgba(45,154,142,0.22);
 }
 .icon-btn{
   width:34px;height:34px;border-radius:var(--radius-sm);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--c-text-muted);transition:background .15s;
+  display:flex;align-items:center;justify-content:center;color:inherit;
+  transition:background .15s;
 }
-.icon-btn:hover{background:var(--c-surface-3)}
+.topbar .icon-btn:hover{background:rgba(255,255,255,0.1)}
 .icon-btn svg{width:18px;height:18px}
 
 /* ── Body row ── */
@@ -170,7 +150,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   width:var(--sidebar-w);flex:0 0 auto;
   background:var(--c-surface-2);border-right:1px solid var(--c-border);
   display:flex;flex-direction:column;
-  transition:width .22s ease;z-index:20;
+  transition:width .2s ease;z-index:20;
 }
 .sidebar.collapsed{width:var(--sidebar-collapsed-w)}
 .sidebar-top{padding:12px 10px 4px;display:flex;justify-content:flex-end}
@@ -229,6 +209,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .settings-link svg{width:17px;height:17px;flex:0 0 auto;stroke-width:1.8}
 .settings-link:hover{background:var(--c-surface-3);color:var(--c-text)}
 
+/* collapsed state hides labels */
 .sidebar.collapsed .nav-item span,
 .sidebar.collapsed .settings-link span,
 .sidebar.collapsed .recent,
@@ -250,48 +231,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .chat-thread{flex:1;overflow-y:auto;padding:26px 30px 18px;min-height:0}
 .thread-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 
-/* ── Empty state ── */
+/* empty state */
 .empty-chat{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:30px;gap:0;
 }
-.proto-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:5px 14px;border-radius:999px;margin-bottom:20px;
-  background:rgba(45,154,142,0.07);border:1px solid rgba(45,154,142,0.18);
-  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--c-teal-hover);
-}
-.proto-dot{
-  width:6px;height:6px;border-radius:50%;background:var(--c-teal);
-  animation:livePulse 2.4s ease-in-out infinite;
-}
 .empty-chat .mark-lg{
-  width:60px;height:60px;border-radius:16px;
-  background:linear-gradient(135deg,var(--c-tint) 0%,var(--c-tint-2) 100%);
+  width:54px;height:54px;border-radius:14px;background:var(--c-tint);
   display:flex;align-items:center;justify-content:center;margin-bottom:20px;
-  box-shadow:0 6px 20px rgba(45,154,142,0.15);
 }
-.empty-chat .mark-lg svg{width:32px;height:32px}
-.empty-chat h1{font-size:24px;font-weight:800;color:var(--c-navy);letter-spacing:-0.015em}
-.empty-chat .lead{font-size:14px;color:var(--c-text-muted);margin-top:8px;max-width:400px;line-height:1.6}
-
-/* source connectivity pills */
-.source-row{
-  display:flex;flex-wrap:wrap;gap:7px;justify-content:center;
-  margin-top:18px;margin-bottom:4px;
-}
-.source-pill-sm{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--c-surface);border:1px solid var(--c-border);
-  border-radius:20px;padding:5px 12px;font-size:11.5px;color:var(--c-text-muted);font-weight:500;
-  transition:border-color .15s,color .15s,background .15s;
-}
-.source-pill-sm svg{width:12px;height:12px;stroke-width:2;color:var(--c-teal);flex-shrink:0}
-.source-pill-sm:hover{border-color:var(--c-teal);background:var(--c-tint);color:var(--c-teal-hover)}
-
+.empty-chat .mark-lg svg{width:30px;height:30px}
+.empty-chat h1{font-size:23px;font-weight:700;color:var(--c-navy);letter-spacing:-0.01em}
+.empty-chat p{font-size:14px;color:var(--c-text-muted);margin-top:7px;max-width:430px}
 .chips-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px;
   width:100%;max-width:560px;
 }
 .suggest-chip{
@@ -299,8 +252,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   background:var(--c-surface);border:1px solid var(--c-border);
   border-radius:var(--radius-md);padding:13px 15px;
   font-size:13px;color:var(--c-text);font-weight:500;
-  transition:border-color .15s,box-shadow .15s,color .15s;min-height:50px;
-  will-change:transform;
+  transition:border-color .15s,box-shadow .15s,color .15s;min-height:48px;
 }
 .suggest-chip svg{width:16px;height:16px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8}
 .suggest-chip:hover{border-color:var(--c-teal);color:var(--c-teal);box-shadow:var(--shadow-sm)}
@@ -349,11 +301,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .assistant-body td{padding:8px 10px;border-bottom:1px solid var(--c-border-soft);font-variant-numeric:tabular-nums}
 .assistant-body tr:last-child td{border-bottom:none}
 
-/* info card */
+/* info card inside answer */
 .info-card{
   border:1px solid var(--c-border);border-radius:var(--radius-lg);
   background:var(--c-surface);box-shadow:var(--shadow-sm);overflow:hidden;margin:4px 0 12px;
-  will-change:transform,opacity;
 }
 .info-card .ic-head{
   padding:13px 16px;border-bottom:1px solid var(--c-border-soft);
@@ -409,10 +360,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 /* typing */
 .typing{display:flex;gap:5px;align-items:center;padding:4px 0}
-.typing .dot{width:7px;height:7px;border-radius:50%;background:var(--c-teal);animation:dotPulse 1.3s infinite ease-in-out}
+.typing .dot{width:7px;height:7px;border-radius:50%;background:var(--c-teal);animation:pulse 1.3s infinite ease-in-out}
 .typing .dot:nth-child(2){animation-delay:.18s}
 .typing .dot:nth-child(3){animation-delay:.36s}
-@keyframes dotPulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
 
 /* ── input bar ── */
 .input-wrap{flex:0 0 auto;border-top:1px solid var(--c-border);background:var(--c-surface);padding:10px 30px 14px}
@@ -423,7 +374,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   display:inline-flex;align-items:center;gap:6px;
   border:1px solid var(--c-border);border-radius:20px;padding:4px 11px;
   font-size:11.5px;font-weight:500;color:var(--c-text-muted);background:var(--c-surface-3);
-  transition:all .14s;will-change:transform;
+  transition:all .14s;
 }
 .ctx-toggle svg{width:12px;height:12px;stroke-width:2}
 .ctx-toggle.on{background:var(--c-teal);color:#fff;border-color:var(--c-teal)}
@@ -466,7 +417,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .source-card{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);
   padding:12px 13px;transition:box-shadow .15s,border-color .15s;cursor:default;
-  will-change:transform,opacity;
 }
 .source-card:hover{box-shadow:var(--shadow-sm);border-color:var(--c-tint-2)}
 .source-card.flash{border-color:var(--c-teal);box-shadow:0 0 0 2px var(--c-teal-soft)}
@@ -598,7 +548,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .kpi{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);
-  padding:14px 15px;box-shadow:var(--shadow-sm);will-change:transform,opacity;
+  padding:14px 15px;box-shadow:var(--shadow-sm);
 }
 .kpi .k-val{font-size:24px;font-weight:800;color:var(--c-navy);letter-spacing:-0.02em;line-height:1.1;font-variant-numeric:tabular-nums}
 .kpi .k-lbl{font-size:11.5px;color:var(--c-text-muted);margin-top:5px;font-weight:500}
@@ -609,7 +559,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 .chart-card,.table-card{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);
-  padding:16px 18px;box-shadow:var(--shadow-sm);will-change:transform,opacity;
+  padding:16px 18px;box-shadow:var(--shadow-sm);
 }
 .chart-wrap{position:relative;width:100%;height:280px;max-height:280px}
 .chart-wrap.short{height:230px}
@@ -636,7 +586,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 .prob-bar .track{width:48px;height:5px;border-radius:3px;background:var(--c-surface-3);overflow:hidden}
 .prob-bar .fill{height:100%;background:var(--c-teal);border-radius:3px}
 
-.flags-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);overflow:hidden;will-change:transform,opacity}
+.flags-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);overflow:hidden}
 .flag-row{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--c-border-soft)}
 .flag-row:last-child{border-bottom:none}
 .flag-row .fl-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
@@ -648,7 +598,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 
 .commentary{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);padding:16px 18px;
-  will-change:transform,opacity;
 }
 .commentary .cm-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .commentary .cm-av{width:26px;height:26px;border-radius:50%;background:var(--c-teal);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
@@ -678,6 +627,8 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
   .kpi-strip,.sk-kpis{grid-template-columns:1fr 1fr}
   .chat-thread,.input-wrap{padding-left:16px;padding-right:16px}
 }
+
+/* print */
 @media print{
   .topbar,.sidebar,.da-left,.da-head .da-actions,.rep-actions{display:none!important}
   body,.app,.main,.view,.da-cols,.da-right{overflow:visible!important;height:auto!important;display:block!important}
@@ -690,30 +641,26 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 <body>
 <div class="app">
 
-  <!-- ════ TOP BAR (light, consistent with Pulse design system) ════ -->
+  <!-- ════ TOP BAR ════ -->
   <header class="topbar">
-    <a href="../../index.html" class="home-btn" aria-label="Back to Pulse">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-      ← Pulse Home
-    </a>
-    <div class="topbar-divider"></div>
-    <div class="brand">
-      <img src="../../assets/calastone-wordmark-black.png" alt="Calastone">
-      <div class="gradline"></div>
+    <button class="icon-btn" id="mobileMenu" aria-label="Toggle menu" style="display:none"><i data-lucide="menu"></i></button>
+    <div class="logo">
+      <span class="wordmark" aria-label="Calastone Pulse">
+        CAL<span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2ECBB1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
+        </span>STONE
+      </span>
+      <span class="pulse-tag">Pulse</span>
     </div>
-    <div class="topbar-divider"></div>
+    <span class="divider-v"></span>
     <span class="module-name">Intelligence Module</span>
     <span class="spacer"></span>
-    <div class="live-indicator">
-      <span class="live-dot"></span>
-      6 sources live
-    </div>
     <div class="user">
-      <div class="user-meta">
-        <div class="name">Alex Curtin</div>
-        <div class="role">Sales · EMEA</div>
+      <div style="text-align:right">
+        <div class="name">Alex Hartley</div>
+        <div class="role">Commercial Analyst</div>
       </div>
-      <div class="avatar" aria-label="Alex Curtin">AC</div>
+      <div class="avatar" aria-label="Alex Hartley">AH</div>
     </div>
   </header>
 
@@ -744,10 +691,10 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
       </div>
       <div class="sidebar-foot">
         <div class="user-mini">
-          <div class="avatar" style="width:32px;height:32px">AC</div>
+          <div class="avatar" style="width:32px;height:32px">AH</div>
           <div class="meta">
-            <div class="n">Alex Curtin</div>
-            <div class="r">Sales · EMEA</div>
+            <div class="n">Alex Hartley</div>
+            <div class="r">Commercial Analyst · CoS</div>
           </div>
         </div>
         <button class="settings-link"><i data-lucide="settings"></i><span>Settings</span></button>
@@ -764,20 +711,11 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
             <div class="chat-thread" id="chatThread">
               <!-- empty state -->
               <div class="empty-chat" id="emptyChat">
-                <div class="proto-badge"><span class="proto-dot"></span>Internal Prototype · Commercial Preview</div>
                 <div class="mark-lg" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="#2D9A8E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
                 </div>
                 <h1>What would you like to know?</h1>
-                <p class="lead">Your AI analyst — connected live to contracts, billing, Jira, PowerBI, Salesforce and procedures. Ask anything about clients, products, or pipeline.</p>
-                <div class="source-row">
-                  <span class="source-pill-sm"><i data-lucide="cloud"></i>Salesforce</span>
-                  <span class="source-pill-sm"><i data-lucide="file-text"></i>Contracts</span>
-                  <span class="source-pill-sm"><i data-lucide="git-branch"></i>Jira</span>
-                  <span class="source-pill-sm"><i data-lucide="bar-chart-3"></i>PowerBI</span>
-                  <span class="source-pill-sm"><i data-lucide="receipt"></i>Billing</span>
-                  <span class="source-pill-sm"><i data-lucide="book-open"></i>Procedures</span>
-                </div>
+                <p>Ask about clients, contracts, products, projects, or fund operations.</p>
                 <div class="chips-grid">
                   <button class="suggest-chip" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
                   <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
@@ -814,7 +752,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <aside class="chat-right hidden" id="sourcePanel" aria-label="Sources">
             <div class="src-panel-head">
               <span class="eyebrow">Sources</span>
-              <button class="icon-btn close-src" id="closeSrc" aria-label="Close sources"><i data-lucide="x"></i></button>
+              <button class="icon-btn close-src" id="closeSrc" aria-label="Close sources" style="color:var(--c-text-muted)"><i data-lucide="x"></i></button>
             </div>
             <div class="src-list" id="srcList"></div>
           </aside>
@@ -828,6 +766,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <p>Generate structured reports from Salesforce exports and internal data files</p>
         </div>
         <div class="da-cols">
+          <!-- template selector -->
           <div class="da-left">
             <span class="eyebrow">Report Templates</span>
             <div id="tplList"></div>
@@ -850,6 +789,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
             </div>
           </div>
 
+          <!-- report output -->
           <div class="da-right" id="reportOutput">
             <div class="report-empty" id="reportEmpty">
               <div class="re-ico"><i data-lucide="bar-chart-big"></i></div>
@@ -867,7 +807,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
 <script>
 /* ───────────────────── helpers ───────────────────── */
 const $ = (s,r=document)=>r.querySelector(s);
@@ -878,42 +817,19 @@ icons();
 let toastTimer;
 function toast(msg){
   $('#toastMsg').textContent = msg;
-  const el = $('#toast');
-  el.classList.add('show');
+  $('#toast').classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+  toastTimer = setTimeout(()=>$('#toast').classList.remove('show'),2200);
 }
 const now = ()=> new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-
-/* entrance animations handled via CSS @keyframes above */
-
-/* ───────────────────── suggest chip hover ───────────────────── */
-function wireChipHover(){
-  $$('.suggest-chip').forEach(chip => {
-    chip.addEventListener('mouseenter', () =>
-      anime({targets:chip, translateY:-2, scale:1.015, duration:180, easing:'easeOutQuad'}));
-    chip.addEventListener('mouseleave', () =>
-      anime({targets:chip, translateY:0, scale:1, duration:220, easing:'easeOutQuad'}));
-  });
-}
-wireChipHover();
 
 /* ───────────────────── view switching ───────────────────── */
 $$('.nav-item').forEach(b=>b.addEventListener('click',()=>{
   $$('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  anime({targets:b, scale:[0.96,1], duration:200, easing:'easeOutBack'});
-
-  const vKey = b.dataset.view;
-  const outView = $('.view.active');
-  const inView = $('#view-'+(vKey==='chat'?'chat':'data'));
-  if(outView === inView) return;
-
-  anime({targets:outView, opacity:[1,0], duration:160, easing:'easeInQuad', complete:()=>{
-    outView.classList.remove('active');
-    inView.classList.add('active');
-    anime({targets:inView, opacity:[0,1], translateY:[8,0], duration:320, easing:'easeOutCubic'});
-  }});
+  const v=b.dataset.view;
+  $$('.view').forEach(x=>x.classList.remove('active'));
+  $('#view-'+(v==='chat'?'chat':'data')).classList.add('active');
 }));
 
 /* sidebar collapse */
@@ -926,10 +842,7 @@ $('#recentHead').addEventListener('click',()=>{
 });
 
 /* ───────────────────── context toggles ───────────────────── */
-$$('.ctx-toggle').forEach(b=>b.addEventListener('click',()=>{
-  b.classList.toggle('on');
-  anime({targets:b, scale:[0.88,1], duration:280, easing:'spring(1,80,12,0)'});
-}));
+$$('.ctx-toggle').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
 
 /* ───────────────────── chat ───────────────────── */
 const input = $('#chatInput');
@@ -951,38 +864,24 @@ sendBtn.addEventListener('click',()=>{ if(input.value.trim()) submit(); });
 $$('.suggest-chip').forEach(c=>c.addEventListener('click',()=>{
   input.value=c.dataset.q; input.dispatchEvent(new Event('input')); submit();
 }));
-$('#closeSrc').addEventListener('click',()=>{
-  anime({targets:'#sourcePanel', translateX:[0,20], opacity:[1,0], duration:250, easing:'easeInQuad', complete:()=>srcPanel.classList.add('hidden')});
-});
+$('#closeSrc').addEventListener('click',()=>srcPanel.classList.add('hidden'));
 
 function esc(s){return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
 
 function submit(){
   const text = input.value.trim();
   if(!text) return;
-
-  if(emptyChat.style.display!=='none' || !emptyChat.classList.contains('hidden-chat')){
-    anime({targets:emptyChat, opacity:[1,0], translateY:[0,-12], duration:280, easing:'easeInQuad', complete:()=>{
-      emptyChat.style.display='none'; thread.style.display='flex';
-      anime({targets:thread, opacity:[0,1], duration:200});
-    }});
-  }
-
+  if(emptyChat.style.display!=='none'){ emptyChat.style.display='none'; thread.style.display='flex'; }
+  // user bubble
   thread.insertAdjacentHTML('beforeend',
-    `<div class="msg user" style="opacity:0"><div class="bubble">${esc(text)}</div><div class="stamp">${now()}</div></div>`);
-  const userMsg = thread.lastElementChild;
-  anime({targets:userMsg, opacity:[0,1], translateY:[14,0], duration:320, easing:'easeOutCubic'});
-
+    `<div class="msg user"><div class="bubble">${esc(text)}</div><div class="stamp">${now()}</div></div>`);
   input.value=''; input.style.height='auto'; sendBtn.disabled=true;
   scrollBottom();
-
+  // typing
   const tid='t'+Date.now();
   thread.insertAdjacentHTML('beforeend',
-    `<div class="msg assistant" id="${tid}" style="opacity:0"><div class="assistant-row"><div class="av">C</div><div class="assistant-body"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div></div>`);
-  const typingEl = $('#'+tid);
-  anime({targets:typingEl, opacity:[0,1], translateY:[10,0], duration:280, easing:'easeOutCubic'});
+    `<div class="msg assistant" id="${tid}"><div class="assistant-row"><div class="av">C</div><div class="assistant-body"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div></div>`);
   scrollBottom();
-
   setTimeout(()=>{
     const r = resolve(text);
     const node = $('#'+tid);
@@ -997,25 +896,10 @@ function submit(){
         <button class="act-btn" title="Bad response" data-act="down"><i data-lucide="thumbs-down"></i></button>
       </div>`);
     wireActions(node, r);
-
-    /* animate the response in */
-    anime({targets:node, opacity:[0,1], translateY:[12,0], duration:380, easing:'easeOutCubic'});
-    const infoCards = node.querySelectorAll('.info-card');
-    if(infoCards.length) anime({targets:infoCards, opacity:[0,1], translateY:[10,0], scale:[0.97,1], delay:anime.stagger(80), duration:420, easing:'easeOutCubic'});
-    const chips = node.querySelectorAll('.src-chip');
-    if(chips.length) anime({targets:chips, opacity:[0,1], translateX:[-8,0], delay:anime.stagger(55,{start:200}), duration:320, easing:'easeOutCubic'});
-
-    if(r.sources && r.sources.length){ renderSources(r.sources); openSourcePanel(); }
+    if(r.sources && r.sources.length){ renderSources(r.sources); srcPanel.classList.remove('hidden'); }
     icons();
     scrollBottom();
-  }, 900 + Math.random()*500);
-}
-
-function openSourcePanel(){
-  if(srcPanel.classList.contains('hidden')){
-    srcPanel.classList.remove('hidden');
-    anime({targets:'#sourcePanel', translateX:[20,0], opacity:[0,1], duration:320, easing:'easeOutCubic'});
-  }
+  }, 950 + Math.random()*500);
 }
 
 function scrollBottom(){ const t=$('#chatThread'); t.scrollTop=t.scrollHeight; }
@@ -1029,7 +913,7 @@ function wireActions(node,r){
   $$('.src-chip',node).forEach(chip=>chip.addEventListener('click',()=>{
     $$('.src-chip',node).forEach(c=>c.classList.remove('active'));
     chip.classList.add('active');
-    openSourcePanel();
+    srcPanel.classList.remove('hidden');
     const card = srcList.children[+chip.dataset.idx];
     if(card){ $$('.source-card').forEach(c=>c.classList.remove('flash')); card.classList.add('flash'); card.scrollIntoView({block:'nearest',behavior:'smooth'}); }
   }));
@@ -1042,7 +926,7 @@ function wireActions(node,r){
 }
 function renderSources(sources){
   srcList.innerHTML = sources.map(s=>`
-    <div class="source-card" style="opacity:0">
+    <div class="source-card">
       <div class="sc-head">
         <div class="sc-ico"><i data-lucide="${s.icon}"></i></div>
         <div class="sc-title">${s.title}</div>
@@ -1052,10 +936,9 @@ function renderSources(sources){
       <div class="sc-meta"><span class="tag">${s.system}</span><span>${s.time}</span></div>
     </div>`).join('');
   icons();
-  anime({targets:'.source-card', opacity:[0,1], translateY:[12,0], delay:anime.stagger(70,{start:120}), duration:380, easing:'easeOutCubic'});
 }
 
-/* ───────────── answer resolution ───────────── */
+/* ───────── simulated answer resolution ───────── */
 function resolve(q){
   const t = q.toLowerCase();
   if(/digital ta/.test(t)) return ANS.digitalTA;
@@ -1068,10 +951,14 @@ function resolve(q){
 }
 
 const ANS = {
-  digitalTA:{
-    html:`<p>Here's the current status of <strong>Digital TA</strong>, pulled from the live Jira board and the latest product update.</p>
+  digitalTA: {
+    html: `<p>Here's the current status of <strong>Digital TA</strong>, pulled from the live Jira board and the latest product update.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="git-branch"></i></div><div class="ic-titles"><div class="t">Digital TA</div><div class="s">Product · Transfer Agency modernisation</div></div><span class="pill green">In Build</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="git-branch"></i></div>
+        <div class="ic-titles"><div class="t">Digital TA</div><div class="s">Product · Transfer Agency modernisation</div></div>
+        <span class="pill green">In Build</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Stage</div><div class="val">Phase 2 — Build &amp; Integration</div></div>
         <div class="ic-cell"><div class="lbl">Owner</div><div class="val">Andy Neal (Product)</div></div>
@@ -1087,10 +974,14 @@ const ANS = {
       {system:'Salesforce',icon:'cloud',title:'Digital TA Pilot — Opportunities',snippet:'3 linked opportunities tagged "DTA Pilot". 2 at Closed Won, 1 at Negotiation.',time:'4 days ago'}
     ]
   },
-  blackrock:{
-    html:`<p>Here's how <strong>BlackRock</strong> is currently being charged, from the active contract and the latest billing run.</p>
+  blackrock: {
+    html: `<p>Here's how <strong>BlackRock</strong> is currently being charged, from the active contract and the latest billing run.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="receipt"></i></div><div class="ic-titles"><div class="t">BlackRock</div><div class="s">Billing · Enterprise tier</div></div><span class="pill green">Current</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="receipt"></i></div>
+        <div class="ic-titles"><div class="t">BlackRock</div><div class="s">Billing · Enterprise tier</div></div>
+        <span class="pill green">Current</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Contract Tier</div><div class="val">Enterprise — Network + Data</div></div>
         <div class="ic-cell"><div class="lbl">Pricing Model</div><div class="val">Per-message + annual platform fee</div></div>
@@ -1106,10 +997,14 @@ const ANS = {
       {system:'Salesforce',icon:'cloud',title:'BlackRock — Account record',snippet:'Renewal 31 Mar 2027. RM: Ben Carew Gibbs. Health: Green.',time:'Updated weekly'}
     ]
   },
-  lng:{
-    html:`<p>Here's the relationship picture for <strong>Legal &amp; General Investment Management</strong>, combining CRM activity and the latest meeting notes.</p>
+  lng: {
+    html: `<p>Here's the relationship picture for <strong>Legal &amp; General Investment Management</strong>, combining CRM activity and the latest meeting notes.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="handshake"></i></div><div class="ic-titles"><div class="t">Legal &amp; General (LGIM)</div><div class="s">Relationship · Strategic account</div></div><span class="pill amber">Watch</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="handshake"></i></div>
+        <div class="ic-titles"><div class="t">Legal &amp; General (LGIM)</div><div class="s">Relationship · Strategic account</div></div>
+        <span class="pill amber">Watch</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Relationship Manager</div><div class="val">Ross Fox (CCO)</div></div>
         <div class="ic-cell"><div class="lbl">Last Meeting</div><div class="val">12 days ago — QBR</div></div>
@@ -1118,17 +1013,21 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="clipboard-list"></i>QBR notes · 3 open actions · next review scheduled</div>
     </div>
-    <p>The relationship is solid but flagged <strong>Watch</strong> this quarter: LGIM raised latency concerns on cross-border corridors at the last QBR, and a competitor approached them on data services. Worth a proactive check-in before the next review.</p>`,
+    <p>The relationship is solid but flagged <strong>Watch</strong> this quarter: LGIM raised latency concerns on cross-border corridors at the last QBR, and a competitor approached them on data services. Our two open actions are the corridor latency analysis (due this week) and a Data Services proposal. Worth a proactive check-in before the next review.</p>`,
     sources:[
       {system:'Salesforce',icon:'cloud',title:'LGIM — Account & activity',snippet:'Last activity QBR 12 days ago. 3 open tasks. Engagement score trending down from 81 to 72.',time:'Updated daily'},
       {system:'Procedures',icon:'book-open',title:'LGIM QBR — Meeting notes',snippet:'Client raised latency on APAC corridors. Action: latency analysis owed by Calastone this week.',time:'12 days ago'},
       {system:'Contracts',icon:'file-text',title:'LGIM — Master Services Agreement',snippet:'Network + Transaction Management. Renewal Sept 2026.',time:'Signed 2022'}
     ]
   },
-  thailand:{
-    html:`<p>Here's Calastone's <strong>Thailand</strong> presence, drawn from the network registry and partnerships log.</p>
+  thailand: {
+    html: `<p>Here's Calastone's <strong>Thailand</strong> presence, drawn from the network registry and partnerships log.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="map-pin"></i></div><div class="ic-titles"><div class="t">Thailand</div><div class="s">Geographic presence · APAC</div></div><span class="pill green">Live</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="map-pin"></i></div>
+        <div class="ic-titles"><div class="t">Thailand</div><div class="s">Geographic presence · APAC</div></div>
+        <span class="pill green">Live</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Live Products</div><div class="val">Order Routing, Settlements</div></div>
         <div class="ic-cell"><div class="lbl">Local Headcount</div><div class="val">4 (Singapore-supported)</div></div>
@@ -1137,16 +1036,20 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="network"></i>7 live corridors · APAC cluster · SG hub coverage</div>
     </div>
-    <p>Thailand runs through the Singapore hub rather than a standalone office, with Order Routing and Settlements live across 7 corridors. There's an open opportunity to extend Data Services, contingent on local regulatory clarity around cross-border distribution.</p>`,
+    <p>Thailand runs through the Singapore hub rather than a standalone office, with Order Routing and Settlements live across 7 corridors. There's an open opportunity to extend Data Services into the market, contingent on local regulatory clarity around cross-border distribution.</p>`,
     sources:[
       {system:'PowerBI',icon:'bar-chart-3',title:'APAC Network — Corridor registry',snippet:'Thailand: 7 active corridors, 2 connected transfer agents, products Order Routing + Settlements.',time:'Updated monthly'},
       {system:'Procedures',icon:'book-open',title:'APAC partnerships — Thailand',snippet:'Coverage provided from Singapore hub. Two local TA partners onboarded.',time:'2 months ago'}
     ]
   },
-  isin:{
-    html:`<p>Here's the fund / ISIN summary for the <strong>Goldman Sachs</strong> record matched to your query.</p>
+  isin: {
+    html: `<p>Here's the fund / ISIN summary for the <strong>Goldman Sachs</strong> record matched to your query.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="fingerprint"></i></div><div class="ic-titles"><div class="t">GS Global Equity Fund</div><div class="s">ISIN · LU1234567890</div></div><span class="pill green">Active</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="fingerprint"></i></div>
+        <div class="ic-titles"><div class="t">GS Global Equity Fund</div><div class="s">ISIN · LU1234567890</div></div>
+        <span class="pill green">Active</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Relationship Manager</div><div class="val">Luke May</div></div>
         <div class="ic-cell"><div class="lbl">Counterparties</div><div class="val">14 distributors</div></div>
@@ -1161,10 +1064,14 @@ const ANS = {
       {system:'PowerBI',icon:'bar-chart-3',title:'ISIN LU1234567890 — Flow',snippet:'30-day routed volume 38,200 orders. No settlement exceptions.',time:'Updated hourly'}
     ]
   },
-  pipeline:{
-    html:`<p>I've pulled the <strong>ETF pipeline</strong> from the latest Salesforce opportunity export. Here's the headline; the full breakdown is best viewed as a report.</p>
+  pipeline: {
+    html: `<p>I've pulled the <strong>ETF pipeline</strong> from the latest Salesforce opportunity export. Here's the headline; the full breakdown is best viewed as a report.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="bar-chart-2"></i></div><div class="ic-titles"><div class="t">ETF Servicing Pipeline</div><div class="s">Salesforce · 9 open opportunities</div></div><span class="pill green">Q3 FY26</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="bar-chart-2"></i></div>
+        <div class="ic-titles"><div class="t">ETF Servicing Pipeline</div><div class="s">Salesforce · 9 open opportunities</div></div>
+        <span class="pill green">Q3 FY26</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Total Pipeline</div><div class="val lg">£4.62m</div></div>
         <div class="ic-cell"><div class="lbl">Weighted</div><div class="val lg">£2.18m</div></div>
@@ -1173,16 +1080,19 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="arrow-right"></i>Open Data Analysis → ETF Pipeline Analysis for the full report</div>
     </div>
-    <p>ETF Servicing remains the dominant line at roughly <strong>48% of weighted pipeline</strong>. Switch to <strong>Data Analysis</strong> and run the ETF Pipeline Analysis template to see the full stage breakdown with probability-weighted revenue.</p>`,
+    <p>ETF Servicing remains the dominant line at roughly <strong>48% of weighted pipeline</strong>. To see the stage breakdown, probability-weighted revenue and predicted close timeline, switch to <strong>Data Analysis</strong> and run the ETF Pipeline Analysis template — I've pre-loaded the sample export there.</p>`,
     sources:[
       {system:'Salesforce',icon:'cloud',title:'SFDC Opportunity Export — Q3',snippet:'9 open ETF opportunities. Total £4.62m, weighted £2.18m across 5 stages.',time:'Exported today'},
       {system:'PowerBI',icon:'bar-chart-3',title:'Pipeline dashboard — ETF',snippet:'ETF Servicing ≈48% of weighted pipeline; Order Routing ≈26%.',time:'Updated daily'}
     ]
   },
-  generic:(q)=>({
-    html:`<p>Searching across Calastone data sources for <strong>"${esc(q)}"</strong>…</p>
-    <p>I found related records but nothing with a single definitive answer. The closest matches sit in Salesforce and the procedures library. Try narrowing by client name, ISIN, product, or project — for example <strong>BlackRock</strong>, <strong>L&amp;G</strong>, <strong>Digital TA</strong>, <strong>Thailand</strong>, or the <strong>ETF pipeline</strong>.</p>`,
-    sources:[{system:'Salesforce',icon:'cloud',title:'Search results — partial match',snippet:'Several account and opportunity records partially matched the query terms.',time:'Just now'}]
+  generic: (q)=>({
+    html: `<p>Searching across Calastone data sources for <strong>"${esc(q)}"</strong>…</p>
+    <p>I found a few related records but nothing with a definitive single answer. Based on the available data, the most relevant items sit in Salesforce and the procedures library. The closest match suggests this relates to an active account, but I'd recommend narrowing the query — for example by client name, ISIN, product, or project — so I can return a precise record rather than a broad search.</p>
+    <p>Try mentioning a specific client (e.g. <strong>BlackRock</strong>, <strong>L&amp;G</strong>), a product (<strong>Digital TA</strong>), a market (<strong>Thailand</strong>), or the <strong>ETF pipeline</strong>.</p>`,
+    sources:[
+      {system:'Salesforce',icon:'cloud',title:'Search results — partial match',snippet:'Several account and opportunity records partially matched the query terms.',time:'Just now'}
+    ]
   })
 };
 
@@ -1224,6 +1134,7 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');fi
 
 $('#analyseBtn').addEventListener('click',runAnalysis);
 
+/* sample ETF pipeline data */
 const PIPELINE = [
   {name:'Vanguard — ETF Servicing EU',fund:'Equity',aum:920,stage:'Closing/Won',prob:90,value:840,close:'2026-07-18'},
   {name:'iShares — APAC Settlement',fund:'Equity',aum:1340,stage:'Negotiation',prob:65,value:710,close:'2026-08-30'},
@@ -1239,6 +1150,7 @@ const PIPELINE = [
 let charts={};
 function runAnalysis(){
   const out=$('#reportOutput');
+  // skeleton
   out.innerHTML = `
     <div class="report-skeleton">
       <div class="sk-label"><span class="sp"></span>Analysing your data…</div>
@@ -1246,7 +1158,7 @@ function runAnalysis(){
       <div class="sk-kpis"><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div></div>
       <div class="sk sk-chart"></div>
     </div>`;
-  setTimeout(renderReport, 1600);
+  setTimeout(renderReport, 1500);
 }
 
 function fmtGBP(k){ return k>=1000 ? '£'+(k/1000).toFixed(2)+'m' : '£'+k+'k'; }
@@ -1257,12 +1169,15 @@ function renderReport(){
   const weighted = Math.round(PIPELINE.reduce((a,b)=>a+b.value*b.prob/100,0));
   const avgProb = Math.round(PIPELINE.reduce((a,b)=>a+b.prob,0)/PIPELINE.length);
   const won = PIPELINE.filter(p=>p.stage==='Closing/Won').reduce((a,b)=>a+b.value,0);
+
   const stages=['Discovery','Proposal','Negotiation','Closing/Won'];
   const stageW = stages.map(s=> Math.round(PIPELINE.filter(p=>p.stage===s).reduce((a,b)=>a+b.value*b.prob/100,0)));
+  const funds=[...new Set(PIPELINE.map(p=>p.fund))];
+  const fundW = funds.map(f=> Math.round(PIPELINE.filter(p=>p.fund===f).reduce((a,b)=>a+b.value*b.prob/100,0)));
 
   out.innerHTML = `
   <div class="report" id="report">
-    <div class="rep-header" style="opacity:0">
+    <div class="rep-header">
       <div class="rh-meta">
         <div class="rh-title">ETF Pipeline Analysis</div>
         <div class="rh-sub">${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}<span class="sep">·</span>SFDC_Opportunity_Export_Q3.xlsx<span class="sep">·</span>9 opportunities</div>
@@ -1274,113 +1189,85 @@ function renderReport(){
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
-      <div class="exec-summary">The Q3 ETF pipeline holds <strong>${fmtGBP(total)}</strong> across 9 open opportunities, with a probability-weighted value of <strong>${fmtGBP(weighted)}</strong>. ETF Servicing on equity funds dominates, and two late-stage deals (Vanguard, L&amp;G) account for the bulk of near-term expected revenue. Average win probability sits at <strong>${avgProb}%</strong>.</div>
+    <div class="rep-section">
+      <div class="exec-summary">The Q3 ETF pipeline holds <strong>${fmtGBP(total)}</strong> across 9 open opportunities, with a probability-weighted value of <strong>${fmtGBP(weighted)}</strong>. ETF Servicing on equity funds dominates, and two late-stage deals (Vanguard, L&amp;G) account for the bulk of near-term expected revenue. Average win probability sits at <strong>${avgProb}%</strong>, with the pipeline weighted toward the back half of the quarter.</div>
     </div>
 
     <div class="rep-section">
       <div class="rs-title">Headline Metrics</div>
       <div class="kpi-strip">
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${total}" data-fmt="gbp">${fmtGBP(total)}</div><div class="k-lbl">Total Pipeline</div><div class="k-delta up"><i data-lucide="arrow-up"></i>12%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${weighted}" data-fmt="gbp">${fmtGBP(weighted)}</div><div class="k-lbl">Weighted Value</div><div class="k-delta up"><i data-lucide="arrow-up"></i>8%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${avgProb}" data-fmt="pct">${avgProb}%</div><div class="k-lbl">Avg Probability</div><div class="k-delta down"><i data-lucide="arrow-down"></i>3%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${won}" data-fmt="gbp">${fmtGBP(won)}</div><div class="k-lbl">Near-Term (Won)</div><div class="k-delta up"><i data-lucide="arrow-up"></i>21%</div></div>
+        <div class="kpi"><div class="k-val">${fmtGBP(total)}</div><div class="k-lbl">Total Pipeline</div><div class="k-delta up"><i data-lucide="arrow-up"></i>12%</div></div>
+        <div class="kpi"><div class="k-val">${fmtGBP(weighted)}</div><div class="k-lbl">Weighted Value</div><div class="k-delta up"><i data-lucide="arrow-up"></i>8%</div></div>
+        <div class="kpi"><div class="k-val">${avgProb}%</div><div class="k-lbl">Avg Probability</div><div class="k-delta down"><i data-lucide="arrow-down"></i>3%</div></div>
+        <div class="kpi"><div class="k-val">${fmtGBP(won)}</div><div class="k-lbl">Near-Term (Won)</div><div class="k-delta up"><i data-lucide="arrow-up"></i>21%</div></div>
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">Weighted Pipeline by Stage</div>
       <div class="chart-card"><div class="chart-wrap"><canvas id="stageChart"></canvas></div></div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">Opportunities</div>
       <div class="table-card">
         <table class="rep-table" id="oppTable">
           <thead><tr>
-            <th data-k="name" data-t="str"><span class="th-in">Opportunity<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="fund" data-t="str"><span class="th-in">Fund Type<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="stage" data-t="str"><span class="th-in">Stage<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="aum" data-t="num" class="num"><span class="th-in">AUM (£m)<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="prob" data-t="num" class="num"><span class="th-in">Prob.<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="value" data-t="num" class="num"><span class="th-in">Value (£k)<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="close" data-t="str" class="num"><span class="th-in">Close<i data-lucide="chevrons-up-down"></i></span></th>
+            <th data-k="name" data-t="str">Opportunity</th>
+            <th data-k="fund" data-t="str">Fund Type</th>
+            <th data-k="stage" data-t="str">Stage</th>
+            <th data-k="aum" data-t="num" class="num">AUM (£m)</th>
+            <th data-k="prob" data-t="num" class="num">Prob.</th>
+            <th data-k="value" data-t="num" class="num">Value (£k)</th>
+            <th data-k="close" data-t="str" class="num">Close</th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">Flags &amp; Alerts</div>
       <div class="flags-card">
-        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Two Discovery-stage deals close this quarter</div><div class="fl-d">DWS Xtrackers and WisdomTree are at Discovery (20–25%) but carry close dates inside Q3 — timelines look optimistic.</div></div></div>
-        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Concentration risk in late stage</div><div class="fl-d">68% of near-term weighted value sits in just two opportunities (Vanguard, L&amp;G). Slippage on either materially moves the quarter.</div></div></div>
-        <div class="flag-row crit"><div class="fl-ic"><i data-lucide="octagon-alert"></i></div><div class="fl-txt"><div class="fl-h">Stale probability on Amundi</div><div class="fl-d">Amundi Fixed Income ETF probability unchanged for 6 weeks despite an advanced proposal — likely under-scored. Confirm with the RM.</div></div></div>
+        <div class="flag-row warn">
+          <div class="fl-ic"><i data-lucide="alert-triangle"></i></div>
+          <div class="fl-txt"><div class="fl-h">Two Discovery-stage deals close this quarter</div><div class="fl-d">DWS Xtrackers and WisdomTree are at Discovery (20–25%) but carry close dates inside Q3 — timelines look optimistic and should be re-baselined.</div></div>
+        </div>
+        <div class="flag-row warn">
+          <div class="fl-ic"><i data-lucide="alert-triangle"></i></div>
+          <div class="fl-txt"><div class="fl-h">Concentration risk in late stage</div><div class="fl-d">68% of near-term weighted value sits in just two opportunities (Vanguard, L&amp;G). Slippage on either materially moves the quarter.</div></div>
+        </div>
+        <div class="flag-row crit">
+          <div class="fl-ic"><i data-lucide="octagon-alert"></i></div>
+          <div class="fl-txt"><div class="fl-h">Stale probability on Amundi</div><div class="fl-d">Amundi Fixed Income ETF probability unchanged for 6 weeks despite an advanced proposal — likely under-scored. Confirm with the RM.</div></div>
+        </div>
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">AI Commentary</div>
       <div class="commentary">
         <div class="cm-head"><div class="cm-av">C</div><div class="cm-who">Calastone Intelligence</div></div>
         <p>The shape of this pipeline is healthy but <strong>top-heavy</strong>. Equity ETF Servicing is doing the heavy lifting, which is consistent with where Calastone's volume-weighted share is strongest, but it also means the quarter's outcome hinges on a small number of late-stage deals converting on schedule.</p>
-        <p>The clearest action is to <strong>re-baseline the two Discovery-stage deals</strong> with Q3 close dates. Separately, Amundi looks under-scored: lifting it to a realistic probability would add roughly £100k of weighted value.</p>
+        <p>The clearest action is to <strong>re-baseline the two Discovery-stage deals</strong> with Q3 close dates — they're inflating the unweighted total without realistically contributing this quarter. Separately, Amundi looks under-scored: if the proposal is as advanced as the notes suggest, lifting it to a realistic probability would add roughly £100k of weighted value and change the stage distribution.</p>
         <p>If Vanguard and L&amp;G both land on time, the quarter clears comfortably; the risk is timing, not demand.</p>
       </div>
     </div>
   </div>`;
-
   icons();
+  buildStageChart(stages,stageW);
   buildOppTable();
   wireReportButtons();
-  animateReport(stages, stageW);
 }
 
-function animateReport(stages, stageW){
-  const sections = $$('#report .rep-section, #report .rep-header');
-  const tl = anime.timeline({easing:'easeOutCubic'});
-
-  /* header + exec summary */
-  tl.add({targets:[sections[0], sections[1]], opacity:[0,1], translateY:[10,0], delay:anime.stagger(80), duration:450})
-  /* kpi cards */
-  .add({targets:'.kpi', opacity:[0,1], translateY:[16,0], delay:anime.stagger(80), duration:500}, '-=200')
-  /* chart section */
-  .add({targets:sections[2], opacity:[0,1], translateY:[12,0], duration:450, complete:()=>buildStageChart(stages,stageW)}, '-=300')
-  /* table section */
-  .add({targets:sections[3], opacity:[0,1], translateY:[12,0], duration:450}, '-=300')
-  /* flags */
-  .add({targets:sections[4], opacity:[0,1], translateY:[10,0], duration:420}, '-=300')
-  /* commentary */
-  .add({targets:sections[5], opacity:[0,1], translateY:[10,0], duration:420}, '-=300');
-
-  /* KPI number count-up */
-  setTimeout(()=>{
-    $$('.kpi .k-val').forEach(el=>{
-      const raw = parseFloat(el.dataset.raw||'0');
-      const fmt = el.dataset.fmt||'num';
-      const obj = {v:0};
-      anime({targets:obj, v:raw, duration:1100, easing:'easeOutExpo',
-        update:()=>{
-          if(fmt==='gbp') el.textContent = obj.v>=1000 ? '£'+(obj.v/1000).toFixed(2)+'m' : '£'+Math.round(obj.v)+'k';
-          else if(fmt==='pct') el.textContent = Math.round(obj.v)+'%';
-          else el.textContent = Math.round(obj.v).toLocaleString();
-        }
-      });
-    });
-  }, 600);
-}
-
-function buildStageChart(stages, stageW){
+function buildStageChart(stages,stageW){
   const ctx=document.getElementById('stageChart');
-  if(!ctx) return;
   if(charts.stage) charts.stage.destroy();
   charts.stage=new Chart(ctx,{
     type:'bar',
-    data:{labels:stages,datasets:[{label:'Weighted Value (£k)',data:stageW,backgroundColor:'#2D9A8E',hoverBackgroundColor:'#26867D',borderRadius:6,maxBarThickness:64}]},
+    data:{labels:stages,datasets:[{label:'Weighted Value (£k)',data:stageW,backgroundColor:'#2D9A8E',hoverBackgroundColor:'#26867D',borderRadius:5,maxBarThickness:64}]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      animation:{duration:800,easing:'easeOutQuart'},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' £'+c.parsed.y+'k weighted'}}},
       scales:{
         y:{beginAtZero:true,ticks:{font:{size:12,family:'Inter'},color:'#566571',callback:v=>'£'+v+'k'},grid:{color:'rgba(34,50,61,0.07)'}},
@@ -1396,24 +1283,35 @@ function buildOppTable(){
   let rows=[...PIPELINE];
   if(sortState.k){
     const {k,dir}=sortState;
-    rows.sort((a,b)=>typeof a[k]==='string'?dir*a[k].localeCompare(b[k]):dir*(a[k]-b[k]));
+    rows.sort((a,b)=>{
+      let av=a[k],bv=b[k];
+      if(typeof av==='string'){return dir*av.localeCompare(bv);}
+      return dir*(av-bv);
+    });
   }
   const stageClass={'Discovery':'stage-disc','Proposal':'stage-prop','Negotiation':'stage-neg','Closing/Won':'stage-cw'};
   tb.innerHTML=rows.map(r=>`
-    <tr style="opacity:0">
-      <td>${r.name}</td><td>${r.fund}</td>
+    <tr>
+      <td>${r.name}</td>
+      <td>${r.fund}</td>
       <td><span class="stage-pill ${stageClass[r.stage]}">${r.stage}</span></td>
       <td class="num">${r.aum.toLocaleString()}</td>
       <td class="num"><div class="prob-bar"><div class="track"><div class="fill" style="width:${r.prob}%"></div></div>${r.prob}%</div></td>
       <td class="num">${r.value}</td>
       <td class="num">${new Date(r.close).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td>
     </tr>`).join('');
-  setTimeout(()=>{
-    anime({targets:'#oppTable tbody tr', opacity:[0,1], translateX:[-6,0], delay:anime.stagger(35), duration:350, easing:'easeOutCubic'});
-  }, 900);
+  // header sort indicators
+  $$('#oppTable th').forEach(th=>{
+    const sorted = th.dataset.k===sortState.k && sortState.dir!==0;
+    th.classList.toggle('sorted', sorted);
+    const ico = sorted ? (sortState.dir===1?'arrow-up':'arrow-down') : 'chevrons-up-down';
+    const label = th.dataset.label || (th.dataset.label = th.querySelector('.th-in') ? th.querySelector('.th-in').childNodes[0].textContent.trim() : th.textContent.trim());
+    th.innerHTML = `<span class="th-in">${label}<i data-lucide="${ico}"></i></span>`;
+  });
+  icons();
   $$('#oppTable th').forEach(th=>{
     th.onclick=()=>{
-      if(sortState.k===th.dataset.k){ sortState.dir=sortState.dir===1?-1:(sortState.dir===-1?0:1); }
+      if(sortState.k===th.dataset.k){ sortState.dir = sortState.dir===1?-1:(sortState.dir===-1?0:1); }
       else { sortState={k:th.dataset.k,dir:1}; }
       if(sortState.dir===0) sortState.k=null;
       buildOppTable();
@@ -1424,19 +1322,22 @@ function buildOppTable(){
 function wireReportButtons(){
   $('#expCsv').onclick=()=>{
     const header=['Opportunity','Fund Type','Stage','AUM_m','Probability_pct','Value_k','Close Date'];
-    const lines=[header.join(',')].concat(PIPELINE.map(p=>[`"${p.name}"`,p.fund,`"${p.stage}"`,p.aum,p.prob,p.value,p.close].join(',')));
+    const lines=[header.join(',')].concat(PIPELINE.map(p=>
+      [`"${p.name}"`,p.fund,`"${p.stage}"`,p.aum,p.prob,p.value,p.close].join(',')));
     const blob=new Blob([lines.join('\n')],{type:'text/csv'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ETF_Pipeline_Analysis.csv'; a.click(); URL.revokeObjectURL(a.href);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='ETF_Pipeline_Analysis.csv';
+    a.click(); URL.revokeObjectURL(a.href);
     toast('CSV exported');
   };
   $('#expPdf').onclick=()=>{ toast('Opening print dialog…'); setTimeout(()=>window.print(),300); };
-  $('#cpLink').onclick=()=>{ navigator.clipboard?.writeText(location.href).catch(()=>{}); toast('Report link copied'); };
+  $('#cpLink').onclick=()=>{ navigator.clipboard?.writeText('https://pulse.calastone.internal/report/etf-q3-fy26').catch(()=>{}); toast('Report link copied'); };
 }
 
+/* keyboard: Escape closes source / collapses */
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape' && !srcPanel.classList.contains('hidden')){
-    anime({targets:'#sourcePanel', translateX:[0,20], opacity:[1,0], duration:250, easing:'easeInQuad', complete:()=>srcPanel.classList.add('hidden')});
-  }
+  if(e.key==='Escape'){ if(!srcPanel.classList.contains('hidden')) srcPanel.classList.add('hidden'); }
 });
 
 icons();
