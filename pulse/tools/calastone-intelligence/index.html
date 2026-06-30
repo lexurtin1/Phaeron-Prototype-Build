@@ -1067,6 +1067,23 @@ $$('.nav-item').forEach(b=>b.addEventListener('click',()=>{
   const vKey = b.dataset.view;
   const outView = $('.view.active');
   const inView = $('#view-'+(vKey==='chat'?'chat':'data'));
+  const isChatRoute = vKey === 'chat';
+
+  if(isChatRoute){
+    thread.innerHTML = '';
+    emptyChat.style.display = 'flex';
+    thread.style.display = 'none';
+    srcPanel.classList.add('hidden');
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    $$('.recent-item').forEach(item => item.classList.remove('active'));
+  }
+
+  if(outView === inView && isChatRoute){
+    return;
+  }
+
   if(outView === inView) return;
 
   anime({targets:outView, opacity:[1,0], duration:160, easing:'easeInQuad', complete:()=>{
