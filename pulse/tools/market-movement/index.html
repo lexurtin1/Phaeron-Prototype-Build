@@ -7,6 +7,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 
 <style>
 /* ============================================================
@@ -287,6 +288,89 @@ body{
   #feed-rail{width:320px}
   #feed-rail.collapsed{transform:translateX(320px)}
 }
+
+/* ============================================================
+   SECTION: Brazil control centre
+   ============================================================ */
+#brazil-stage{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none}
+#brazil-stage.active{pointer-events:auto}
+#app.brazil-mode .brand,
+#app.brazil-mode .hero,
+#app.brazil-mode .legend,
+#app.brazil-mode .pills,
+#app.brazil-mode #pulse-home-btn{display:none}
+#brazil-map{position:absolute;inset:0;background:var(--bg-top)}
+#brazil-map .maplibregl-ctrl-attrib{font-family:'Inter',sans-serif;font-size:10px}
+
+#back-to-global-btn{position:absolute;top:20px;left:36px;z-index:10;
+  display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:10px;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(34,50,61,0.09);box-shadow:0 2px 10px rgba(34,50,61,0.08);
+  font-family:'Inter';font-size:12px;font-weight:600;color:var(--grey);cursor:pointer;
+  transition:border-color .2s ease,color .2s ease}
+#back-to-global-btn:hover{border-color:rgba(45,153,156,0.35);color:var(--navy)}
+
+#brazil-loading,#brazil-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:4;color:var(--grey-lt);font-size:12px;background:var(--card);border:1px solid var(--card-line);
+  border-radius:10px;padding:12px 20px;box-shadow:var(--shadow)}
+
+.brazil-tooltip{position:absolute;transform:translate(-50%,calc(-100% - 14px));z-index:20;
+  pointer-events:none;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);
+  border:1px solid var(--card-line);border-radius:9px;padding:8px 12px;min-width:140px;
+  font-family:'Inter';box-shadow:var(--shadow)}
+.brazil-tooltip .bt-name{font-size:12.5px;font-weight:600;color:var(--navy)}
+.brazil-tooltip .bt-meta{font-size:10.5px;color:var(--grey);margin-top:2px}
+.brazil-tooltip .bt-temp{font-size:10.5px;color:var(--teal-dk);font-weight:600;margin-top:4px}
+
+.brazil-card{position:absolute;transform:translate(-50%,calc(-100% - 18px));z-index:21;
+  background:var(--card);border:1px solid var(--card-line);border-radius:13px;box-shadow:var(--shadow);
+  padding:16px;width:280px;font-family:'Inter'}
+.brazil-card .bc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:11px}
+.brazil-card .bc-name{font-size:14px;font-weight:600;color:var(--navy)}
+.brazil-card .bc-types{font-size:10.5px;color:var(--grey-lt);margin-top:2px}
+.brazil-card .bc-status{flex-shrink:0;font-size:8.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:4px 8px;border-radius:99px}
+.bc-status.Live{background:rgba(53,181,126,.14);color:#1f8a55}
+.bc-status.InDiscussions{background:rgba(61,141,188,.14);color:#2a6690}
+.bc-status.Prospect{background:rgba(224,163,37,.16);color:#9c721b}
+.bc-status.Disabled{background:rgba(154,166,176,.16);color:#6b7a83}
+.brazil-card .bc-row{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:12px;color:var(--navy);padding:5px 0;border-bottom:1px solid var(--card-line)}
+.brazil-card .bc-row:last-of-type{border-bottom:none}
+.brazil-card .bc-label{color:var(--grey-lt);font-size:10.5px}
+.brazil-card .bc-signal{margin-top:11px;padding:9px 12px;background:rgba(45,153,156,0.06);
+  border:1px solid rgba(45,153,156,0.18);border-radius:9px}
+.brazil-card .bc-signal-lbl{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--grey-lt);font-weight:700;margin-bottom:4px}
+.brazil-card .bc-signal-txt{font-size:11px;color:var(--navy);line-height:1.4}
+.brazil-card .bc-cta{display:block;margin-top:14px;text-align:center;padding:9px 14px;
+  border-radius:8px;background:var(--teal-dk);color:#fff;font-size:12.5px;font-weight:600;
+  cursor:pointer;border:none;font-family:'Inter';width:100%}
+.brazil-card .bc-cta:hover{background:var(--teal)}
+
+#brazil-dropzone{position:absolute;left:36px;bottom:30px;z-index:6;width:250px;padding:14px;
+  border:2px dashed rgba(108,123,131,0.35);border-radius:13px;background:var(--card);
+  box-shadow:var(--shadow);text-align:center;font-size:11.5px;color:var(--grey);
+  transition:border-color .2s ease,background .2s ease;cursor:pointer}
+#brazil-dropzone.drag-over{border-color:var(--teal);background:rgba(45,153,156,0.06)}
+#brazil-dropzone .bd-link{color:var(--teal-dk);font-weight:600;text-decoration:underline}
+
+#brazil-detail-overlay{position:absolute;inset:0;z-index:30;background:rgba(13,20,24,0.32);
+  display:flex;align-items:center;justify-content:center}
+#brazil-detail{width:420px;max-height:80vh;overflow-y:auto;background:var(--card);
+  border-radius:16px;box-shadow:var(--shadow);padding:26px;font-family:'Inter'}
+#brazil-detail .bd-close{float:right;border:none;background:none;color:var(--grey-lt);
+  font-size:20px;cursor:pointer;line-height:1}
+#brazil-detail h3{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:4px}
+#brazil-detail .bd-sub{font-size:11.5px;color:var(--grey-lt);margin-bottom:18px}
+#brazil-detail .bd-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+#brazil-detail .bd-stat{background:rgba(34,50,61,0.03);border-radius:10px;padding:10px 12px}
+#brazil-detail .bd-stat-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--grey-lt);font-weight:600;margin-bottom:5px}
+#brazil-detail .bd-stat-val{font-size:15px;font-weight:600;color:var(--navy)}
+
+/* Source-type filter chips reuse the existing region-filter pill look */
+.st-filters{display:flex;gap:5px;flex-wrap:wrap;margin-top:11px}
 </style>
 </head>
 <body>
@@ -300,6 +384,27 @@ body{
       <p>The country boundary data didn't reach your browser. This is usually a temporary connection issue — the dashboard and live feed still work.</p>
       <button id="retry-geo">Retry loading map</button>
     </div></div>
+  </div>
+
+  <div id="brazil-stage">
+    <div id="brazil-map"></div>
+    <div id="brazil-loading">Loading Brazil map…</div>
+    <div id="brazil-empty" style="display:none">No accounts match current filters</div>
+    <button id="back-to-global-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+      </svg>
+      Back to global
+    </button>
+    <div id="brazil-tooltip" class="brazil-tooltip" style="display:none"></div>
+    <div id="brazil-card" class="brazil-card" style="display:none"></div>
+    <div id="brazil-dropzone">
+      <span id="brazil-dropzone-label">Drag a document here or <span class="bd-link">browse</span></span>
+      <input type="file" id="brazil-file-input" style="display:none">
+    </div>
+    <div id="brazil-detail-overlay" style="display:none">
+      <div id="brazil-detail"></div>
+    </div>
   </div>
 
   <div class="brand">
@@ -349,7 +454,7 @@ body{
       <span class="vlabel">Live feed</span>
     </button>
     <div class="feed-head">
-      <div class="ttl"><span class="live"></span>Live Alert Feed</div>
+      <div class="ttl"><span class="live"></span><span id="feed-title">Live Alert Feed</span></div>
       <div class="sub" id="feed-sub"></div>
       <div class="region-filters" id="regionFilters">
         <button class="rf-btn active" data-region="all">All</button>
@@ -357,6 +462,13 @@ body{
         <button class="rf-btn" data-region="americas">Americas</button>
         <button class="rf-btn" data-region="asia">Asia</button>
         <button class="rf-btn" data-region="australia">Australia</button>
+      </div>
+      <div class="region-filters st-filters" id="sourceFilters" style="display:none">
+        <button class="rf-btn active" data-source="regulatory">Regulatory</button>
+        <button class="rf-btn active" data-source="competitor">Competitor</button>
+        <button class="rf-btn active" data-source="news">News</button>
+        <button class="rf-btn active" data-source="account">Account</button>
+        <button class="rf-btn active" data-source="document">Document</button>
       </div>
     </div>
     <div class="feed scroll" id="feed"></div>
@@ -366,6 +478,8 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.27.1/dist/globe.gl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.1.13/dist.min.js"></script>
 <script src="../../favicon-pulse.js"></script>
 
 <script>
@@ -647,15 +761,16 @@ let selectedEid = null;
    SECTION: Globe
    ============================================================ */
 const GEO_URLS = [
-  'https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/country-capitals/ne_110m_admin_0_countries.geojson',
-  'https://cdn.jsdelivr.net/gh/vasturiano/globe.gl@master/example/country-capitals/ne_110m_admin_0_countries.geojson',
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson',
+  'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_admin_0_countries.geojson',
   'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 ];
 let globe, autoResumeTimer, wantAutoRotate = true;
+let highlightedIso = null;
 
 function polygonCapColor(d){
   const iso = d.properties.ISO_A3;
+  if(iso===highlightedIso) return 'rgba(45, 153, 156, 0.55)';
   const top = countryTopCat[iso];
   if(!top || !activeCats.has(top.cat)) return 'rgba(255,255,255,0.96)';
   if(activeRegion!=='all' && !ALERT_EVENTS.some(e=>e.iso===iso&&e.region===activeRegion&&activeCats.has(e.cat))) return 'rgba(255,255,255,0.96)';
@@ -667,6 +782,7 @@ function matchesRegion(e){ return activeRegion==='all' || e.region===activeRegio
 function visiblePoints(){ return ALERT_EVENTS.filter(e=>activeCats.has(e.cat) && matchesRegion(e)); }
 function activeAlt(d){
   const iso = d.properties.ISO_A3;
+  if(iso===highlightedIso) return 0.045;
   const t = countryTopCat[iso];
   if(!t || !activeCats.has(t.cat)) return 0.006;
   if(activeRegion!=='all' && !ALERT_EVENTS.some(e=>e.iso===iso&&e.region===activeRegion&&activeCats.has(e.cat))) return 0.006;
@@ -686,6 +802,7 @@ function makeFlashMarker(e){
 }
 
 function initGlobe(geo){
+  mmWorldFeatures = geo.features;
   document.getElementById('globe-loading').style.display='none';
   const stage = document.getElementById('stage');
 
@@ -706,6 +823,7 @@ function initGlobe(geo){
     })
     .onPolygonClick(d=>{
       const iso=d.properties.ISO_A3;
+      if(iso==='BRA'){ enterBrazilMode(); return; }
       const ev = ALERT_EVENTS.find(x=>x.iso===iso && activeCats.has(x.cat));
       if(ev){ selectEvent(ev.eid);
         globe.pointOfView({lat:ev.lat,lng:ev.lng,altitude:1.6},1200); }
@@ -756,6 +874,7 @@ function buildHoverCard(d){
    ============================================================ */
 function visibleFeedEvents(){ return ALERT_EVENTS.filter(e=>activeCats.has(e.cat)&&matchesRegion(e)).slice().sort((a,b)=>a.days-b.days); }
 function renderFeed(){
+  if(mmMode==='brazil'){ renderBrazilFeed(); return; }
   const feed=document.getElementById('feed');
   const items=visibleFeedEvents();
   document.getElementById('feed-sub').textContent=items.length+' active signals · sorted by recency';
@@ -926,6 +1045,541 @@ document.getElementById('feed-toggle').addEventListener('click',()=>{
   document.getElementById('app').classList.toggle('feed-closed', collapsed);
   setTimeout(()=>{ if(globe){const s=document.getElementById('stage');globe.width(s.clientWidth).height(s.clientHeight);} },440);
 });
+
+/* ============================================================
+   SECTION: Brazil control centre — data
+   ============================================================ */
+let mmMode = 'global';
+let mmWorldFeatures = null;
+
+const BRAZIL_ACCOUNTS = [
+  {id:'apex-group-brazil', name:'Apex Group Brazil', clientTypes:['ThirdPartyAdministrator'], primaryShape:'triangle',
+   status:'Disabled', temperatureScore:15, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:0, openOpportunityValue:0, owner:'Camila Rocha'},
+  {id:'vortx', name:'Vortx', clientTypes:['ThirdPartyAdministrator'], primaryShape:'triangle',
+   status:'Prospect', temperatureScore:25, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:1, openOpportunityValue:180000, owner:'Lucas Ferreira',
+   latestSignal:{headline:'Initial outreach call scheduled with Vortx operations team', date:'2026-06-12', source:'Salesforce'}},
+  {id:'banco-santander-brazil', name:'Banco Santander Brazil', clientTypes:['Distributor'], primaryShape:'circle',
+   status:'InDiscussions', temperatureScore:35, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:2, openOpportunityValue:620000, owner:'Camila Rocha',
+   latestSignal:{headline:'Santander evaluating cross-border order routing for LatAm retail range', date:'2026-06-18', source:'Notion'}},
+  {id:'xp', name:'XP', clientTypes:['Distributor'], primaryShape:'circle',
+   status:'InDiscussions', temperatureScore:45, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:3, openOpportunityValue:940000, owner:'Lucas Ferreira',
+   latestSignal:{headline:'XP platform team requested a technical workshop on ISO 20022 messaging', date:'2026-06-22', source:'Salesforce'}},
+  {id:'bny-mellon-servicos-dtvm', name:'BNY Mellon Servicos DTVM', clientTypes:['ThirdPartyAdministrator'], primaryShape:'triangle',
+   status:'Live', temperatureScore:52, lat:-15.7939, lon:-47.8828, city:'Brasília',
+   openOpportunityCount:2, openOpportunityValue:410000, owner:'Camila Rocha',
+   latestSignal:{headline:'BNY Mellon Servicos DTVM live on two settlement corridors, expansion under review', date:'2026-06-05', source:'Salesforce'}},
+  {id:'ubs-brazil', name:'UBS', clientTypes:['FundManager','Distributor'], primaryShape:'hexagon',
+   status:'Live', temperatureScore:58, lat:-22.9068, lon:-43.1729, city:'Rio de Janeiro',
+   openOpportunityCount:2, openOpportunityValue:780000, owner:'Mariana Souza',
+   latestSignal:{headline:'UBS Brazil wealth desk expanding offshore fund shelf for HNW clients', date:'2026-06-14', source:'News'}},
+  {id:'bradesco', name:'Bradesco', clientTypes:['FundManager','Distributor'], primaryShape:'hexagon',
+   status:'Live', temperatureScore:68, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:4, openOpportunityValue:1350000, owner:'Mariana Souza',
+   latestSignal:{headline:'Bradesco Asset Management scaling instruction volumes ahead of Q3 launch', date:'2026-06-20', source:'Salesforce'}},
+  {id:'nubank', name:'Nubank', clientTypes:['Distributor'], primaryShape:'circle',
+   status:'Live', temperatureScore:78, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:3, openOpportunityValue:1020000, owner:'Lucas Ferreira',
+   latestSignal:{headline:'Nubank investment platform onboarding new fund shelf for digital-first investors', date:'2026-06-25', source:'News'}},
+  {id:'btg-pactual-brazil', name:'BTG Pactual Brazil', clientTypes:['FundManager','Distributor'], primaryShape:'hexagon',
+   status:'Live', temperatureScore:88, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:5, openOpportunityValue:2150000, owner:'Mariana Souza',
+   latestSignal:{headline:'BTG Pactual expanding cross-border distribution into Mexico and Chile corridors', date:'2026-06-27', source:'Salesforce'}},
+  {id:'itau-unibanco', name:'Itaú Unibanco', clientTypes:['FundManager','Distributor'], primaryShape:'hexagon',
+   status:'Live', temperatureScore:92, lat:-23.5505, lon:-46.6333, city:'São Paulo',
+   openOpportunityCount:4, openOpportunityValue:2600000, owner:'Camila Rocha',
+   latestSignal:{headline:'Itaú UCITS launch needs Brazil–Luxembourg settlement bridge', date:'2026-05-15', source:'Regulator'}},
+];
+
+let brazilSignals = [];
+let activeSourceTypes = new Set(['regulatory','competitor','news','account','document']);
+let selectedSignalId = null;
+let brazilFocusAccountId = null;
+const SOURCE_TYPE_LABEL = {regulatory:'Regulatory', competitor:'Competitor', news:'News', account:'Account', document:'Document'};
+const SOURCE_TYPE_ICON = {regulatory:'⚖️', competitor:'🎯', news:'📰', account:'🏢', document:'📄'};
+const SHAPE_LABEL = {hexagon:'Fund Manager', triangle:'Third-Party Administrator', circle:'Distributor'};
+const STATUS_LABEL = {Live:'Live', InDiscussions:'In Discussions', Prospect:'Prospect', Disabled:'Disabled'};
+const currencyFmt = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0});
+
+/* ============================================================
+   SECTION: Brazil control centre — temperature (OKLCH gradient)
+   ============================================================ */
+const TEMP_ANCHORS = [
+  {score:0,   l:0.55, c:0.19, h:25},
+  {score:25,  l:0.68, c:0.17, h:55},
+  {score:50,  l:0.80, c:0.15, h:90},
+  {score:75,  l:0.75, c:0.16, h:142},
+  {score:100, l:0.60, c:0.17, h:152},
+];
+function clampScore(s){ return Math.min(100, Math.max(0, s)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function interpolateOklch(score){
+  const s=clampScore(score);
+  let lower=TEMP_ANCHORS[0], upper=TEMP_ANCHORS[TEMP_ANCHORS.length-1];
+  for(let i=0;i<TEMP_ANCHORS.length-1;i++){
+    const a=TEMP_ANCHORS[i], b=TEMP_ANCHORS[i+1];
+    if(s>=a.score && s<=b.score){ lower=a; upper=b; break; }
+  }
+  const span=(upper.score-lower.score)||1, t=(s-lower.score)/span;
+  return {l:lerp(lower.l,upper.l,t), c:lerp(lower.c,upper.c,t), h:lerp(lower.h,upper.h,t)};
+}
+function srgbGamma(c){ const x=Math.min(1,Math.max(0,c)); return x<=0.0031308 ? 12.92*x : 1.055*Math.pow(x,1/2.4)-0.055; }
+function oklchToRgb(l,c,hDeg){
+  const h=hDeg*Math.PI/180, a=c*Math.cos(h), b=c*Math.sin(h);
+  const l_=l+0.3963377774*a+0.2158037573*b, m_=l-0.1055613458*a-0.0638541728*b, s_=l-0.0894841775*a-1.2914855480*b;
+  const L=l_**3, M=m_**3, S=s_**3;
+  const r=4.0767416621*L-3.3077115913*M+0.2309699292*S;
+  const g=-1.2684380046*L+2.6097574011*M-0.3413193965*S;
+  const bl=-0.0041960863*L-0.7034186147*M+1.7076147010*S;
+  return [Math.round(srgbGamma(r)*255), Math.round(srgbGamma(g)*255), Math.round(srgbGamma(bl)*255)];
+}
+function getTemperatureColor(score){ const {l,c,h}=interpolateOklch(score); return `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${h.toFixed(1)})`; }
+function getTemperatureRgba(score, alpha){ const {l,c,h}=interpolateOklch(score); const [r,g,b]=oklchToRgb(l,c,h); return [r,g,b, alpha===undefined?255:alpha]; }
+function getTemperatureBand(score){ const s=clampScore(score); if(s<=20) return 'Cold'; if(s<=40) return 'Cool'; if(s<=60) return 'Warm'; if(s<=80) return 'Strong'; return 'Hot'; }
+function getTemperatureLabel(score){ return `${Math.round(clampScore(score))} — ${getTemperatureBand(score)}`; }
+
+/* ============================================================
+   SECTION: Brazil control centre — marker icons + fan-out layout
+   ============================================================ */
+function svgDataUri(path){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${path}</svg>`;
+  return 'data:image/svg+xml;base64,'+btoa(svg);
+}
+const MARKER_ICON_URIS = {
+  circle: svgDataUri('<circle cx="32" cy="32" r="30" fill="#ffffff"/>'),
+  triangle: svgDataUri('<polygon points="32,3 61,58 3,58" fill="#ffffff"/>'),
+  hexagon: svgDataUri('<polygon points="32,2 59,17 59,47 32,62 5,47 5,17" fill="#ffffff"/>'),
+};
+const MARKER_ICON_MAPPING = {width:64, height:64, anchorY:32, anchorX:32};
+
+const FAN_START_ZOOM=5, FAN_END_ZOOM=10, BASE_OFFSET_PX=26;
+function fanOutPixelOffset(zoom){
+  if(zoom<=FAN_START_ZOOM) return BASE_OFFSET_PX;
+  if(zoom>=FAN_END_ZOOM) return 0;
+  const t=(zoom-FAN_START_ZOOM)/(FAN_END_ZOOM-FAN_START_ZOOM);
+  return BASE_OFFSET_PX*(1-t);
+}
+function metersPerPixel(lat, zoom){ return (156543.03392*Math.cos(lat*Math.PI/180))/Math.pow(2,zoom); }
+function offsetLatLon(lat, lon, zoom, pixels, angleRad){
+  if(pixels===0) return {lat, lon};
+  const meters=pixels*metersPerPixel(lat,zoom);
+  const dLat=(meters*Math.cos(angleRad))/111320;
+  const dLon=(meters*Math.sin(angleRad))/(111320*Math.cos(lat*Math.PI/180));
+  return {lat:lat+dLat, lon:lon+dLon};
+}
+function layoutAccounts(accounts, zoom){
+  const groups=new Map();
+  accounts.forEach(a=>{
+    const key=a.lat.toFixed(2)+','+a.lon.toFixed(2);
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(a);
+  });
+  const offsetPx=fanOutPixelOffset(zoom);
+  const positioned=[];
+  groups.forEach(group=>{
+    group.forEach((account,i)=>{
+      const angle=(2*Math.PI*i)/group.length;
+      const {lat,lon}=offsetLatLon(account.lat, account.lon, zoom, group.length>1?offsetPx:0, angle);
+      positioned.push({account, lat, lon});
+    });
+  });
+  return positioned;
+}
+function sizeForImportance(value, maxValue){
+  if(maxValue<=0) return 20;
+  const t=Math.min(1, value/maxValue);
+  return 20 + t*14;
+}
+
+/* ============================================================
+   SECTION: Brazil control centre — MapLibre + deck.gl
+   ============================================================ */
+const MAPLIBRE_STYLE_URLS = ['https://tiles.openfreemap.org/styles/positron', 'https://tiles.openfreemap.org/styles/liberty'];
+const FALLBACK_MAPLIBRE_STYLE = {version:8, sources:{}, layers:[{id:'fallback-bg', type:'background', paint:{'background-color':'#eef2f6'}}]};
+const BRAZIL_STATE_GEO_URLS = [
+  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_1_states_provinces.geojson',
+  'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_1_states_provinces.geojson',
+];
+const BRAZIL_CENTER=[-51,-14], BRAZIL_DEFAULT_ZOOM=3.5;
+
+let brazilMap=null, brazilOverlay=null, brazilMapZoom=BRAZIL_DEFAULT_ZOOM;
+let hoveredAccountId=null, selectedAccountId=null;
+
+/* DOM-based hit-testing for markers, used instead of deck.gl's GPU picking
+ * (which requires a WebGL framebuffer readback that some sandboxed/software-
+ * rendered environments don't support reliably). We already compute each
+ * marker's exact fanned-out position and pixel size for rendering, so we can
+ * do the same distance check here without depending on GPU picking at all. */
+function findMarkerAtScreenPoint(x, y){
+  if(!brazilMap) return null;
+  const positioned = layoutAccounts(BRAZIL_ACCOUNTS, brazilMapZoom);
+  const maxValue = BRAZIL_ACCOUNTS.reduce((max,a)=>Math.max(max,a.openOpportunityValue), 0);
+  let best=null, bestDist=Infinity;
+  positioned.forEach(p=>{
+    const proj = brazilMap.project([p.lon, p.lat]);
+    const dx=proj.x-x, dy=proj.y-y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const radius=sizeForImportance(p.account.openOpportunityValue, maxValue)/2 + 3;
+    if(dist<=radius && dist<bestDist){ best={account:p.account, x:proj.x, y:proj.y}; bestDist=dist; }
+  });
+  return best;
+}
+
+async function fetchFirstAvailable(urls){
+  let lastErr;
+  for(const url of urls){
+    try{
+      const res=await fetch(url, {cache:'force-cache'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return await res.json();
+    }catch(err){ lastErr=err; console.warn('[brazil-map] source failed:', url, err); }
+  }
+  throw lastErr || new Error('All sources failed');
+}
+
+function initBrazilMap(){
+  const mount=document.getElementById('brazil-map');
+
+  function tryStyle(styleIndex){
+    const style = styleIndex<MAPLIBRE_STYLE_URLS.length ? MAPLIBRE_STYLE_URLS[styleIndex] : FALLBACK_MAPLIBRE_STYLE;
+    const map=new maplibregl.Map({container:mount, style, center:BRAZIL_CENTER, zoom:BRAZIL_DEFAULT_ZOOM, pitch:35});
+    brazilMap=map;
+    let settled=false;
+    const finish=()=>{
+      if(settled) return; settled=true; clearTimeout(loadTimeout);
+      document.getElementById('brazil-loading').style.display='none';
+      void addBrazilBoundaries(map);
+      brazilOverlay=new deck.MapboxOverlay({interleaved:false, layers:[]});
+      map.addControl(brazilOverlay);
+      refreshBrazilMarkers();
+    };
+    map.once('load', finish);
+    const loadTimeout=setTimeout(()=>{
+      if(settled) return;
+      if(map.isStyleLoaded()) finish(); else map.once('idle', finish);
+    }, 8000);
+    // Hard fallback: never let the "Loading…" state persist forever, even if
+    // tile loading is genuinely slow/incomplete — MapLibre renders tiles
+    // progressively as they arrive regardless of the 'load'/'idle' event.
+    setTimeout(finish, 15000);
+    map.on('zoom', ()=>{ brazilMapZoom=map.getZoom(); refreshBrazilMarkers(); });
+    map.on('error', ()=>{
+      if(settled) return; settled=true; clearTimeout(loadTimeout);
+      map.remove();
+      tryStyle(styleIndex+1);
+    });
+
+    mount.addEventListener('mousemove', ev=>{
+      const rect=mount.getBoundingClientRect();
+      const hit=findMarkerAtScreenPoint(ev.clientX-rect.left, ev.clientY-rect.top);
+      handleMarkerHover(hit);
+    });
+    mount.addEventListener('mouseleave', ()=>handleMarkerHover(null));
+    mount.addEventListener('click', ev=>{
+      const rect=mount.getBoundingClientRect();
+      const hit=findMarkerAtScreenPoint(ev.clientX-rect.left, ev.clientY-rect.top);
+      if(hit) handleMarkerClick(hit); else hideCard();
+    });
+  }
+  tryStyle(0);
+}
+
+async function addBrazilBoundaries(map){
+  try{
+    const brazilGeo = await fetchFirstAvailable(BRAZIL_STATE_GEO_URLS);
+    if(mmWorldFeatures){
+      const southAmerica = {type:'FeatureCollection', features: mmWorldFeatures.filter(f=> (f.properties.CONTINENT||f.properties.continent)==='South America')};
+      map.addSource('mm-south-america', {type:'geojson', data: southAmerica});
+      map.addLayer({id:'mm-south-america-fill', type:'fill', source:'mm-south-america', paint:{'fill-color':'#eef2f6','fill-opacity':0.6}});
+      map.addLayer({id:'mm-south-america-line', type:'line', source:'mm-south-america', paint:{'line-color':'#c3cdd5','line-width':1}});
+    }
+    const brazilStates = {type:'FeatureCollection', features: brazilGeo.features.filter(f=> f.properties.admin==='Brazil' || f.properties.iso_a2==='BR')};
+    map.addSource('mm-brazil-states', {type:'geojson', data: brazilStates});
+    map.addLayer({id:'mm-brazil-states-fill', type:'fill', source:'mm-brazil-states', paint:{'fill-color':'#ffffff','fill-opacity':0.4}});
+    map.addLayer({id:'mm-brazil-states-line', type:'line', source:'mm-brazil-states', paint:{'line-color':'#566571','line-width':1.1}});
+  }catch(err){ console.warn('[brazil-map] boundary data failed to load', err); }
+}
+
+function buildAccountLayers(){
+  const positioned = layoutAccounts(BRAZIL_ACCOUNTS, brazilMapZoom);
+  const maxValue = BRAZIL_ACCOUNTS.reduce((max,a)=>Math.max(max,a.openOpportunityValue), 0);
+  const shapes=['circle','triangle','hexagon'];
+  const layers=[];
+  shapes.forEach(shape=>{
+    const shapeData = positioned.filter(p=>p.account.primaryShape===shape);
+    const iconUrl = MARKER_ICON_URIS[shape];
+    layers.push(new deck.IconLayer({
+      id:'mm-marker-outer-'+shape, data:shapeData, pickable:false,
+      getPosition:d=>[d.lon,d.lat], getIcon:()=>({url:iconUrl, ...MARKER_ICON_MAPPING, mask:true}), sizeUnits:'pixels',
+      getSize:d=>{ const base=sizeForImportance(d.account.openOpportunityValue,maxValue); const active=d.account.id===hoveredAccountId||d.account.id===selectedAccountId; return active?base*1.15:base; },
+      getColor:d=> d.account.status==='Disabled' ? [176,184,191,210] : getTemperatureRgba(d.account.temperatureScore),
+      updateTriggers:{getSize:[hoveredAccountId,selectedAccountId]},
+    }));
+    layers.push(new deck.IconLayer({
+      id:'mm-marker-inner-'+shape, data:shapeData, pickable:false,
+      getPosition:d=>[d.lon,d.lat], getIcon:()=>({url:iconUrl, ...MARKER_ICON_MAPPING}), sizeUnits:'pixels',
+      getSize:d=>{ const base=sizeForImportance(d.account.openOpportunityValue,maxValue)*0.6; const active=d.account.id===hoveredAccountId||d.account.id===selectedAccountId; return active?base*1.15:base; },
+      getColor:[255,255,255,255],
+      updateTriggers:{getSize:[hoveredAccountId,selectedAccountId]},
+    }));
+  });
+  return layers;
+}
+
+function refreshBrazilMarkers(){
+  if(!brazilOverlay) return;
+  brazilOverlay.setProps({layers: buildAccountLayers()});
+}
+
+function handleMarkerHover(hit){
+  const nextId = hit ? hit.account.id : null;
+  if(nextId===hoveredAccountId) { if(hit) showTooltip(hit.account, hit.x, hit.y); return; }
+  hoveredAccountId=nextId;
+  if(hit){ showTooltip(hit.account, hit.x, hit.y); } else { hideTooltip(); }
+  refreshBrazilMarkers();
+}
+function handleMarkerClick(hit){
+  if(!hit) return;
+  selectedAccountId=hit.account.id;
+  showCard(hit.account, hit.x, hit.y);
+  refreshBrazilMarkers();
+}
+
+function showTooltip(account, x, y){
+  const el=document.getElementById('brazil-tooltip');
+  el.style.left=x+'px'; el.style.top=y+'px';
+  el.innerHTML = `<div class="bt-name">${account.name}</div>
+    <div class="bt-meta">${SHAPE_LABEL[account.primaryShape]}</div>
+    <div class="bt-temp">${getTemperatureLabel(account.temperatureScore)}</div>`;
+  el.style.display='block';
+}
+function hideTooltip(){ document.getElementById('brazil-tooltip').style.display='none'; }
+
+function showCard(account, x, y){
+  const el=document.getElementById('brazil-card');
+  el.style.left=x+'px'; el.style.top=y+'px';
+  const typesLabel = account.clientTypes.map(t=> t==='ThirdPartyAdministrator'?'TA':t).join(' · ');
+  const signalHtml = account.latestSignal ? `
+    <div class="bc-signal"><div class="bc-signal-lbl">Latest signal</div><div class="bc-signal-txt">${account.latestSignal.headline}</div></div>` : '';
+  el.innerHTML = `
+    <div class="bc-head">
+      <div><div class="bc-name">${account.name}</div><div class="bc-types">${typesLabel}</div></div>
+      <span class="bc-status ${account.status}">${STATUS_LABEL[account.status]}</span>
+    </div>
+    <div class="bc-row"><span class="bc-label">Primary role</span><span>${SHAPE_LABEL[account.primaryShape]}</span></div>
+    <div class="bc-row"><span class="bc-label">Temperature</span><span>${getTemperatureLabel(account.temperatureScore)}</span></div>
+    <div class="bc-row"><span class="bc-label">Open opportunities</span><span>${account.openOpportunityCount} · ${currencyFmt.format(account.openOpportunityValue)}</span></div>
+    ${signalHtml}
+    <button class="bc-cta" id="bc-view-full">View full account</button>`;
+  el.style.display='block';
+  document.getElementById('bc-view-full').addEventListener('click', ()=>showAccountDetail(account));
+}
+function hideCard(){
+  document.getElementById('brazil-card').style.display='none';
+  selectedAccountId=null;
+  refreshBrazilMarkers();
+}
+
+function showAccountDetail(account){
+  const detail=document.getElementById('brazil-detail');
+  const typesHtml = account.clientTypes.map(t=>`<span class="badge market" style="margin-right:6px">${t==='ThirdPartyAdministrator'?'Third-Party Administrator':t}</span>`).join('');
+  const signalHtml = account.latestSignal ? `
+    <h6>Latest signal</h6>
+    <div class="bc-signal" style="margin-top:6px"><div class="bc-signal-txt">${account.latestSignal.headline}</div>
+    <div class="bt-meta" style="margin-top:6px">${account.latestSignal.source} · ${account.latestSignal.date}</div></div>` : '';
+  detail.innerHTML = `
+    <button class="bd-close" id="bd-close-btn">×</button>
+    <h3>${account.name}</h3>
+    <div class="bd-sub">${SHAPE_LABEL[account.primaryShape]} · ${account.city}</div>
+    <div class="bd-stats">
+      <div class="bd-stat"><div class="bd-stat-lbl">Temperature</div><div class="bd-stat-val" style="color:${getTemperatureColor(account.temperatureScore)}">${getTemperatureLabel(account.temperatureScore)}</div></div>
+      <div class="bd-stat"><div class="bd-stat-lbl">Status</div><div class="bd-stat-val">${STATUS_LABEL[account.status]}</div></div>
+      <div class="bd-stat"><div class="bd-stat-lbl">Open opportunities</div><div class="bd-stat-val">${account.openOpportunityCount}</div></div>
+      <div class="bd-stat"><div class="bd-stat-lbl">Opportunity value</div><div class="bd-stat-val">${currencyFmt.format(account.openOpportunityValue)}</div></div>
+    </div>
+    <div style="margin-bottom:14px">${typesHtml}</div>
+    ${signalHtml}
+    <div class="bt-meta" style="margin-top:14px">Owner: ${account.owner}</div>`;
+  document.getElementById('brazil-detail-overlay').style.display='flex';
+  document.getElementById('bd-close-btn').addEventListener('click', hideAccountDetail);
+}
+function hideAccountDetail(){ document.getElementById('brazil-detail-overlay').style.display='none'; }
+
+document.getElementById('brazil-detail-overlay').addEventListener('click', e=>{
+  if(e.target.id==='brazil-detail-overlay') hideAccountDetail();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  if(document.getElementById('brazil-detail-overlay').style.display==='flex'){ hideAccountDetail(); return; }
+  if(document.getElementById('brazil-card').style.display==='block') hideCard();
+});
+
+/* ============================================================
+   SECTION: Brazil control centre — feed
+   ============================================================ */
+function agoLabelFromIso(iso){
+  const days=Math.max(0, Math.floor((Date.now()-new Date(iso).getTime())/(1000*60*60*24)));
+  return agoLabel(days);
+}
+function visibleBrazilSignals(){
+  return brazilSignals.filter(s=>activeSourceTypes.has(s.sourceType)).slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+}
+function renderBrazilFeed(){
+  const feed=document.getElementById('feed');
+  const items=visibleBrazilSignals();
+  document.getElementById('feed-sub').textContent=items.length+' active signals · sorted by recency';
+  feed.innerHTML='';
+  if(items.length===0){
+    feed.innerHTML='<div style="padding:40px 16px;text-align:center;color:var(--grey-lt);font-size:12px">No signals match current filters</div>';
+    return;
+  }
+  items.forEach(s=>{
+    const related = s.relatedAccountId ? BRAZIL_ACCOUNTS.find(a=>a.id===s.relatedAccountId) : null;
+    const row=document.createElement('div');
+    row.className='row'+(s.id===selectedSignalId?' sel':'');
+    row.dataset.sid=s.id;
+    row.innerHTML=`
+      <span class="row-dot ${s.priority===1?'high':''}" style="background:var(--teal);color:var(--teal)"></span>
+      <div class="row-body">
+        <div class="row-top">
+          <span class="flag">${SOURCE_TYPE_ICON[s.sourceType]}</span>
+          <span class="cty">${related ? related.name : SOURCE_TYPE_LABEL[s.sourceType]}</span>
+          <span class="ago">${agoLabelFromIso(s.timestamp)}</span>
+        </div>
+        <div class="headline">${s.headline}</div>
+        <div class="row-foot"><span class="badge market">${SOURCE_TYPE_LABEL[s.sourceType]}</span></div>
+      </div>`;
+    row.addEventListener('click', ()=>{
+      selectedSignalId=s.id;
+      document.querySelectorAll('#feed .row').forEach(r=>r.classList.toggle('sel', r.dataset.sid===s.id));
+      if(related && brazilMap){
+        brazilFocusAccountId=related.id;
+        brazilMap.flyTo({center:[related.lon, related.lat], zoom:9, duration:1200});
+        brazilMap.once('moveend', ()=>{
+          const pt=brazilMap.project([related.lon, related.lat]);
+          selectedAccountId=related.id;
+          showCard(related, pt.x, pt.y);
+          refreshBrazilMarkers();
+        });
+      }
+    });
+    feed.appendChild(row);
+  });
+  anime({targets:'#feed .row', opacity:[0,1], translateY:[-8,0], delay:anime.stagger(40), duration:380, easing:'easeOutQuart'});
+}
+
+document.querySelectorAll('#sourceFilters .rf-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const src=btn.dataset.source;
+    if(activeSourceTypes.has(src)){ activeSourceTypes.delete(src); btn.classList.remove('active'); }
+    else { activeSourceTypes.add(src); btn.classList.add('active'); }
+    renderBrazilFeed();
+  });
+});
+
+/* ============================================================
+   SECTION: Brazil control centre — document dropzone (Bedrock stub)
+   ============================================================ */
+const brazilDropzoneEl = document.getElementById('brazil-dropzone');
+const brazilFileInputEl = document.getElementById('brazil-file-input');
+brazilDropzoneEl.addEventListener('click', ()=>brazilFileInputEl.click());
+brazilDropzoneEl.addEventListener('dragover', e=>{ e.preventDefault(); brazilDropzoneEl.classList.add('drag-over'); });
+brazilDropzoneEl.addEventListener('dragleave', ()=>brazilDropzoneEl.classList.remove('drag-over'));
+brazilDropzoneEl.addEventListener('drop', e=>{
+  e.preventDefault(); brazilDropzoneEl.classList.remove('drag-over');
+  if(e.dataTransfer.files.length>0) handleBrazilFileUpload(e.dataTransfer.files[0]);
+});
+brazilFileInputEl.addEventListener('change', e=>{
+  if(e.target.files.length>0) handleBrazilFileUpload(e.target.files[0]);
+  e.target.value='';
+});
+
+async function handleBrazilFileUpload(file){
+  const label=document.getElementById('brazil-dropzone-label');
+  label.textContent='Classifying document…';
+  const text = await file.text().catch(()=>file.name);
+  // TODO: replace with AWS Bedrock call via FastAPI backend
+  await new Promise(r=>setTimeout(r,1400));
+  const snippet=(text||'').trim().slice(0,80);
+  const relatedId = brazilFocusAccountId || 'itau-unibanco';
+  const signal={
+    id:'sig-doc-'+Date.now(), timestamp:new Date().toISOString(), sourceType:'document',
+    headline: snippet ? `Document flagged: "${snippet}${text.length>80?'…':''}"` : 'Uploaded document classified',
+    summary:'Uploaded document analysed for relevance to active Brazil accounts. Mock classification pending live Bedrock integration.',
+    relatedAccountId: relatedId, priority:2,
+  };
+  brazilSignals.unshift(signal);
+  const acc=BRAZIL_ACCOUNTS.find(a=>a.id===relatedId);
+  if(acc){ acc.temperatureScore=Math.min(100, acc.temperatureScore+8); acc.latestSignal={headline:signal.headline, date:signal.timestamp.slice(0,10), source:'Document'}; }
+  renderBrazilFeed();
+  refreshBrazilMarkers();
+  label.innerHTML='Drag a document here or <span class="bd-link">browse</span>';
+}
+
+/* ============================================================
+   SECTION: Brazil control centre — mode transition (anime.js)
+   ============================================================ */
+function animateOpacity(el, from, to, duration){
+  return new Promise(resolve=>{
+    if(!el){ resolve(); return; }
+    el.style.opacity=from;
+    anime({targets:el, opacity:[from,to], duration, easing:'easeOutQuart', complete:()=>resolve()});
+  });
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function enterBrazilMode(){
+  if(mmMode==='brazil') return;
+  highlightedIso='BRA';
+  if(globe) globe.polygonCapColor(polygonCapColor).polygonAltitude(activeAlt);
+  await sleep(400);
+  if(globe) globe.pointOfView({lat:-14,lng:-51,altitude:0.9}, 1200);
+  await sleep(1200);
+
+  const stage=document.getElementById('stage');
+  await animateOpacity(stage, 1, 0, 320);
+
+  mmMode='brazil';
+  document.getElementById('app').classList.add('brazil-mode');
+  document.getElementById('regionFilters').style.display='none';
+  document.getElementById('sourceFilters').style.display='flex';
+  document.getElementById('feed-title').textContent='Brazil Signal Feed';
+  selectedEid=null;
+  renderFeed();
+
+  const bstage=document.getElementById('brazil-stage');
+  bstage.classList.add('active');
+  if(!brazilMap) initBrazilMap(); else refreshBrazilMarkers();
+  await animateOpacity(bstage, 0, 1, 320);
+
+  highlightedIso=null;
+  if(globe) globe.polygonCapColor(polygonCapColor).polygonAltitude(activeAlt);
+}
+
+async function exitBrazilMode(){
+  if(mmMode==='global') return;
+  const bstage=document.getElementById('brazil-stage');
+  hideTooltip(); hideCard(); hideAccountDetail();
+  await animateOpacity(bstage, 1, 0, 320);
+  bstage.classList.remove('active');
+
+  mmMode='global';
+  document.getElementById('app').classList.remove('brazil-mode');
+  document.getElementById('regionFilters').style.display='flex';
+  document.getElementById('sourceFilters').style.display='none';
+  document.getElementById('feed-title').textContent='Live Alert Feed';
+  selectedSignalId=null;
+  renderFeed();
+
+  const stage=document.getElementById('stage');
+  await animateOpacity(stage, 0, 1, 320);
+  if(globe) globe.pointOfView({lat:25,lng:8,altitude:2.1}, 900);
+}
+
+document.getElementById('back-to-global-btn').addEventListener('click', exitBrazilMode);
 
 /* ============================================================
    SECTION: Helpers + boot
