@@ -96,13 +96,13 @@ declare global {
   }
 }
 
-const SCRIPTS = [
-  'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js',
-  'https://cdn.jsdelivr.net/npm/globe.gl@2.27.1/dist/globe.gl.min.js',
-  'https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js',
-]
+const THREE_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js'
+const GLOBE_GL_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/globe.gl@2.27.1/dist/globe.gl.min.js'
+const ANIME_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js'
+const SCRIPTS = [THREE_SCRIPT_URL, GLOBE_GL_SCRIPT_URL, ANIME_SCRIPT_URL]
 
 let scriptsLoadedPromise: Promise<void> | null = null
+let animeLoadedPromise: Promise<void> | null = null
 
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -117,6 +117,13 @@ function loadScript(src: string): Promise<void> {
     el.onerror = () => reject(new Error(`Failed to load script: ${src}`))
     document.head.appendChild(el)
   })
+}
+
+/** Loads just anime.js — used by the page shell to drive the global<->Brazil
+ * crossfade without pulling in three.js/globe.gl for pages that don't need it. */
+export function loadAnimeScript(): Promise<void> {
+  if (!animeLoadedPromise) animeLoadedPromise = loadScript(ANIME_SCRIPT_URL)
+  return animeLoadedPromise
 }
 
 export function loadGlobeScripts(): Promise<void> {

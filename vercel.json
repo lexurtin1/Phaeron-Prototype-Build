@@ -1,6 +1,14 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/pulse/index.html" },
+    { "source": "/network-overview", "destination": "/network-overview" },
+    { "source": "/market-research", "destination": "/market-research" },
+    { "source": "/product-demo", "destination": "/product-demo" },
+    { "source": "/account-tracker", "destination": "/account-tracker" },
+    { "source": "/agent-marketplace", "destination": "/agent-marketplace" },
+    { "source": "/calastone-intelligence", "destination": "/calastone-intelligence" },
+    { "source": "/market-movement", "destination": "/market-movement" },
+    { "source": "/market-movement/:path*", "destination": "/market-movement/:path*" },
     { "source": "/(.*)", "destination": "/pulse/$1" }
   ]
 }
