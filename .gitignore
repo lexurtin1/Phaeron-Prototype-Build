@@ -14,3 +14,9 @@ system-globe/config.js
 Thumbs.db
 desktop.ini
 *.url
+node_modules
+
+# Next.js build output and generated assets
+.next/
+tsconfig.tsbuildinfo
+public/pulse/

@@ -1,0 +1,26 @@
+.button {
+  position: absolute;
+  top: 20px;
+  left: 36px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  backdrop-filter: var(--blur-panel);
+  border: var(--border-card);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+.button:hover {
+  border-color: var(--teal-500);
+  color: var(--text-strong);
+}

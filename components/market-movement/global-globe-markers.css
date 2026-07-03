@@ -1,0 +1,87 @@
+/* Plain (non-module) global CSS for DOM elements injected imperatively by
+   globe.gl's htmlElement/polygonLabel — these aren't referenced from JSX
+   className props, so they can't live in a CSS Module (which requires at
+   least one locally-scoped selector per rule). */
+
+.mm-flash-marker {
+  position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.mm-flash-marker .mm-fm-core {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: var(--mc);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 1px 4px rgba(34, 50, 61, 0.4);
+  animation: mmFmCore 2s ease-in-out infinite;
+  z-index: 2;
+}
+.mm-flash-marker.high .mm-fm-core {
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+}
+@keyframes mmFmCore {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.82); opacity: 0.78; }
+}
+.mm-flash-marker .mm-fm-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--mc);
+  opacity: 0;
+  animation: mmFmRing 2s ease-out infinite;
+  z-index: 1;
+}
+.mm-flash-marker .mm-fm-ring2 {
+  animation-delay: 1s;
+}
+@keyframes mmFmRing {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  80% { opacity: 0; }
+  100% { transform: scale(4.2); opacity: 0; }
+}
+.mm-flash-marker.ping .mm-fm-core {
+  animation: mmFmPing 0.7s ease-out;
+}
+@keyframes mmFmPing {
+  0% { transform: scale(1.9); box-shadow: 0 0 0 6px var(--mc); }
+  100% { transform: scale(1); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85); }
+}
+
+.mm-hover-card {
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  backdrop-filter: var(--blur-panel);
+  border: var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 10px 13px;
+  color: var(--text-strong);
+  max-width: 250px;
+  box-shadow: var(--shadow-md);
+}
+.mm-hc-cty {
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-sm);
+  margin-bottom: 3px;
+}
+.mm-hc-meta {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.mm-hc-empty {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
