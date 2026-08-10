@@ -82,10 +82,41 @@ function showSaveBanner(){
 }
 
 
-/* API key loaded from config.js (see that file / .env to change it).
+/* Prefer /api/claude (server env). Fall back to config.js for local static use.
    config.js is gitignored — never commit live Anthropic credentials. */
 const ANTHROPIC_API_KEY = (window.CONFIG && window.CONFIG.ANTHROPIC_API_KEY) || 'PASTE-YOUR-KEY-HERE';
 const CLAUDE_MODEL = (window.CONFIG && window.CONFIG.CLAUDE_MODEL) || 'claude-sonnet-4-6';
+
+/** Call Anthropic Messages via server proxy, or directly with config.js as fallback. */
+async function anthropicMessages(body){
+  const payload = { model: CLAUDE_MODEL, ...body };
+  try{
+    const proxyRes = await fetch('/api/claude', {
+      method:'POST',
+      headers:{ 'content-type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    // Static hosts return 404 HTML when the function is missing — fall back.
+    const ctype = (proxyRes.headers.get('content-type')||'').toLowerCase();
+    if(proxyRes.status !== 404 && ctype.includes('json')){
+      return proxyRes;
+    }
+  }catch(_){ /* file:// or offline proxy — try direct */ }
+
+  if(ANTHROPIC_API_KEY==='PASTE-YOUR-KEY-HERE' || !ANTHROPIC_API_KEY){
+    throw new Error('No API key set. Add ANTHROPIC_API_KEY to the server env (.env.local / Vercel), or create config.js from config.example.js for local use.');
+  }
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':ANTHROPIC_API_KEY,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify(payload)
+  });
+}
 
 /* Fixed extraction instructions. Same every time. */
 const EXTRACTION_SYSTEM_PROMPT = `You extract mutual fund order-routing intelligence and propose edits to a country research note.
@@ -434,9 +465,6 @@ async function handleUpload(file, iso){
   const isPdf=/\.pdf$/i.test(file.name);
   const isText=/\.(md|markdown|txt)$/i.test(file.name);
   if(!isPdf && !isText){ setStatus('Please drop a Markdown (.md), text, or PDF file.', 'err'); return; }
-  if(ANTHROPIC_API_KEY==='PASTE-YOUR-KEY-HERE' || !ANTHROPIC_API_KEY){
-    setStatus('No API key set — add it to config.js (see config.example.js / .env).', 'err'); return;
-  }
   if(isPdf && file.size > 25*1024*1024){ setStatus('PDF is too large (25MB max).', 'err'); return; }
 
   setStatus('Reading file…', 'work');
@@ -491,21 +519,12 @@ async function callClaude(iso, currentNote, payload, isBlank){
     content = `${instruction}\n\nUPLOADED DOCUMENT:\n${payload.text}`;
   }
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{
-      'content-type':'application/json',
-      'x-api-key':ANTHROPIC_API_KEY,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
+  const res = await anthropicMessages({
       model:CLAUDE_MODEL,
       max_tokens:isBlank ? 16000 : 2000,
       system:sys,
       messages:[{role:'user', content:content}]
-    })
-  });
+    });
   if(!res.ok){
     let detail=''; try{ const j=await res.json(); detail=j.error?.message||''; }catch(_){}
     throw new Error('API '+res.status+(detail?(' — '+detail):''));
@@ -904,9 +923,6 @@ function renderChatMarkdown(s){
 async function sendChat(){
   if(chatBusy) return;
   const text=chatInput.value.trim(); if(!text) return;
-  if(ANTHROPIC_API_KEY==='PASTE-YOUR-KEY-HERE' || !ANTHROPIC_API_KEY){
-    addMsg('bot','No API key is set in config.js, so I can\u2019t answer yet.'); return;
-  }
   // clear welcome on first message
   if(!CHAT_HISTORY.length){ chatLog.innerHTML=''; }
   addMsg('user',text);
@@ -921,16 +937,7 @@ async function sendChat(){
     // Send the context as a system addendum + the running history (cap to last 12 turns).
     const sys = CHAT_SYSTEM_PROMPT + '\n\n' + chatContextSummary();
     const msgs = CHAT_HISTORY.slice(-12);
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'content-type':'application/json',
-        'x-api-key':ANTHROPIC_API_KEY,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({ model:CLAUDE_MODEL, max_tokens:1024, system:sys, messages:msgs })
-    });
+    const res=await anthropicMessages({ model:CLAUDE_MODEL, max_tokens:1024, system:sys, messages:msgs });
     typing.remove();
     if(!res.ok){
       let detail=''; try{ const j=await res.json(); detail=j.error?.message||''; }catch(_){}
@@ -943,7 +950,7 @@ async function sendChat(){
     }
   }catch(err){
     typing.remove();
-    const e=document.createElement('div'); e.className='chat-err'; e.textContent='Network error — '+(err.message||'request failed'); chatLog.appendChild(e);
+    const e=document.createElement('div'); e.className='chat-err'; e.textContent=(err.message||'Network error — request failed'); chatLog.appendChild(e);
   }finally{
     chatBusy=false; chatSend.disabled=false; chatLog.scrollTop=chatLog.scrollHeight; chatInput.focus();
   }
