@@ -82,17 +82,10 @@ function showSaveBanner(){
 }
 
 
-/* ================================================================
-   ===============   CLAUDE API — PERSONAL USE ONLY   ============
-   ================================================================
-   Paste your Anthropic API key between the quotes below.
-   WARNING: this key is stored in plain text in this file.
-   Keep this file private. Do NOT publish it, share it, or commit
-   it to GitHub. If it ever leaves your machine, rotate the key at
-   console.anthropic.com immediately.
-   ================================================================ */
-const ANTHROPIC_API_KEY = "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";   // e.g. "sk-ant-..."
-const CLAUDE_MODEL = "claude-sonnet-4-6";   // best for building notes. "claude-haiku-4-5-20251001" is cheaper but less reliable on full-note builds. "claude-opus-4-8" most capable.
+/* API key loaded from config.js (see that file / .env to change it).
+   config.js is gitignored — never commit live Anthropic credentials. */
+const ANTHROPIC_API_KEY = (window.CONFIG && window.CONFIG.ANTHROPIC_API_KEY) || 'PASTE-YOUR-KEY-HERE';
+const CLAUDE_MODEL = (window.CONFIG && window.CONFIG.CLAUDE_MODEL) || 'claude-sonnet-4-6';
 
 /* Fixed extraction instructions. Same every time. */
 const EXTRACTION_SYSTEM_PROMPT = `You extract mutual fund order-routing intelligence and propose edits to a country research note.
@@ -442,7 +435,7 @@ async function handleUpload(file, iso){
   const isText=/\.(md|markdown|txt)$/i.test(file.name);
   if(!isPdf && !isText){ setStatus('Please drop a Markdown (.md), text, or PDF file.', 'err'); return; }
   if(ANTHROPIC_API_KEY==='PASTE-YOUR-KEY-HERE' || !ANTHROPIC_API_KEY){
-    setStatus('No API key set — paste your key into the file (ANTHROPIC_API_KEY).', 'err'); return;
+    setStatus('No API key set — add it to config.js (see config.example.js / .env).', 'err'); return;
   }
   if(isPdf && file.size > 25*1024*1024){ setStatus('PDF is too large (25MB max).', 'err'); return; }
 
@@ -912,7 +905,7 @@ async function sendChat(){
   if(chatBusy) return;
   const text=chatInput.value.trim(); if(!text) return;
   if(ANTHROPIC_API_KEY==='PASTE-YOUR-KEY-HERE' || !ANTHROPIC_API_KEY){
-    addMsg('bot','No API key is set in the file, so I can\u2019t answer yet.'); return;
+    addMsg('bot','No API key is set in config.js, so I can\u2019t answer yet.'); return;
   }
   // clear welcome on first message
   if(!CHAT_HISTORY.length){ chatLog.innerHTML=''; }
