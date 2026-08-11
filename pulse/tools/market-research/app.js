@@ -343,12 +343,14 @@ const EXTRACTION_SYSTEM_PROMPT = `You extract mutual fund order-routing intellig
 You receive: (1) the current country note in Markdown, (2) the text of an uploaded document.
 
 Your job:
-- Read the uploaded document and identify ONLY information relevant to mutual fund order routing: central hubs/CSDs, order channels, automation/manuality, regulators, cross-border routing, key participants, AUM, distribution channels.
+- Read the uploaded document and identify ONLY information relevant to mutual fund order routing: central hubs/CSDs, order channels, automation/manuality, regulators, cross-border routing, key participants, AUM, distribution channels, scores/KPIs.
 - Ignore everything not relevant to fund order routing.
 - Propose structured edits to the note. Do not rewrite unchanged sections.
 - Spell out every acronym in full on first use with the abbreviation in brackets.
 - Never delete existing content; only add or revise.
-- When the document describes how orders move through the market, also refresh the structured order-flow diagram via profile_updates.flow_diagram (4–7 stages, each { "label", "mode": "auto"|"mixed"|"manual" }). Do not return a one-stage diagram.
+- ALWAYS populate profile_updates with every structured KPI the document supports (scores, AUM, hub status, order model, flow diagram, etc.). Do not put scores only in the markdown edits — the app's drawer cards and globe colours come from profile_updates.
+- If the document is itself a structured country brief / research pack with explicit KPIs, prefer filling profile_updates completely even when few markdown edits are needed.
+- flow_diagram must be a complete 4–7 stage path when order routing is described. Never return a one-stage diagram.
 
 Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
 {
@@ -359,6 +361,25 @@ Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
       "newContent": "the markdown to append under that heading" }
   ],
   "profile_updates": {
+    "country": "Full country name",
+    "region": "Europe | Asia | Americas | Africa | Oceania",
+    "subregion": "short text",
+    "market_classification": "Developed | Emerging | Frontier | Unknown",
+    "central_hub_status": "Full hub | Partial hub | No central hub",
+    "hub_name": "name or —",
+    "operator": "who runs it or —",
+    "opportunity_score": 0,
+    "automation_rate_estimate": 0,
+    "priority_tier": "Tier 1 | Tier 2 | Tier 3 | Watch",
+    "existing_network_presence": "Established | Emerging | None",
+    "market_aum_band": "short text",
+    "mutual_fund_relevance": "one line",
+    "growth_signal": "one line",
+    "dominant_order_model": "one line",
+    "current_order_channels": "one line",
+    "manuality_snapshot": "one line",
+    "regulatory_openness": "one line",
+    "risks_or_barriers": "one line",
     "flow_diagram": [
       { "label": "Investor / Adviser", "mode": "auto" },
       { "label": "Broker / Platform", "mode": "mixed" },
@@ -368,7 +389,7 @@ Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
     ]
   }
 }
-Omit profile_updates if the document does not improve the order-flow path.
+Include only keys in profile_updates that the document supports; omit keys you cannot support. Prefer including the full set when the document is a complete country pack.
 If the document has nothing relevant, return {"summary":"No relevant content found","edits":[]}.`;
 
 /* Used when the country has no note yet: build a full note from the document. */
@@ -381,6 +402,7 @@ Your job:
 - Use this structure: a level-1 title (# Country), a blockquote header summarising ISO3/Region/Classification/Hub Status, then ## sections such as Market Overview, How Fund Orders Work Today, Distribution Channels, Key Participants, Risks, and Sources.
 - Spell out every acronym in full on first use with the abbreviation in brackets.
 - Use only information supported by the document. Do not invent figures.
+- If the document states explicit KPIs (opportunity score, automation %, priority tier, AUM band, hub status, network presence, order model, channels, risks), copy those values into the ===FIELDS=== JSON. Do not leave scores at 0 or text fields blank when the document provides them. Markdown alone is not enough — the drawer cards and globe colours read only from the JSON fields.
 
 ORDER-FLOW DIAGRAM (required — the app draws this automatically from flow_diagram):
 - Always include a complete end-to-end order path in "flow_diagram". Never leave it empty. Never return only one stage.
@@ -764,8 +786,8 @@ function fileToBase64(file){
 async function callClaude(iso, currentNote, payload, isBlank, onProgress){
   const sys = isBlank ? BUILD_SYSTEM_PROMPT : EXTRACTION_SYSTEM_PROMPT;
   const instruction = isBlank
-    ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it. Remember: ===FIELDS=== must include a complete 4–7 stage flow_diagram (never a single placeholder stage).`
-    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete. If order-routing stages are described, include profile_updates.flow_diagram with 4–7 stages.`;
+    ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it. Remember: ===FIELDS=== must include every KPI the document provides (opportunity_score, automation_rate_estimate, priority_tier, market_aum_band, hub fields, narrative KPI lines) plus a complete 4–7 stage flow_diagram.`
+    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete. ALWAYS include profile_updates with every KPI the document provides (scores, AUM, hub, tiers, order model, flow_diagram) — do not only edit the markdown note.`;
 
   // Build the user content: instruction text + the document (PDF block or inline text).
   let content;
@@ -879,6 +901,94 @@ function normalizeFlowDiagram(arr){
     .filter(Boolean);
 }
 
+const PROFILE_TEXT_KEYS = [
+  'country','region','subregion','market_classification','central_hub_status',
+  'hub_name','operator','priority_tier','existing_network_presence','market_aum_band',
+  'mutual_fund_relevance','growth_signal','dominant_order_model','current_order_channels',
+  'manuality_snapshot','regulatory_openness','risks_or_barriers'
+];
+const PROFILE_NUM_KEYS = ['opportunity_score','automation_rate_estimate'];
+
+/** Strip empty/placeholder profile_updates and normalize flow_diagram. */
+function normalizeProfileUpdates(raw){
+  if(!raw || typeof raw!=='object' || Array.isArray(raw)) return {};
+  const out={};
+  PROFILE_TEXT_KEYS.forEach(k=>{
+    if(raw[k]==null) return;
+    const v=String(raw[k]).trim();
+    if(!v || v==='—' || v==='-') return;
+    out[k]=v;
+  });
+  PROFILE_NUM_KEYS.forEach(k=>{
+    if(raw[k]==null || raw[k]==='') return;
+    const n=Number(raw[k]);
+    if(!Number.isFinite(n)) return;
+    out[k]=Math.max(0, Math.min(100, Math.round(n)));
+  });
+  if(Array.isArray(raw.flow_diagram)){
+    const flow=normalizeFlowDiagram(raw.flow_diagram);
+    if(flow.length) out.flow_diagram=flow;
+  }
+  return out;
+}
+
+function profileUpdateCount(u){
+  if(!u) return 0;
+  return Object.keys(u).length;
+}
+
+function profileUpdatesPreviewHtml(u){
+  if(!u || !profileUpdateCount(u)) return '';
+  const rows=[];
+  if(u.opportunity_score!=null) rows.push(['Opportunity', u.opportunity_score+'/100']);
+  if(u.automation_rate_estimate!=null) rows.push(['Automation', u.automation_rate_estimate+'%']);
+  if(u.priority_tier) rows.push(['Priority tier', u.priority_tier]);
+  if(u.market_aum_band) rows.push(['AUM band', u.market_aum_band]);
+  if(u.market_classification) rows.push(['Classification', u.market_classification]);
+  if(u.central_hub_status) rows.push(['Hub', u.central_hub_status+(u.hub_name?' · '+u.hub_name:'')]);
+  if(u.existing_network_presence) rows.push(['Network', u.existing_network_presence]);
+  if(u.dominant_order_model) rows.push(['Order model', u.dominant_order_model]);
+  if(u.flow_diagram) rows.push(['Order-flow path', u.flow_diagram.map(s=>s.label+' ('+s.mode+')').join(' → ')]);
+  // Catch remaining narrative KPI lines briefly.
+  ['mutual_fund_relevance','growth_signal','current_order_channels','manuality_snapshot','regulatory_openness','risks_or_barriers']
+    .forEach(k=>{ if(u[k]) rows.push([k.replace(/_/g,' '), u[k]]); });
+  if(!rows.length) return '';
+  return rows.map(([k,v])=>`<div style="margin:2px 0"><b>${escapeHtml(k)}:</b> ${escapeHtml(String(v))}</div>`).join('');
+}
+
+/** Merge normalized profile_updates into COUNTRY_DATA[iso], creating a shell if needed. */
+function applyProfileUpdates(iso, updates){
+  const u=normalizeProfileUpdates(updates);
+  if(!profileUpdateCount(u)) return false;
+  if(!COUNTRY_DATA[iso]){
+    COUNTRY_DATA[iso]={
+      country:u.country||iso, iso3:iso, region:u.region||'Asia', subregion:u.subregion||'',
+      market_classification:u.market_classification||'Unknown',
+      central_hub_status:u.central_hub_status||'No central hub',
+      hub_name:u.hub_name||'—', operator:u.operator||'—',
+      opportunity_score:u.opportunity_score??60,
+      automation_rate_estimate:u.automation_rate_estimate??50,
+      priority_tier:u.priority_tier||'Watch',
+      existing_network_presence:u.existing_network_presence||'None',
+      market_aum_band:u.market_aum_band||'—',
+      mutual_fund_relevance:'', growth_signal:'', dominant_order_model:'',
+      current_order_channels:'', manuality_snapshot:'', regulatory_openness:'',
+      risks_or_barriers:'', flow_image:'', flow_diagram:[],
+      last_updated:new Date().toISOString().slice(0,7)
+    };
+  }
+  const rec=COUNTRY_DATA[iso];
+  PROFILE_TEXT_KEYS.forEach(k=>{ if(u[k]!=null) rec[k]=u[k]; });
+  PROFILE_NUM_KEYS.forEach(k=>{ if(u[k]!=null) rec[k]=u[k]; });
+  if(u.flow_diagram){
+    rec.flow_diagram=u.flow_diagram;
+    rec.flow_image=rec.flow_image||'';
+  }
+  rec.iso3=iso;
+  rec.last_updated=new Date().toISOString().slice(0,7);
+  return true;
+}
+
 /** Best-effort recovery when ===FIELDS=== JSON is truncated mid-object. */
 function salvageFieldsJson(raw){
   let candidate = String(raw || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -941,10 +1051,15 @@ function openModal(proposal, iso){
       const flowWarn = flow.length < 4
         ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Order-flow diagram looks incomplete (${flow.length||0} stage${flow.length===1?'':'s'}). Prefer re-running the upload so Claude returns a full 4–7 stage path.</div>`
         : `<div style="font-size:11.5px;color:var(--ink-2);margin:0 0 10px">Order-flow path: ${flowPreview}</div>`;
+      const missingKpis = !(f.opportunity_score!=null && f.market_aum_band && f.dominant_order_model);
+      const kpiWarn = missingKpis
+        ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Structured KPIs look thin (score / AUM / order model). Check the source pack was fully read — drawer cards need the ===FIELDS=== JSON, not just the note.</div>`
+        : '';
       const warn = proposal.__truncated
         ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ The note may be slightly cut off (long source). Review before applying.</div>` : '';
       body.innerHTML=`
         ${warn}
+        ${kpiWarn}
         ${flowWarn}
         <div class="edit-card">
           <div class="ec-top">${chips}</div>
@@ -958,26 +1073,23 @@ function openModal(proposal, iso){
   }
 
   // merge mode (existing note)
-  const profileUpdates = proposal.profile_updates || {};
-  if(Array.isArray(profileUpdates.flow_diagram)){
-    profileUpdates.flow_diagram = normalizeFlowDiagram(profileUpdates.flow_diagram);
-  }
+  const profileUpdates = normalizeProfileUpdates(proposal.profile_updates || {});
   PENDING={iso, mode:'merge', edits:proposal.edits||[], profileUpdates};
   document.getElementById('modalCopy').style.display='none';
-  const hasFlowUpdate = Array.isArray(PENDING.profileUpdates.flow_diagram) && PENDING.profileUpdates.flow_diagram.length >= 2;
-  if(!PENDING.edits.length && !hasFlowUpdate){
+  const hasProfileUpdate = profileUpdateCount(PENDING.profileUpdates) > 0;
+  if(!PENDING.edits.length && !hasProfileUpdate){
     body.innerHTML=`<div class="modal-empty">No relevant order-routing content was found to add.</div>`;
     document.getElementById('modalApply').style.display='none';
   } else {
     document.getElementById('modalApply').style.display='';
-    const flowCard = hasFlowUpdate
+    const profileCard = hasProfileUpdate
       ? `<div class="edit-card">
-          <div class="ec-top"><span class="ec-action">update</span><span class="ec-section">Order-flow path</span></div>
-          <div class="ec-content">${PENDING.profileUpdates.flow_diagram.map(s=>escapeHtml(s.label)+' ('+escapeHtml(s.mode)+')').join(' → ')}</div>
-          <label class="ec-check"><input type="checkbox" id="flowcheck" checked> Apply order-flow diagram update</label>
+          <div class="ec-top"><span class="ec-action">update</span><span class="ec-section">Profile KPIs &amp; order-flow</span></div>
+          <div class="ec-content">${profileUpdatesPreviewHtml(PENDING.profileUpdates)}</div>
+          <label class="ec-check"><input type="checkbox" id="profilecheck" checked> Apply structured profile updates (scores, AUM, hub, diagram)</label>
         </div>`
-      : '';
-    body.innerHTML=flowCard + PENDING.edits.map((ed,i)=>`
+      : `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Claude returned note edits only — no structured KPI updates. Re-upload if the source pack contains opportunity score / AUM / automation figures.</div>`;
+    body.innerHTML=profileCard + PENDING.edits.map((ed,i)=>`
       <div class="edit-card">
         <div class="ec-top"><span class="ec-action">${(ed.action||'add')}</span><span class="ec-section">${escapeHtml(ed.section||'(no heading)')}</span></div>
         <div class="ec-content">${escapeHtml(ed.newContent||'')}</div>
@@ -1085,21 +1197,21 @@ document.getElementById('modalApply').addEventListener('click',()=>{
   chosen.forEach(ed=>{ note=applyEdit(note, ed); });
   COUNTRY_MARKDOWN[iso]=note;
 
-  const flowCheck=document.getElementById('flowcheck');
-  const flowUpdate=PENDING.profileUpdates && PENDING.profileUpdates.flow_diagram;
-  if(flowCheck && flowCheck.checked && Array.isArray(flowUpdate) && flowUpdate.length){
-    if(!COUNTRY_DATA[iso]) COUNTRY_DATA[iso]={ country:iso, iso3:iso };
-    COUNTRY_DATA[iso].flow_diagram = normalizeFlowDiagram(flowUpdate);
-    COUNTRY_DATA[iso].flow_image = COUNTRY_DATA[iso].flow_image || '';
-    COUNTRY_DATA[iso].last_updated = new Date().toISOString().slice(0,7);
+  const profileCheck=document.getElementById('profilecheck');
+  let profileApplied=false;
+  if(profileCheck && profileCheck.checked){
+    profileApplied = applyProfileUpdates(iso, PENDING.profileUpdates);
   }
 
   saveData(iso, 'claude');       // persist to Neon + local cache
+  if(profileApplied){ refreshGlobe(); afterFilter(); }
   closeModal();
   const f=world.find(ft=>featISO(ft)===iso);
   if(f){ const wasWide=drawer.classList.contains('wide'); openDrawer(f);
     if(wasWide){ toggleDetail(); } }
-  setStatus('Changes applied to the note in the app.', 'ok');
+  setStatus(profileApplied
+    ? 'Note edits and structured profile KPIs applied.'
+    : 'Changes applied to the note in the app.', 'ok');
 });
 
 function clampNum(v, dflt){ const n=Number(v); return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):dflt; }
