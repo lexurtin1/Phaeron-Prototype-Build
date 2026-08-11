@@ -171,10 +171,22 @@ function showSaveBanner(){
    config.js is gitignored — never commit live Anthropic credentials. */
 const ANTHROPIC_API_KEY = (window.CONFIG && window.CONFIG.ANTHROPIC_API_KEY) || 'PASTE-YOUR-KEY-HERE';
 const CLAUDE_MODEL = (window.CONFIG && window.CONFIG.CLAUDE_MODEL) || 'claude-sonnet-4-6';
+const HAS_BROWSER_KEY = !!(ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
+
+function formatClaudeHttpError(status, detail){
+  if(status === 504 || /timeout|UPSTREAM_TIMEOUT|FUNCTION_INVOCATION_TIMEOUT/i.test(detail||'')){
+    return 'Claude timed out before finishing. Try a smaller file, or wait for the longer server timeout after redeploy (Hobby can allow up to 5 minutes with Fluid Compute).' + (detail ? ' — '+detail : '');
+  }
+  if(/ANTHROPIC_API_KEY/i.test(detail||'')){
+    return detail;
+  }
+  return 'API '+status+(detail?(' — '+detail):'');
+}
 
 /** Call Anthropic Messages via server proxy, or directly with config.js as fallback. */
 async function anthropicMessages(body){
   const payload = { model: CLAUDE_MODEL, ...body };
+  let proxySawMissingKey = false;
   try{
     const proxyRes = await fetch('/api/claude', {
       method:'POST',
@@ -184,12 +196,31 @@ async function anthropicMessages(body){
     // Static hosts return 404 HTML when the function is missing — fall back.
     const ctype = (proxyRes.headers.get('content-type')||'').toLowerCase();
     if(proxyRes.status !== 404 && ctype.includes('json')){
+      // If the proxy is up but misconfigured, surface that immediately
+      // instead of falling through to a confusing "no key" browser message.
+      if(!proxyRes.ok){
+        try{
+          const errBody = await proxyRes.clone().json();
+          const msg = errBody && errBody.error && errBody.error.message;
+          if(msg && /ANTHROPIC_API_KEY/i.test(msg)){
+            proxySawMissingKey = true;
+            throw new Error(msg);
+          }
+        }catch(e){
+          if(e && e.message && /ANTHROPIC_API_KEY/i.test(e.message)) throw e;
+        }
+      }
       return proxyRes;
     }
-  }catch(_){ /* file:// or offline proxy — try direct */ }
+  }catch(err){
+    if(proxySawMissingKey || (err && err.message && /ANTHROPIC_API_KEY/i.test(err.message))){
+      throw err;
+    }
+    /* file:// or offline proxy — try direct */
+  }
 
-  if(ANTHROPIC_API_KEY==='PASTE-YOUR-KEY-HERE' || !ANTHROPIC_API_KEY){
-    throw new Error('No API key set. Add ANTHROPIC_API_KEY to the server env (.env.local / Vercel), or create config.js from config.example.js for local use.');
+  if(!HAS_BROWSER_KEY){
+    throw new Error('No API key set. Add ANTHROPIC_API_KEY to the server env (.env.local / Vercel), or create config.js from config.example.js for local use. Then run `npm run dev` (or redeploy).');
   }
   return fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
@@ -604,15 +635,17 @@ async function callClaude(iso, currentNote, payload, isBlank){
     content = `${instruction}\n\nUPLOADED DOCUMENT:\n${payload.text}`;
   }
 
+  // Keep build completions within Vercel function budgets. 16k tokens often
+  // exceeds the Hobby 60s default; 8k is enough for a country note + fields.
   const res = await anthropicMessages({
       model:CLAUDE_MODEL,
-      max_tokens:isBlank ? 16000 : 2000,
+      max_tokens:isBlank ? 8000 : 2000,
       system:sys,
       messages:[{role:'user', content:content}]
     });
   if(!res.ok){
     let detail=''; try{ const j=await res.json(); detail=j.error?.message||''; }catch(_){}
-    throw new Error('API '+res.status+(detail?(' — '+detail):''));
+    throw new Error(formatClaudeHttpError(res.status, detail));
   }
   const data=await res.json();
   const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
@@ -1027,7 +1060,7 @@ async function sendChat(){
     typing.remove();
     if(!res.ok){
       let detail=''; try{ const j=await res.json(); detail=j.error?.message||''; }catch(_){}
-      const e=document.createElement('div'); e.className='chat-err'; e.textContent='Error '+res.status+(detail?(' — '+detail):''); chatLog.appendChild(e);
+      const e=document.createElement('div'); e.className='chat-err'; e.textContent=formatClaudeHttpError(res.status, detail); chatLog.appendChild(e);
     } else {
       const data=await res.json();
       const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim() || '(no reply)';
