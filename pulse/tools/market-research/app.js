@@ -4,16 +4,14 @@ const EDIT_MODE = false; // set true to console.log clicked records
 /* ================================================================
    ===================   SAVING / PERSISTENCE   =================
    ================================================================
-   - Auto-saves all country data to browser storage on every change.
-   - Reloads it on page open and merges over the built-in data.
-   - Export/Import buttons write/read a single backup JSON file you own.
-   If browser storage is blocked (e.g. some shared-link contexts),
-   auto-save is disabled and a banner tells you to use Export. */
+   System of record: Neon via /api/atlas and /api/country.
+   localStorage is a cache only (offline / fast first paint).
+   Export/Import still works; import writes through to Neon. */
 
 const STORAGE_KEY = 'calastone_atlas_v1';
 let STORAGE_OK = true;
+let DB_OK = null; // null=unknown, true/false after first attempt
 
-// Detect whether localStorage is usable in this context.
 (function testStorage(){
   try{
     const t='__test__'+Date.now();
@@ -22,21 +20,23 @@ let STORAGE_OK = true;
   }catch(_){ STORAGE_OK=false; }
 })();
 
-// Load saved data and merge it over the built-in defaults.
+function applyAtlasPayload(saved){
+  if(!saved) return;
+  if(saved.data) Object.assign(COUNTRY_DATA, saved.data);
+  if(saved.markdown) Object.assign(COUNTRY_MARKDOWN, saved.markdown);
+}
+
 function loadSavedData(){
   if(!STORAGE_OK) return;
   let raw=null;
   try{ raw=window.localStorage.getItem(STORAGE_KEY); }catch(_){ return; }
   if(!raw) return;
   try{
-    const saved=JSON.parse(raw);
-    if(saved && saved.data) Object.assign(COUNTRY_DATA, saved.data);
-    if(saved && saved.markdown) Object.assign(COUNTRY_MARKDOWN, saved.markdown);
+    applyAtlasPayload(JSON.parse(raw));
   }catch(_){ /* corrupt save — ignore, keep defaults */ }
 }
 
-// Write current data to browser storage. Called after every change.
-function saveData(){
+function cacheLocally(){
   if(!STORAGE_OK) return false;
   try{
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -46,7 +46,92 @@ function saveData(){
   }catch(_){ STORAGE_OK=false; showSaveBanner(); return false; }
 }
 
-// Download everything as a backup file you own.
+async function loadAtlasFromDb(){
+  try{
+    const res = await fetch('/api/atlas', { headers:{ 'Accept':'application/json' } });
+    const ctype = (res.headers.get('content-type')||'').toLowerCase();
+    if(!res.ok || !ctype.includes('json')){
+      DB_OK=false;
+      return false;
+    }
+    const atlas = await res.json();
+    if(atlas && atlas.error){ DB_OK=false; return false; }
+    applyAtlasPayload(atlas);
+    cacheLocally();
+    DB_OK=true;
+    return true;
+  }catch(_){
+    DB_OK=false;
+    return false;
+  }
+}
+
+async function persistCountryToDb(iso3, source){
+  const code = String(iso3||'').toUpperCase();
+  const profile = COUNTRY_DATA[code] || null;
+  const note = COUNTRY_MARKDOWN[code] || '';
+  try{
+    const res = await fetch('/api/country?iso3='+encodeURIComponent(code), {
+      method:'PUT',
+      headers:{ 'content-type':'application/json' },
+      body: JSON.stringify({ profile, note, source: source||'manual' })
+    });
+    const ctype = (res.headers.get('content-type')||'').toLowerCase();
+    if(!res.ok || !ctype.includes('json')){
+      DB_OK=false;
+      return false;
+    }
+    const body = await res.json();
+    if(body && body.error){ DB_OK=false; throw new Error(body.error.message||'DB save failed'); }
+    DB_OK=true;
+    return true;
+  }catch(err){
+    DB_OK=false;
+    console.warn('Neon persist failed', err);
+    return false;
+  }
+}
+
+async function persistAtlasToDb(source){
+  try{
+    const res = await fetch('/api/atlas', {
+      method:'PUT',
+      headers:{ 'content-type':'application/json' },
+      body: JSON.stringify({
+        data:COUNTRY_DATA,
+        markdown:COUNTRY_MARKDOWN,
+        source: source||'sync'
+      })
+    });
+    const ctype = (res.headers.get('content-type')||'').toLowerCase();
+    if(!res.ok || !ctype.includes('json')){
+      DB_OK=false;
+      return false;
+    }
+    const body = await res.json();
+    if(body && body.error){ DB_OK=false; throw new Error(body.error.message||'DB sync failed'); }
+    DB_OK=true;
+    return true;
+  }catch(err){
+    DB_OK=false;
+    console.warn('Neon atlas sync failed', err);
+    return false;
+  }
+}
+
+// Write current data to browser cache + Neon. Called after every change.
+function saveData(iso3, source){
+  cacheLocally();
+  // Fire-and-forget server persist; UI stays responsive.
+  const job = iso3 ? persistCountryToDb(iso3, source) : persistAtlasToDb(source);
+  return job.then((ok)=>{
+    if(!ok && DB_OK===false){
+      // Keep working offline via localStorage / backup.
+    }
+    return ok;
+  });
+}
+
 function exportData(){
   const blob=new Blob([JSON.stringify({
     data:COUNTRY_DATA, markdown:COUNTRY_MARKDOWN, savedAt:new Date().toISOString()
@@ -57,16 +142,16 @@ function exportData(){
   a.click(); URL.revokeObjectURL(url);
 }
 
-// Load a backup file back in.
 function importData(file){
   const r=new FileReader();
-  r.onload=()=>{
+  r.onload=async ()=>{
     try{
       const saved=JSON.parse(String(r.result));
-      if(saved.data) Object.assign(COUNTRY_DATA, saved.data);
-      if(saved.markdown) Object.assign(COUNTRY_MARKDOWN, saved.markdown);
-      saveData(); refreshGlobe(); if(typeof afterFilter==='function') afterFilter();
-      alert('Backup loaded — '+Object.keys(saved.data||{}).length+' country records restored.');
+      applyAtlasPayload(saved);
+      cacheLocally();
+      const ok = await persistAtlasToDb('import');
+      refreshGlobe(); if(typeof afterFilter==='function') afterFilter();
+      alert('Backup loaded — '+Object.keys(saved.data||{}).length+' country records restored'+(ok?' to Neon.':' (local only; DB unreachable).'));
     }catch(_){ alert('That file could not be read as a valid backup.'); }
   };
   r.readAsText(file);
@@ -721,7 +806,7 @@ document.getElementById('modalApply').addEventListener('click',()=>{
       last_updated:new Date().toISOString().slice(0,7)
     };
     closeModal();
-    saveData();                  // persist to browser storage
+    saveData(iso, 'claude');     // persist to Neon + local cache
     refreshGlobe();              // recolour the globe now that the record exists
     afterFilter();              // refresh counts/legend
     const f=world.find(ft=>featISO(ft)===iso);
@@ -736,7 +821,7 @@ document.getElementById('modalApply').addEventListener('click',()=>{
   let note=COUNTRY_MARKDOWN[iso]||'';
   chosen.forEach(ed=>{ note=applyEdit(note, ed); });
   COUNTRY_MARKDOWN[iso]=note;
-  saveData();                    // persist to browser storage
+  saveData(iso, 'claude');       // persist to Neon + local cache
   closeModal();
   const f=world.find(ft=>featISO(ft)===iso);
   if(f){ const wasWide=drawer.classList.contains('wide'); openDrawer(f);
@@ -830,12 +915,13 @@ document.getElementById('loadBtn').addEventListener('click',()=>{
   inp.onchange=()=>{ if(inp.files[0]) importData(inp.files[0]); }; inp.click();
 });
 
-fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json').then(r=>r.json()).then(topology=>{
+fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json').then(r=>r.json()).then(async topology=>{
   const geo=topojson.feature(topology,topology.objects.countries);
   world=geo.features;
   world.forEach(f=>{f.iso_a3=NAME_TO_ISO[f.properties.name]||null;});
-  loadSavedData();   // merge any browser-saved notes/records over the defaults
-  if(!STORAGE_OK) showSaveBanner();
+  loadSavedData();   // local cache first for fast paint
+  const fromDb = await loadAtlasFromDb(); // Neon wins when reachable
+  if(!STORAGE_OK && !fromDb) showSaveBanner();
   globe=Globe()(document.getElementById('globeViz'))
     .backgroundColor('rgba(0,0,0,0)')
     .showAtmosphere(true).atmosphereColor('#7fb8d8').atmosphereAltitude(0.16)

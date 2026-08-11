@@ -6,6 +6,9 @@ system-globe/config.js
 .env.local
 .env.*.local
 
+# Node
+node_modules/
+
 # Screenshots and generated assets (exclude bulk exports)
 *.xlsx
 

@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 /**
- * Local static + /api/claude proxy for Market Research testing.
- * Loads ANTHROPIC_API_KEY from .env.local / .env / process env.
+ * Local static + /api/* proxy for Pulse testing.
+ * Loads env from .env.local / .env.
  * Usage: node scripts/local-pulse-server.js
  */
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PORT || 4173);
@@ -58,36 +57,61 @@ function readBody(req) {
   });
 }
 
-async function handleApiClaude(req, res) {
-  // Match Vercel serverless handler shape
-  const handler = require(path.join(ROOT, 'api', 'claude.js'));
+async function handleApi(req, res, pathname) {
+  const name = pathname.replace(/^\/api\//, '').replace(/\/$/, '');
+  if (!name || name.includes('..') || name.includes('/')) {
+    send(res, 404, JSON.stringify({ error: { message: 'Not found' } }), {
+      'Content-Type': 'application/json',
+    });
+    return;
+  }
+  const modPath = path.join(ROOT, 'api', name + '.js');
+  if (!fs.existsSync(modPath)) {
+    send(res, 404, JSON.stringify({ error: { message: 'API not found' } }), {
+      'Content-Type': 'application/json',
+    });
+    return;
+  }
+  delete require.cache[require.resolve(modPath)];
+  const handler = require(modPath);
   const raw = await readBody(req);
   let body = raw;
   try { body = raw ? JSON.parse(raw) : {}; } catch (_) {}
-  const fauxReq = { method: req.method, body };
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const query = Object.fromEntries(url.searchParams.entries());
+
+  const fauxReq = { method: req.method, body, url: req.url, query, headers: req.headers };
+  let ended = false;
   const fauxRes = {
     statusCode: 200,
     headers: {},
     setHeader(k, v) { this.headers[k] = v; },
     end(payload) {
-      send(res, this.statusCode, payload ?? '', {
-        'Content-Type': this.headers['Content-Type'] || 'application/json',
-        ...(this.headers['Access-Control-Allow-Origin']
-          ? { 'Access-Control-Allow-Origin': this.headers['Access-Control-Allow-Origin'] }
-          : {}),
-      });
+      if (ended) return;
+      ended = true;
+      const headers = { ...this.headers };
+      if (!headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+      send(res, this.statusCode, payload ?? '', headers);
     },
   };
   await handler(fauxReq, fauxRes);
+  if (!ended) {
+    send(res, fauxRes.statusCode || 200, '', fauxRes.headers);
+  }
 }
 
 function resolveStatic(urlPath) {
   let p = decodeURIComponent(urlPath.split('?')[0]);
   if (p === '/') p = '/pulse/index.html';
-  // Mirror vercel rewrite: serve /foo from /pulse/foo, but keep /api and repo-root files
-  if (!p.startsWith('/api/') && !p.startsWith('/pulse/') && !p.startsWith('/config.js') && !p.startsWith('/Order')) {
-    const pulseCandidate = path.join(ROOT, 'pulse', p);
-    if (fs.existsSync(pulseCandidate) || fs.existsSync(pulseCandidate + '.html') || fs.existsSync(path.join(pulseCandidate, 'index.html'))) {
+  if (!p.startsWith('/api/') && !p.startsWith('/pulse/') && !p.startsWith('/config.js') && !p.startsWith('/Order') && !p.startsWith('/node_modules')) {
+    const pulseCandidate = path.join(ROOT, 'pulse', p.replace(/^\//, ''));
+    if (
+      fs.existsSync(pulseCandidate) ||
+      fs.existsSync(pulseCandidate + '.html') ||
+      fs.existsSync(path.join(pulseCandidate, 'index.html'))
+    ) {
       p = '/pulse' + (p.endsWith('/') ? p + 'index.html' : p);
     }
   }
@@ -104,8 +128,8 @@ function resolveStatic(urlPath) {
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-    if (url.pathname === '/api/claude') {
-      await handleApiClaude(req, res);
+    if (url.pathname.startsWith('/api/')) {
+      await handleApi(req, res, url.pathname);
       return;
     }
     const file = resolveStatic(url.pathname);
@@ -117,13 +141,17 @@ const server = http.createServer(async (req, res) => {
     send(res, 200, fs.readFileSync(file), { 'Content-Type': MIME[ext] || 'application/octet-stream' });
   } catch (err) {
     console.error(err);
-    send(res, 500, 'Server error', { 'Content-Type': 'text/plain; charset=utf-8' });
+    send(res, 500, JSON.stringify({ error: { message: err.message || 'Server error' } }), {
+      'Content-Type': 'application/json',
+    });
   }
 });
 
 server.listen(PORT, () => {
-  const keySet = !!(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
+  const db = !!(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+  const key = !!(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
   console.log(`Pulse local server http://127.0.0.1:${PORT}`);
   console.log(`Market Research: http://127.0.0.1:${PORT}/tools/market-research/`);
-  console.log(`ANTHROPIC_API_KEY: ${keySet ? 'set' : 'MISSING'}`);
+  console.log(`DATABASE_URL: ${db ? 'set' : 'MISSING'}`);
+  console.log(`ANTHROPIC_API_KEY: ${key ? 'set' : 'MISSING'}`);
 });

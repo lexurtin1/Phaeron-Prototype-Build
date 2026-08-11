@@ -1,0 +1,17 @@
+{
+  "name": "calastone-pulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Calastone Pulse — market research ontology on Neon",
+  "scripts": {
+    "dev": "node scripts/local-pulse-server.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed-atlas.js",
+    "db:setup": "npm run migrate && npm run seed"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "dotenv": "^17.4.2",
+    "ws": "^8.21.3"
+  }
+}
