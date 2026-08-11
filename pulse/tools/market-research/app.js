@@ -348,6 +348,7 @@ Your job:
 - Propose structured edits to the note. Do not rewrite unchanged sections.
 - Spell out every acronym in full on first use with the abbreviation in brackets.
 - Never delete existing content; only add or revise.
+- When the document describes how orders move through the market, also refresh the structured order-flow diagram via profile_updates.flow_diagram (4–7 stages, each { "label", "mode": "auto"|"mixed"|"manual" }). Do not return a one-stage diagram.
 
 Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
 {
@@ -356,8 +357,18 @@ Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
     { "section": "exact ## heading text to place under (omit the ## )",
       "action": "add",
       "newContent": "the markdown to append under that heading" }
-  ]
+  ],
+  "profile_updates": {
+    "flow_diagram": [
+      { "label": "Investor / Adviser", "mode": "auto" },
+      { "label": "Broker / Platform", "mode": "mixed" },
+      { "label": "Central Hub / CSD", "mode": "manual" },
+      { "label": "Transfer Agent", "mode": "mixed" },
+      { "label": "Fund Manager", "mode": "auto" }
+    ]
+  }
 }
+Omit profile_updates if the document does not improve the order-flow path.
 If the document has nothing relevant, return {"summary":"No relevant content found","edits":[]}.`;
 
 /* Used when the country has no note yet: build a full note from the document. */
@@ -370,6 +381,21 @@ Your job:
 - Use this structure: a level-1 title (# Country), a blockquote header summarising ISO3/Region/Classification/Hub Status, then ## sections such as Market Overview, How Fund Orders Work Today, Distribution Channels, Key Participants, Risks, and Sources.
 - Spell out every acronym in full on first use with the abbreviation in brackets.
 - Use only information supported by the document. Do not invent figures.
+
+ORDER-FLOW DIAGRAM (required — the app draws this automatically from flow_diagram):
+- Always include a complete end-to-end order path in "flow_diagram". Never leave it empty. Never return only one stage.
+- Use 4–7 stages in left-to-right order (investor → intermediaries / hubs → fund).
+- Each stage is { "label": "short role name", "mode": "auto" | "mixed" | "manual" }.
+- mode reflects how that hop is typically processed in this market (auto=fully automated, mixed=partly automated, manual=mostly manual). Infer from the document; if unclear use "mixed".
+- Labels must be concrete market roles (e.g. Investor, Broker / Platform, CSD / Hub, Transfer Agent, Fund Manager) — not placeholder text like "Stage".
+- Example shape (replace labels/modes for the actual country):
+  "flow_diagram": [
+    { "label": "Investor / Adviser", "mode": "auto" },
+    { "label": "Broker / Platform", "mode": "mixed" },
+    { "label": "Central Hub / CSD", "mode": "manual" },
+    { "label": "Transfer Agent", "mode": "mixed" },
+    { "label": "Fund Manager", "mode": "auto" }
+  ]
 
 OUTPUT FORMAT — follow exactly:
 First, output the complete Markdown note as plain text (NOT inside JSON, NOT inside code fences).
@@ -397,7 +423,13 @@ Then output a small JSON object (and nothing after it) with these structured fie
   "manuality_snapshot": "one line",
   "regulatory_openness": "one line",
   "risks_or_barriers": "one line",
-  "flow_diagram": [ { "label": "Stage", "mode": "auto" } ]
+  "flow_diagram": [
+    { "label": "Investor / Adviser", "mode": "auto" },
+    { "label": "Broker / Platform", "mode": "mixed" },
+    { "label": "Central Hub / CSD", "mode": "manual" },
+    { "label": "Transfer Agent", "mode": "mixed" },
+    { "label": "Fund Manager", "mode": "auto" }
+  ]
 }`;
 
 
@@ -732,8 +764,8 @@ function fileToBase64(file){
 async function callClaude(iso, currentNote, payload, isBlank, onProgress){
   const sys = isBlank ? BUILD_SYSTEM_PROMPT : EXTRACTION_SYSTEM_PROMPT;
   const instruction = isBlank
-    ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it.`
-    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete.`;
+    ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it. Remember: ===FIELDS=== must include a complete 4–7 stage flow_diagram (never a single placeholder stage).`
+    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete. If order-routing stages are described, include profile_updates.flow_diagram with 4–7 stages.`;
 
   // Build the user content: instruction text + the document (PDF block or inline text).
   let content;
@@ -826,8 +858,44 @@ function parseBuildResponse(text){
   }
   const note=cleanNote(t.slice(0,idx).replace(/```$/,'').trim());
   const fieldsRaw=t.slice(idx+12);
-  const fields=safeParseJSON(fieldsRaw) || {};
+  const fields=safeParseJSON(fieldsRaw) || salvageFieldsJson(fieldsRaw) || {};
+  if(Array.isArray(fields.flow_diagram)){
+    fields.flow_diagram = normalizeFlowDiagram(fields.flow_diagram);
+  }
   return { note, summary:fields.summary||'', fields };
+}
+
+/** Keep only usable flow stages; coerce mode to auto|mixed|manual. */
+function normalizeFlowDiagram(arr){
+  return (Array.isArray(arr)?arr:[])
+    .map(s=>{
+      if(!s || typeof s!=='object') return null;
+      const label=String(s.label||'').trim();
+      if(!label || /^stage$/i.test(label)) return null;
+      let mode=String(s.mode||'mixed').toLowerCase();
+      if(mode!=='auto' && mode!=='manual' && mode!=='mixed') mode='mixed';
+      return { label, mode };
+    })
+    .filter(Boolean);
+}
+
+/** Best-effort recovery when ===FIELDS=== JSON is truncated mid-object. */
+function salvageFieldsJson(raw){
+  let candidate = String(raw || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  if(!candidate) return null;
+  const direct = safeParseJSON(candidate);
+  if(direct) return direct;
+
+  const lastComplete = candidate.lastIndexOf('}');
+  if(lastComplete < 0) return null;
+  candidate = candidate.slice(0, lastComplete + 1);
+  const openSquares = (candidate.match(/\[/g) || []).length;
+  const closeSquares = (candidate.match(/\]/g) || []).length;
+  const openBraces = (candidate.match(/\{/g) || []).length;
+  const closeBraces = (candidate.match(/\}/g) || []).length;
+  candidate += ']'.repeat(Math.max(0, openSquares - closeSquares));
+  candidate += '}'.repeat(Math.max(0, openBraces - closeBraces));
+  return safeParseJSON(candidate);
 }
 
 /* Tolerant JSON extraction: strip fences, isolate the outermost {...},
@@ -852,7 +920,11 @@ function openModal(proposal, iso){
   if(proposal.__mode==='build'){
     // building a brand-new note + structured record
     const note=cleanNote(proposal.note||'');
-    PENDING={iso, mode:'build', note, fields:proposal.fields||{}};
+    const fields=proposal.fields||{};
+    if(Array.isArray(fields.flow_diagram)){
+      fields.flow_diagram = normalizeFlowDiagram(fields.flow_diagram);
+    }
+    PENDING={iso, mode:'build', note, fields};
     document.getElementById('modalCopy').style.display = note.trim() ? '' : 'none';
     if(!note.trim()){
       body.innerHTML=`<div class="modal-empty">Claude could not build a note from that file.</div>`;
@@ -862,10 +934,18 @@ function openModal(proposal, iso){
       const f=PENDING.fields;
       const chips=[f.market_classification,f.priority_tier,f.central_hub_status]
         .filter(Boolean).map(x=>`<span class="ec-action" style="background:var(--blue-s);color:var(--blue)">${escapeHtml(x)}</span>`).join(' ');
+      const flow = Array.isArray(f.flow_diagram) ? f.flow_diagram : [];
+      const flowPreview = flow.length
+        ? flow.map(s=>escapeHtml(s.label)+(s.mode?` (${escapeHtml(s.mode)})`:'')).join(' → ')
+        : '';
+      const flowWarn = flow.length < 4
+        ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Order-flow diagram looks incomplete (${flow.length||0} stage${flow.length===1?'':'s'}). Prefer re-running the upload so Claude returns a full 4–7 stage path.</div>`
+        : `<div style="font-size:11.5px;color:var(--ink-2);margin:0 0 10px">Order-flow path: ${flowPreview}</div>`;
       const warn = proposal.__truncated
         ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ The note may be slightly cut off (long source). Review before applying.</div>` : '';
       body.innerHTML=`
         ${warn}
+        ${flowWarn}
         <div class="edit-card">
           <div class="ec-top">${chips}</div>
           <div style="font-size:12px;color:var(--ink-2);margin-bottom:8px">Opportunity ${f.opportunity_score??'—'} · Automation ${f.automation_rate_estimate??'—'}% · ${escapeHtml(f.market_aum_band||'')}</div>
@@ -878,14 +958,26 @@ function openModal(proposal, iso){
   }
 
   // merge mode (existing note)
-  PENDING={iso, mode:'merge', edits:proposal.edits||[]};
+  const profileUpdates = proposal.profile_updates || {};
+  if(Array.isArray(profileUpdates.flow_diagram)){
+    profileUpdates.flow_diagram = normalizeFlowDiagram(profileUpdates.flow_diagram);
+  }
+  PENDING={iso, mode:'merge', edits:proposal.edits||[], profileUpdates};
   document.getElementById('modalCopy').style.display='none';
-  if(!PENDING.edits.length){
+  const hasFlowUpdate = Array.isArray(PENDING.profileUpdates.flow_diagram) && PENDING.profileUpdates.flow_diagram.length >= 2;
+  if(!PENDING.edits.length && !hasFlowUpdate){
     body.innerHTML=`<div class="modal-empty">No relevant order-routing content was found to add.</div>`;
     document.getElementById('modalApply').style.display='none';
   } else {
     document.getElementById('modalApply').style.display='';
-    body.innerHTML=PENDING.edits.map((ed,i)=>`
+    const flowCard = hasFlowUpdate
+      ? `<div class="edit-card">
+          <div class="ec-top"><span class="ec-action">update</span><span class="ec-section">Order-flow path</span></div>
+          <div class="ec-content">${PENDING.profileUpdates.flow_diagram.map(s=>escapeHtml(s.label)+' ('+escapeHtml(s.mode)+')').join(' → ')}</div>
+          <label class="ec-check"><input type="checkbox" id="flowcheck" checked> Apply order-flow diagram update</label>
+        </div>`
+      : '';
+    body.innerHTML=flowCard + PENDING.edits.map((ed,i)=>`
       <div class="edit-card">
         <div class="ec-top"><span class="ec-action">${(ed.action||'add')}</span><span class="ec-section">${escapeHtml(ed.section||'(no heading)')}</span></div>
         <div class="ec-content">${escapeHtml(ed.newContent||'')}</div>
@@ -973,7 +1065,7 @@ document.getElementById('modalApply').addEventListener('click',()=>{
       growth_signal:f0.growth_signal||'', dominant_order_model:f0.dominant_order_model||'',
       current_order_channels:f0.current_order_channels||'', manuality_snapshot:f0.manuality_snapshot||'',
       regulatory_openness:f0.regulatory_openness||'', risks_or_barriers:f0.risks_or_barriers||'',
-      flow_image:'', flow_diagram:Array.isArray(f0.flow_diagram)?f0.flow_diagram:[],
+      flow_image:'', flow_diagram:normalizeFlowDiagram(f0.flow_diagram),
       last_updated:new Date().toISOString().slice(0,7)
     };
     closeModal();
@@ -987,11 +1079,21 @@ document.getElementById('modalApply').addEventListener('click',()=>{
   }
 
   // merge mode
-  const checks=[...document.querySelectorAll('#modalBody input[type=checkbox]')];
+  const checks=[...document.querySelectorAll('#modalBody input[type=checkbox][data-i]')];
   const chosen=checks.filter(c=>c.checked).map(c=>PENDING.edits[+c.dataset.i]);
   let note=COUNTRY_MARKDOWN[iso]||'';
   chosen.forEach(ed=>{ note=applyEdit(note, ed); });
   COUNTRY_MARKDOWN[iso]=note;
+
+  const flowCheck=document.getElementById('flowcheck');
+  const flowUpdate=PENDING.profileUpdates && PENDING.profileUpdates.flow_diagram;
+  if(flowCheck && flowCheck.checked && Array.isArray(flowUpdate) && flowUpdate.length){
+    if(!COUNTRY_DATA[iso]) COUNTRY_DATA[iso]={ country:iso, iso3:iso };
+    COUNTRY_DATA[iso].flow_diagram = normalizeFlowDiagram(flowUpdate);
+    COUNTRY_DATA[iso].flow_image = COUNTRY_DATA[iso].flow_image || '';
+    COUNTRY_DATA[iso].last_updated = new Date().toISOString().slice(0,7);
+  }
+
   saveData(iso, 'claude');       // persist to Neon + local cache
   closeModal();
   const f=world.find(ft=>featISO(ft)===iso);
