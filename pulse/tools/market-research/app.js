@@ -172,10 +172,14 @@ function showSaveBanner(){
 const ANTHROPIC_API_KEY = (window.CONFIG && window.CONFIG.ANTHROPIC_API_KEY) || 'PASTE-YOUR-KEY-HERE';
 const CLAUDE_MODEL = (window.CONFIG && window.CONFIG.CLAUDE_MODEL) || 'claude-sonnet-4-6';
 const HAS_BROWSER_KEY = !!(ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
+const ON_HTTP = typeof location !== 'undefined' && /^https?:/.test(location.protocol || '');
 
 function formatClaudeHttpError(status, detail){
-  if(status === 504 || /timeout|UPSTREAM_TIMEOUT|FUNCTION_INVOCATION_TIMEOUT/i.test(detail||'')){
-    return 'Claude timed out before finishing. Try a smaller file, or wait for the longer server timeout after redeploy (Hobby can allow up to 5 minutes with Fluid Compute).' + (detail ? ' — '+detail : '');
+  if(status === 504 || /timeout|UPSTREAM_TIMEOUT|FUNCTION_INVOCATION_TIMEOUT|Task timed out/i.test(detail||'')){
+    return 'Claude timed out before finishing. Try a smaller file, or wait for the longer server timeout after redeploy (Hobby can allow up to 5 minutes with Fluid Compute).';
+  }
+  if(status === 413 || /payload|too large|entity too large/i.test(detail||'')){
+    return 'Upload is too large for the Claude proxy. Try a smaller Markdown/PDF file.';
   }
   if(/ANTHROPIC_API_KEY/i.test(detail||'')){
     return detail;
@@ -186,37 +190,41 @@ function formatClaudeHttpError(status, detail){
 /** Call Anthropic Messages via server proxy, or directly with config.js as fallback. */
 async function anthropicMessages(body){
   const payload = { model: CLAUDE_MODEL, ...body };
-  let proxySawMissingKey = false;
   try{
     const proxyRes = await fetch('/api/claude', {
       method:'POST',
       headers:{ 'content-type':'application/json' },
       body: JSON.stringify(payload)
     });
-    // Static hosts return 404 HTML when the function is missing — fall back.
     const ctype = (proxyRes.headers.get('content-type')||'').toLowerCase();
-    if(proxyRes.status !== 404 && ctype.includes('json')){
-      // If the proxy is up but misconfigured, surface that immediately
-      // instead of falling through to a confusing "no key" browser message.
+    const isJson = ctype.includes('json');
+
+    // On http(s) hosts, /api/claude is authoritative. Never fall through to a
+    // misleading "No API key set" when the proxy actually responded (e.g. 504 HTML).
+    if(ON_HTTP && proxyRes.status !== 404){
+      if(!isJson){
+        let text='';
+        try{ text = await proxyRes.text(); }catch(_){}
+        throw new Error(formatClaudeHttpError(proxyRes.status, (text||'').slice(0,240)));
+      }
       if(!proxyRes.ok){
+        let detail='';
         try{
           const errBody = await proxyRes.clone().json();
-          const msg = errBody && errBody.error && errBody.error.message;
-          if(msg && /ANTHROPIC_API_KEY/i.test(msg)){
-            proxySawMissingKey = true;
-            throw new Error(msg);
-          }
-        }catch(e){
-          if(e && e.message && /ANTHROPIC_API_KEY/i.test(e.message)) throw e;
-        }
+          detail = (errBody && errBody.error && errBody.error.message) || '';
+        }catch(_){}
+        throw new Error(formatClaudeHttpError(proxyRes.status, detail));
       }
       return proxyRes;
     }
-  }catch(err){
-    if(proxySawMissingKey || (err && err.message && /ANTHROPIC_API_KEY/i.test(err.message))){
-      throw err;
+
+    // Static hosts return 404 HTML when the function is missing — fall back.
+    if(proxyRes.status !== 404 && isJson){
+      return proxyRes;
     }
-    /* file:// or offline proxy — try direct */
+  }catch(err){
+    // Re-throw real proxy errors on hosted pages; only fall through offline / file://.
+    if(ON_HTTP) throw err;
   }
 
   if(!HAS_BROWSER_KEY){
