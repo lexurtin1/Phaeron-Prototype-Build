@@ -152,6 +152,7 @@ server.listen(PORT, () => {
   const key = !!(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
   console.log(`Pulse local server http://127.0.0.1:${PORT}`);
   console.log(`Market Research: http://127.0.0.1:${PORT}/tools/market-research/`);
+  console.log(`Proxy health:      http://127.0.0.1:${PORT}/api/claude`);
   console.log(`DATABASE_URL: ${db ? 'set' : 'MISSING'}`);
-  console.log(`ANTHROPIC_API_KEY: ${key ? 'set' : 'MISSING'}`);
+  console.log(`ANTHROPIC_API_KEY: ${key ? 'set' : 'MISSING — copy .env → .env.local and paste your key'}`);
 });
