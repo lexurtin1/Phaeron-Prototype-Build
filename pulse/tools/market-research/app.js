@@ -173,58 +173,105 @@ const ANTHROPIC_API_KEY = (window.CONFIG && window.CONFIG.ANTHROPIC_API_KEY) || 
 const CLAUDE_MODEL = (window.CONFIG && window.CONFIG.CLAUDE_MODEL) || 'claude-sonnet-4-6';
 const HAS_BROWSER_KEY = !!(ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
 const ON_HTTP = typeof location !== 'undefined' && /^https?:/.test(location.protocol || '');
+// Keep blank-note builds inside Hobby's common 60s ceiling when Fluid/maxDuration
+// is not yet applied. Real notes usually finish well under 4k output tokens.
+const BUILD_MAX_TOKENS = 4000;
+const MERGE_MAX_TOKENS = 2000;
 
 function formatClaudeHttpError(status, detail){
-  if(status === 504 || /timeout|UPSTREAM_TIMEOUT|FUNCTION_INVOCATION_TIMEOUT|Task timed out/i.test(detail||'')){
-    return 'Claude timed out before finishing. Try a smaller file, or wait for the longer server timeout after redeploy (Hobby can allow up to 5 minutes with Fluid Compute).';
+  const d = String(detail || '');
+  if(status === 504 || /timeout|UPSTREAM_TIMEOUT|FUNCTION_INVOCATION_TIMEOUT|Task timed out|error occurred with your deployment/i.test(d)){
+    return 'Claude timed out before finishing. Try a smaller file. If this keeps happening, redeploy with Fluid Compute / maxDuration 300s enabled on Vercel.';
   }
-  if(status === 413 || /payload|too large|entity too large/i.test(detail||'')){
+  if(status === 413 || /payload|too large|entity too large/i.test(d)){
     return 'Upload is too large for the Claude proxy. Try a smaller Markdown/PDF file.';
   }
-  if(/ANTHROPIC_API_KEY/i.test(detail||'')){
-    return detail;
+  if(/ANTHROPIC_API_KEY/i.test(d)){
+    return d;
   }
-  return 'API '+status+(detail?(' — '+detail):'');
+  return 'API '+status+(d ? (' — '+d) : '');
+}
+
+async function readProxyErrorDetail(proxyRes){
+  const ctype = (proxyRes.headers.get('content-type') || '').toLowerCase();
+  try{
+    if(ctype.includes('json')){
+      const errBody = await proxyRes.clone().json();
+      return (errBody && errBody.error && (errBody.error.message || errBody.error.code)) ||
+        (errBody && errBody.message) || '';
+    }
+  }catch(_){}
+  try{
+    return (await proxyRes.clone().text()).replace(/\s+/g, ' ').trim().slice(0, 280);
+  }catch(_){
+    return '';
+  }
+}
+
+/** Confirm the serverless proxy can see ANTHROPIC_API_KEY before uploading. */
+async function assertClaudeProxyReady(){
+  if(!ON_HTTP) return;
+  let res;
+  try{
+    res = await fetch('/api/claude', { method:'GET', cache:'no-store' });
+  }catch(err){
+    throw new Error('Could not reach /api/claude ('+(err && err.message || 'network error')+'). Check you are on the Vercel deployment (not a static file:// copy).');
+  }
+  const ctype = (res.headers.get('content-type') || '').toLowerCase();
+  if(res.status === 404 || !ctype.includes('json')){
+    throw new Error('Claude proxy is not available on this host (HTTP '+res.status+'). Open the Vercel app URL and ensure /api/claude is deployed.');
+  }
+  let body = null;
+  try{ body = await res.json(); }catch(_){}
+  if(!res.ok){
+    throw new Error(formatClaudeHttpError(res.status, body && body.error && body.error.message));
+  }
+  if(!body || !body.keyConfigured){
+    throw new Error('ANTHROPIC_API_KEY is not set on the server. Add it in Vercel → Settings → Environment Variables (Production + Preview), then Redeploy.');
+  }
 }
 
 /** Call Anthropic Messages via server proxy, or directly with config.js as fallback. */
 async function anthropicMessages(body){
   const payload = { model: CLAUDE_MODEL, ...body };
+  let proxyRes = null;
   try{
-    const proxyRes = await fetch('/api/claude', {
+    proxyRes = await fetch('/api/claude', {
       method:'POST',
       headers:{ 'content-type':'application/json' },
       body: JSON.stringify(payload)
     });
-    const ctype = (proxyRes.headers.get('content-type')||'').toLowerCase();
+  }catch(err){
+    if(ON_HTTP){
+      throw new Error('Claude proxy request failed ('+(err && err.message || 'network error')+').');
+    }
+    proxyRes = null;
+  }
+
+  if(proxyRes){
+    const ctype = (proxyRes.headers.get('content-type') || '').toLowerCase();
     const isJson = ctype.includes('json');
 
-    // On http(s) hosts, /api/claude is authoritative. Never fall through to a
-    // misleading "No API key set" when the proxy actually responded (e.g. 504 HTML).
+    // Hosted app: any non-404 response from /api/claude is authoritative.
+    // Plain-text Vercel 504s must NOT fall through to "No API key set".
     if(ON_HTTP && proxyRes.status !== 404){
-      if(!isJson){
-        let text='';
-        try{ text = await proxyRes.text(); }catch(_){}
-        throw new Error(formatClaudeHttpError(proxyRes.status, (text||'').slice(0,240)));
-      }
       if(!proxyRes.ok){
-        let detail='';
-        try{
-          const errBody = await proxyRes.clone().json();
-          detail = (errBody && errBody.error && errBody.error.message) || '';
-        }catch(_){}
-        throw new Error(formatClaudeHttpError(proxyRes.status, detail));
+        throw new Error(formatClaudeHttpError(proxyRes.status, await readProxyErrorDetail(proxyRes)));
+      }
+      if(!isJson){
+        throw new Error(formatClaudeHttpError(proxyRes.status, await readProxyErrorDetail(proxyRes) || 'non-JSON proxy response'));
       }
       return proxyRes;
     }
 
     // Static hosts return 404 HTML when the function is missing — fall back.
     if(proxyRes.status !== 404 && isJson){
+      if(!proxyRes.ok){
+        const detail = await readProxyErrorDetail(proxyRes);
+        if(/ANTHROPIC_API_KEY/i.test(detail)) throw new Error(detail);
+      }
       return proxyRes;
     }
-  }catch(err){
-    // Re-throw real proxy errors on hosted pages; only fall through offline / file://.
-    if(ON_HTTP) throw err;
   }
 
   if(!HAS_BROWSER_KEY){
@@ -608,6 +655,7 @@ async function handleUpload(file, iso){
 
   setStatus(isBlank ? 'Asking Claude to build this country\u2019s note…' : 'Asking Claude to extract relevant detail…', 'work');
   try{
+    await assertClaudeProxyReady();
     const proposal = await callClaude(iso, currentNote, payload, isBlank);
     setStatus('', '');
     openModal(proposal, iso);
@@ -643,11 +691,10 @@ async function callClaude(iso, currentNote, payload, isBlank){
     content = `${instruction}\n\nUPLOADED DOCUMENT:\n${payload.text}`;
   }
 
-  // Keep build completions within Vercel function budgets. 16k tokens often
-  // exceeds the Hobby 60s default; 8k is enough for a country note + fields.
+  // Keep build completions inside common Hobby 60s budgets.
   const res = await anthropicMessages({
       model:CLAUDE_MODEL,
-      max_tokens:isBlank ? 8000 : 2000,
+      max_tokens:isBlank ? BUILD_MAX_TOKENS : MERGE_MAX_TOKENS,
       system:sys,
       messages:[{role:'user', content:content}]
     });

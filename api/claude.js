@@ -6,7 +6,7 @@
 // with Fluid Compute). Abort upstream slightly earlier so the client gets a
 // JSON error instead of a bare Vercel 504 when possible.
 
-const UPSTREAM_TIMEOUT_MS = Number(process.env.CLAUDE_UPSTREAM_TIMEOUT_MS || 280_000);
+const UPSTREAM_TIMEOUT_MS = Number(process.env.CLAUDE_UPSTREAM_TIMEOUT_MS || 55_000);
 
 function readKey() {
   const apiKey = process.env.ANTHROPIC_API_KEY;
