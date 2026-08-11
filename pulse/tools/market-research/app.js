@@ -392,6 +392,49 @@ Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
 Include only keys in profile_updates that the document supports; omit keys you cannot support. Prefer including the full set when the document is a complete country pack.
 If the document has nothing relevant, return {"summary":"No relevant content found","edits":[]}.`;
 
+/* Dedicated pass: fill drawer KPIs / flow diagram from the upload alone. */
+const PROFILE_SYSTEM_PROMPT = `You extract structured mutual-fund order-routing profile fields for ONE country from an uploaded document.
+
+The app drawer cards (opportunity score, automation, AUM, hub, priority tier, order-flow diagram) are populated ONLY from your JSON — not from the research note. Markdown commentary is useless here.
+
+Rules:
+- Use only facts supported by the document. Do not invent numbers.
+- If the document states scores, AUM, hub status, tiers, automation, or order-path stages, copy them into the matching fields.
+- flow_diagram must be a complete 4–7 stage end-to-end path when the document describes order routing. Never return one stage. Each stage: { "label", "mode": "auto"|"mixed"|"manual" }.
+- Respond with JSON ONLY — no prose, no markdown fences.
+
+{
+  "summary": "one sentence",
+  "profile_updates": {
+    "country": "Full country name",
+    "region": "Europe | Asia | Americas | Africa | Oceania",
+    "subregion": "short text",
+    "market_classification": "Developed | Emerging | Frontier | Unknown",
+    "central_hub_status": "Full hub | Partial hub | No central hub",
+    "hub_name": "name or —",
+    "operator": "who runs it or —",
+    "opportunity_score": 0,
+    "automation_rate_estimate": 0,
+    "priority_tier": "Tier 1 | Tier 2 | Tier 3 | Watch",
+    "existing_network_presence": "Established | Emerging | None",
+    "market_aum_band": "short text",
+    "mutual_fund_relevance": "one line",
+    "growth_signal": "one line",
+    "dominant_order_model": "one line",
+    "current_order_channels": "one line",
+    "manuality_snapshot": "one line",
+    "regulatory_openness": "one line",
+    "risks_or_barriers": "one line",
+    "flow_diagram": [
+      { "label": "Investor / Adviser", "mode": "auto" },
+      { "label": "Broker / Platform", "mode": "mixed" },
+      { "label": "Central Hub / CSD", "mode": "manual" },
+      { "label": "Transfer Agent", "mode": "mixed" },
+      { "label": "Fund Manager", "mode": "auto" }
+    ]
+  }
+}`;
+
 /* Used when the country has no note yet: build a full note from the document. */
 const BUILD_SYSTEM_PROMPT = `You build a new country research note on mutual fund order-routing infrastructure from an uploaded document.
 
@@ -817,6 +860,17 @@ async function callClaude(iso, currentNote, payload, isBlank, onProgress){
     }
     parsed.__mode='build';
     if(truncated) parsed.__truncated=true;
+    // If KPIs/diagram came back thin, run a focused profile pass on the same upload.
+    const fields = parsed.fields || {};
+    const flowLen = Array.isArray(fields.flow_diagram) ? fields.flow_diagram.length : 0;
+    const thin = !(fields.opportunity_score!=null && fields.market_aum_band) || flowLen < 4;
+    if(thin){
+      const profileOnly = await extractProfileUpdates(iso, payload, onProgress);
+      if(profileOnly && profileUpdateCount(profileOnly)){
+        parsed.fields = { ...fields, ...profileOnly };
+        if(Array.isArray(profileOnly.flow_diagram)) parsed.fields.flow_diagram = profileOnly.flow_diagram;
+      }
+    }
     return parsed;
   }
 
@@ -834,7 +888,57 @@ async function callClaude(iso, currentNote, payload, isBlank, onProgress){
   parsed.__mode='merge';
   if(!parsed.edits) parsed.edits=[];
   if(truncated) parsed.__truncated=true;
+
+  // Always run a dedicated KPI/diagram pass for merge uploads. Note-edit responses
+  // frequently omit profile_updates, which leaves stale smoke-test drawer values.
+  const fromMerge = normalizeProfileUpdates(parsed.profile_updates || {});
+  const flowLen = Array.isArray(fromMerge.flow_diagram) ? fromMerge.flow_diagram.length : 0;
+  const needsProfilePass = profileUpdateCount(fromMerge) < 4 || flowLen < 4 || looksLikeStubProfile(COUNTRY_DATA[iso]);
+  if(needsProfilePass){
+    const profileOnly = await extractProfileUpdates(iso, payload, onProgress);
+    parsed.profile_updates = { ...fromMerge, ...(profileOnly || {}) };
+    if(profileOnly && Array.isArray(profileOnly.flow_diagram) && profileOnly.flow_diagram.length >= flowLen){
+      parsed.profile_updates.flow_diagram = profileOnly.flow_diagram;
+    }
+  } else {
+    parsed.profile_updates = fromMerge;
+  }
   return parsed;
+}
+
+/** True when the stored profile still looks like a placeholder / smoke test. */
+function looksLikeStubProfile(rec){
+  if(!rec) return true;
+  const blob = [rec.market_aum_band, rec.mutual_fund_relevance, rec.growth_signal, rec.dominant_order_model]
+    .map(v => String(v||'').toLowerCase()).join(' | ');
+  if(/smoke\s*test|\btest\b|placeholder|todo|tbd/.test(blob)) return true;
+  const flow = Array.isArray(rec.flow_diagram) ? rec.flow_diagram : [];
+  if(flow.length < 4) return true;
+  return false;
+}
+
+/** Focused Claude call that returns only normalized profile_updates. */
+async function extractProfileUpdates(iso, payload, onProgress){
+  const instruction = `COUNTRY ISO3: ${iso}\n\nExtract EVERY structured profile KPI and the order-flow diagram from the uploaded document. Return JSON only.`;
+  let content;
+  if(payload.kind==='pdf'){
+    content=[
+      { type:'text', text:instruction },
+      { type:'document', source:{ type:'base64', media_type:'application/pdf', data:payload.data } }
+    ];
+  } else {
+    content = `${instruction}\n\nUPLOADED DOCUMENT:\n${payload.text}`;
+  }
+  if(onProgress) onProgress('Extracting profile KPIs & order-flow diagram…');
+  const { text } = await claudeComplete({
+    system: PROFILE_SYSTEM_PROMPT,
+    userContent: content,
+    maxTokens: 2500,
+    onProgress: null
+  });
+  const parsed = safeParseJSON(text) || salvageMergeJson(text) || {};
+  const updates = normalizeProfileUpdates(parsed.profile_updates || parsed);
+  return updates;
 }
 
 /** Best-effort recovery when a merge JSON response is truncated mid-array. */
