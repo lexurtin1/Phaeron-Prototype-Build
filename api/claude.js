@@ -6,7 +6,7 @@
 // with Fluid Compute). Abort upstream slightly earlier so the client gets a
 // JSON error instead of a bare Vercel 504 when possible.
 
-const UPSTREAM_TIMEOUT_MS = Number(process.env.CLAUDE_UPSTREAM_TIMEOUT_MS || 55_000);
+const UPSTREAM_TIMEOUT_MS = Number(process.env.CLAUDE_UPSTREAM_TIMEOUT_MS || 280_000);
 
 function readKey() {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -99,7 +99,7 @@ module.exports = async function handler(req, res) {
     sendJson(res, aborted ? 504 : 502, {
       error: {
         message: aborted
-          ? `Claude took longer than ${Math.round(UPSTREAM_TIMEOUT_MS / 1000)}s. Try a smaller file, or enable Fluid Compute / raise maxDuration on the Vercel project.`
+          ? `Claude took longer than ${Math.round(UPSTREAM_TIMEOUT_MS / 1000)}s on a single request. The client will retry/continue when possible; for huge PDFs, split the file.`
           : (err && err.message) || 'Upstream request failed',
         code: aborted ? 'UPSTREAM_TIMEOUT' : 'UPSTREAM_ERROR',
       },
