@@ -173,18 +173,21 @@ const ANTHROPIC_API_KEY = (window.CONFIG && window.CONFIG.ANTHROPIC_API_KEY) || 
 const CLAUDE_MODEL = (window.CONFIG && window.CONFIG.CLAUDE_MODEL) || 'claude-sonnet-4-6';
 const HAS_BROWSER_KEY = !!(ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'PASTE-YOUR-KEY-HERE');
 const ON_HTTP = typeof location !== 'undefined' && /^https?:/.test(location.protocol || '');
-// Keep blank-note builds inside Hobby's common 60s ceiling when Fluid/maxDuration
-// is not yet applied. Real notes usually finish well under 4k output tokens.
-const BUILD_MAX_TOKENS = 4000;
-const MERGE_MAX_TOKENS = 2000;
+// Allow long notes / large extracts. Continuation handles max_tokens cutoffs.
+const BUILD_MAX_TOKENS = 8000;
+const MERGE_MAX_TOKENS = 8000;
+const CLAUDE_CONTINUE_LIMIT = 4;
+// Vercel request body ~4.5MB; base64 expands ~4/3, so keep PDF under ~3MB raw.
+const MAX_PDF_BYTES = 3 * 1024 * 1024;
+const MAX_TEXT_CHARS = 500000;
 
 function formatClaudeHttpError(status, detail){
   const d = String(detail || '');
   if(status === 504 || /timeout|UPSTREAM_TIMEOUT|FUNCTION_INVOCATION_TIMEOUT|Task timed out|error occurred with your deployment/i.test(d)){
-    return 'Claude timed out before finishing. Try a smaller file. If this keeps happening, redeploy with Fluid Compute / maxDuration 300s enabled on Vercel.';
+    return 'Claude timed out before finishing. The file may be very large — try again, or split a huge PDF into sections.';
   }
   if(status === 413 || /payload|too large|entity too large/i.test(d)){
-    return 'Upload is too large for the Claude proxy. Try a smaller Markdown/PDF file.';
+    return 'Upload is too large for the Claude proxy (Vercel body limit). Use a PDF under ~3MB or a text/Markdown extract.';
   }
   if(/ANTHROPIC_API_KEY/i.test(d)){
     return d;
@@ -287,6 +290,51 @@ async function anthropicMessages(body){
     },
     body: JSON.stringify(payload)
   });
+}
+
+/** One Anthropic turn → { text, stopReason, truncated }. */
+async function claudeTurn({ system, messages, maxTokens }){
+  const res = await anthropicMessages({
+    model: CLAUDE_MODEL,
+    max_tokens: maxTokens,
+    system,
+    messages
+  });
+  if(!res.ok){
+    let detail=''; try{ const j=await res.json(); detail=j.error?.message||''; }catch(_){}
+    throw new Error(formatClaudeHttpError(res.status, detail));
+  }
+  const data = await res.json();
+  const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  const stopReason = data.stop_reason || '';
+  return { text, stopReason, truncated: stopReason === 'max_tokens' };
+}
+
+/**
+ * Complete a Claude response, automatically continuing when output hits max_tokens.
+ * Keeps going until stop_reason !== max_tokens or CLAUDE_CONTINUE_LIMIT is reached.
+ */
+async function claudeComplete({ system, userContent, maxTokens, onProgress }){
+  const messages = [{ role:'user', content:userContent }];
+  let full = '';
+  let truncated = false;
+
+  for(let i = 0; i < CLAUDE_CONTINUE_LIMIT; i++){
+    if(onProgress) onProgress(i === 0 ? 'Asking Claude…' : ('Continuing Claude response ('+(i+1)+'/'+CLAUDE_CONTINUE_LIMIT+')…'));
+    const turn = await claudeTurn({ system, messages, maxTokens });
+    full += turn.text;
+    truncated = turn.truncated;
+    if(!turn.truncated) return { text: full, truncated: false };
+
+    // Feed partial assistant output back and ask to continue seamlessly.
+    messages.push({ role:'assistant', content: turn.text });
+    messages.push({
+      role:'user',
+      content: 'Continue exactly from where you left off. Do not repeat earlier text. Do not add commentary — only the continuation of the same response format.'
+    });
+  }
+
+  return { text: full, truncated: true };
 }
 
 /* Fixed extraction instructions. Same every time. */
@@ -636,27 +684,34 @@ async function handleUpload(file, iso){
   const isPdf=/\.pdf$/i.test(file.name);
   const isText=/\.(md|markdown|txt)$/i.test(file.name);
   if(!isPdf && !isText){ setStatus('Please drop a Markdown (.md), text, or PDF file.', 'err'); return; }
-  if(isPdf && file.size > 25*1024*1024){ setStatus('PDF is too large (25MB max).', 'err'); return; }
+  if(isPdf && file.size > MAX_PDF_BYTES){
+    setStatus('PDF is too large for the upload proxy (~3MB max due to Vercel request limits). Split it or upload a Markdown extract.', 'err');
+    return;
+  }
 
   setStatus('Reading file…', 'work');
   let payload;
   try{
     if(isPdf){
       const b64=await fileToBase64(file);
-      payload={ kind:'pdf', data:b64 };
+      payload={ kind:'pdf', data:b64, name:file.name };
     } else {
       const txt=await file.text();
-      payload={ kind:'text', text:txt.slice(0,60000) };
+      if(txt.length > MAX_TEXT_CHARS){
+        setStatus('Text file is extremely large — using the first '+MAX_TEXT_CHARS.toLocaleString()+' characters.', 'work');
+      }
+      payload={ kind:'text', text:txt.slice(0, MAX_TEXT_CHARS), name:file.name };
     }
   }catch(_){ setStatus('Could not read the file.', 'err'); return; }
 
-  const currentNote = (COUNTRY_MARKDOWN[iso]||'').slice(0,40000);
+  // Keep a generous note window so merge still sees the full research note.
+  const currentNote = (COUNTRY_MARKDOWN[iso]||'').slice(0, 120000);
   const isBlank = !currentNote.trim();
 
   setStatus(isBlank ? 'Asking Claude to build this country\u2019s note…' : 'Asking Claude to extract relevant detail…', 'work');
   try{
     await assertClaudeProxyReady();
-    const proposal = await callClaude(iso, currentNote, payload, isBlank);
+    const proposal = await callClaude(iso, currentNote, payload, isBlank, msg => setStatus(msg, 'work'));
     setStatus('', '');
     openModal(proposal, iso);
   }catch(err){
@@ -674,11 +729,11 @@ function fileToBase64(file){
   });
 }
 
-async function callClaude(iso, currentNote, payload, isBlank){
+async function callClaude(iso, currentNote, payload, isBlank, onProgress){
   const sys = isBlank ? BUILD_SYSTEM_PROMPT : EXTRACTION_SYSTEM_PROMPT;
   const instruction = isBlank
     ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it.`
-    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits.`;
+    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete.`;
 
   // Build the user content: instruction text + the document (PDF block or inline text).
   let content;
@@ -691,27 +746,19 @@ async function callClaude(iso, currentNote, payload, isBlank){
     content = `${instruction}\n\nUPLOADED DOCUMENT:\n${payload.text}`;
   }
 
-  // Keep build completions inside common Hobby 60s budgets.
-  const res = await anthropicMessages({
-      model:CLAUDE_MODEL,
-      max_tokens:isBlank ? BUILD_MAX_TOKENS : MERGE_MAX_TOKENS,
-      system:sys,
-      messages:[{role:'user', content:content}]
-    });
-  if(!res.ok){
-    let detail=''; try{ const j=await res.json(); detail=j.error?.message||''; }catch(_){}
-    throw new Error(formatClaudeHttpError(res.status, detail));
-  }
-  const data=await res.json();
-  const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-  const truncated = data.stop_reason==='max_tokens';
+  const { text, truncated } = await claudeComplete({
+    system: sys,
+    userContent: content,
+    maxTokens: isBlank ? BUILD_MAX_TOKENS : MERGE_MAX_TOKENS,
+    onProgress
+  });
 
   if(isBlank){
     // Build format: markdown note, then ===FIELDS===, then a small JSON object.
     const parsed=parseBuildResponse(text);
     if(!parsed.note){
       throw new Error(truncated
-        ? 'The note was too long and got cut off. Try a shorter source file, or split it.'
+        ? 'The note was too long even after automatic continuation. Try splitting the source file.'
         : 'Could not read the built note. Try again.');
     }
     parsed.__mode='build';
@@ -719,15 +766,51 @@ async function callClaude(iso, currentNote, payload, isBlank){
     return parsed;
   }
 
-  // Merge format: JSON only.
+  // Merge format: JSON only. Continuation should usually close the JSON; if not,
+  // try to salvage a partial edits array before failing.
   let parsed=safeParseJSON(text);
   if(!parsed){
+    parsed = salvageMergeJson(text);
+  }
+  if(!parsed){
     throw new Error(truncated
-      ? 'The response got cut off (too long). Try a smaller file.'
+      ? 'Claude could not finish the edit list for this file even after automatic continuation. Try uploading a focused extract.'
       : 'Claude did not return valid JSON.');
   }
   parsed.__mode='merge';
   if(!parsed.edits) parsed.edits=[];
+  if(truncated) parsed.__truncated=true;
+  return parsed;
+}
+
+/** Best-effort recovery when a merge JSON response is truncated mid-array. */
+function salvageMergeJson(text){
+  const raw = String(text || '').trim();
+  if(!raw) return null;
+  // Already valid?
+  const direct = safeParseJSON(raw);
+  if(direct) return direct;
+
+  // Close a truncated edits array / object if we got useful items.
+  let candidate = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const editsIdx = candidate.indexOf('"edits"');
+  if(editsIdx < 0) return null;
+
+  // Truncate to last complete edit object, then close brackets.
+  const lastComplete = candidate.lastIndexOf('}');
+  if(lastComplete < 0) return null;
+  candidate = candidate.slice(0, lastComplete + 1);
+  // Ensure edits array + root object are closed.
+  const openSquares = (candidate.match(/\[/g) || []).length;
+  const closeSquares = (candidate.match(/\]/g) || []).length;
+  const openBraces = (candidate.match(/\{/g) || []).length;
+  const closeBraces = (candidate.match(/\}/g) || []).length;
+  candidate += ']'.repeat(Math.max(0, openSquares - closeSquares));
+  candidate += '}'.repeat(Math.max(0, openBraces - closeBraces));
+
+  const parsed = safeParseJSON(candidate);
+  if(!parsed || !Array.isArray(parsed.edits) || !parsed.edits.length) return null;
+  parsed.summary = parsed.summary || 'Partial extract recovered after a long response.';
   return parsed;
 }
 
