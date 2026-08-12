@@ -259,7 +259,11 @@ function netPill(n){const m={'Established':C.good,'Emerging':C.mid,'None':C.unkn
 
 const drawer=document.getElementById('drawer');
 const drawerContent=document.getElementById('drawerContent');
+drawer.addEventListener('pointerenter',hideTooltip);
 function openDrawer(f){
+  // The drawer covers part of the globe. Clear any hover card left behind as
+  // the pointer moves from the canvas onto the drawer.
+  hideTooltip();
   const rec=recordFor(f),name=featName(f);
   drawer.classList.remove('wide');
   if(!rec){
@@ -1070,8 +1074,14 @@ chatSend.addEventListener('click',sendChat);
 function addMsg(role, text){
   const d=document.createElement('div'); d.className='chat-msg '+role;
   d.innerHTML = role==='bot' ? renderChatMarkdown(text) : escapeHtml(text);
-  chatLog.appendChild(d); chatLog.scrollTop=chatLog.scrollHeight;
+  chatLog.appendChild(d);
+  if(role!=='bot') chatLog.scrollTop=chatLog.scrollHeight;
   return d;
+}
+function scrollMessageToTop(message){
+  const logTop=chatLog.getBoundingClientRect().top;
+  const messageTop=message.getBoundingClientRect().top;
+  chatLog.scrollTop += messageTop-logTop-18;
 }
 // light markdown for bot replies: bold, code, line breaks
 function renderChatMarkdown(s){
@@ -1117,14 +1127,16 @@ async function sendChat(){
     } else {
       const data=await res.json();
       const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim() || '(no reply)';
-      addMsg('bot',reply);
+      const replyEl=addMsg('bot',reply);
+      // Long replies should open at their beginning so they read naturally.
+      scrollMessageToTop(replyEl);
       CHAT_HISTORY.push({role:'assistant', content:reply});
     }
   }catch(err){
     typing.remove();
     const e=document.createElement('div'); e.className='chat-err'; e.textContent='Network error — '+(err.message||'request failed'); chatLog.appendChild(e);
   }finally{
-    chatBusy=false; chatSend.disabled=false; chatLog.scrollTop=chatLog.scrollHeight; chatInput.focus();
+    chatBusy=false; chatSend.disabled=false; chatInput.focus();
   }
 }
 

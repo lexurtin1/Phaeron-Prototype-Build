@@ -152,7 +152,8 @@ body{
 
 /* ---------- tooltip ---------- */
 .tooltip{
-  position:fixed;z-index:50;pointer-events:none;background:var(--panel);
+  /* Keep country hover details below drawers and other interactive panels. */
+  position:fixed;z-index:20;pointer-events:none;background:var(--panel);
   border:1px solid var(--line);border-radius:11px;padding:13px 15px;min-width:210px;max-width:260px;
   box-shadow:var(--shadow);opacity:0;transform:translateY(6px) scale(0.98);transition:opacity .15s var(--ease-out),transform .15s var(--ease-out);
 }

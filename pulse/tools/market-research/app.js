@@ -12,6 +12,101 @@ const STORAGE_KEY = 'calastone_atlas_v1';
 let STORAGE_OK = true;
 let DB_OK = null; // null=unknown, true/false after first attempt
 
+/* Opportunity scores are derived, not manually assigned. The weights total 100:
+   automation gap 25, missing/fragmented hub 15, market scale 15, growth 15,
+   regulatory openness 10, addressable competitive gap 15, network fit 5. */
+const OPPORTUNITY_WEIGHTS = Object.freeze({
+  automationGap:25, hubGap:15, marketScale:15, growth:15,
+  regulatoryOpenness:10, competitiveGap:15, networkFit:5
+});
+
+function evidenceText(profile, note){
+  // Ignore any old score declaration in a note so it cannot feed the new score.
+  const cleanNote=String(note||'').split(/\r?\n/)
+    .filter(line=>!(/opportunity\s+score/i.test(line))).join(' ');
+  return [
+    profile.market_aum_band, profile.mutual_fund_relevance, profile.growth_signal,
+    profile.dominant_order_model, profile.current_order_channels,
+    profile.manuality_snapshot, profile.regulatory_openness,
+    profile.risks_or_barriers, cleanNote
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function phraseRating(text, bands, fallback){
+  for(const [rating, phrases] of bands){
+    if(phrases.some(p=>text.includes(p))) return rating;
+  }
+  return fallback;
+}
+
+function calculateOpportunity(profile, note){
+  const text=evidenceText(profile, note);
+  const noteText=String(note||'').toLowerCase();
+  const growthText=(String(profile.growth_signal||'')+' '+noteText).toLowerCase();
+  const regulatoryText=(String(profile.regulatory_openness||'')+' '+noteText).toLowerCase();
+  const automation=Math.max(0,Math.min(100,Number(profile.automation_rate_estimate)||0));
+  const automationGap=(100-automation)/100;
+  const hubGap=({'No central hub':1,'Partial hub':0.62,'Full hub':0.18})[profile.central_hub_status]??0.5;
+  const marketScale=phraseRating(text, [
+    [1,['largest fund market','largest retail','trillion','£1.5t','a$3.9t','r$10.8t','₹60t','rmb trillions']],
+    [.82,['very large','major regional','major continental','leading private','large distribution','large managed','large domestic']],
+    [.64,['large','regional gateway','growing market']],
+    [.42,['medium','mid-sized','moderate size']],
+    [.22,['small domestic','small but','small market','limited aum']]
+  ],.55);
+  const growth=phraseRating(growthText, [
+    [.18,['declining','stagnant','mature and stable','volume growth limited']],
+    [1,['very strong','fastest-growing','rapid growth','surging','structural retail growth']],
+    [.82,['strong growth','strong;','compounding fast','rising domestic','unlock']],
+    [.64,['growing','growth','expanding','reform-driven']],
+    [.42,['moderate','steady','stable']],
+    [.28,['constrained']]
+  ],.5);
+  const regulatory=phraseRating(regulatoryText, [
+    [1,['very high','actively opening','actively court','supportive of infrastructure']],
+    [.82,['high —','high -','infrastructure-friendly','politically supported']],
+    [.62,['moderate-high','moderate high','reform-minded']],
+    [.48,['moderate —','moderate -','partially open']],
+    [.25,['tightly managed','domestic-protective','restrictive']],
+    [.1,['closed market','prohibited']]
+  ],.5);
+  // High values mean there is an addressable gap; entrenched utilities and
+  // saturated competition reduce it, while fragmentation/manuality increase it.
+  let competitiveGap=phraseRating(text, [
+    [1,['no neutral routing','no fund routing utility','no routing utility','no central hub','fragmented bilateral','fully bilateral']],
+    [.86,['highly manual','paper-heavy','re-keying','fax','email','manual processing','fragmented']],
+    [.68,['manual tail','automation gaps','cross-border friction','bilateral']],
+  ],.55);
+  // Explicit competitive barriers cap, rather than erase, the operational gap.
+  const competitiveCap=phraseRating(text, [
+    [.18,['market saturation','dominant domestic utility','incumbent-protected','little friction','highly automated']],
+    [.38,['entrenched utility','entrenched domestic','dominant clearing']],
+    [.48,['competitive infrastructure','entrenched registry','relationship-driven']],
+    [.62,['bank vertical integration','strong domestic infrastructure','entrenched intermediaries']]
+  ],1);
+  competitiveGap=Math.min(competitiveGap,competitiveCap);
+  const networkFit=({'Established':0.72,'Emerging':1,'None':0.58})[profile.existing_network_presence]??0.5;
+  const components={automationGap,hubGap,marketScale,growth,regulatoryOpenness:regulatory,competitiveGap,networkFit};
+  const score=Math.round(Object.entries(OPPORTUNITY_WEIGHTS)
+    .reduce((sum,[key,weight])=>sum+components[key]*weight,0));
+  return {score:Math.max(0,Math.min(100,score)),components};
+}
+
+function recalculateOpportunity(iso3){
+  const code=String(iso3||'').toUpperCase(), profile=COUNTRY_DATA[code];
+  if(!profile) return null;
+  const result=calculateOpportunity(profile, COUNTRY_MARKDOWN[code]||'');
+  profile.opportunity_score=result.score;
+  profile.opportunity_score_breakdown=Object.fromEntries(
+    Object.entries(OPPORTUNITY_WEIGHTS).map(([key,weight])=>[key,Math.round(result.components[key]*weight)])
+  );
+  return result;
+}
+
+function recalculateAllOpportunities(){
+  Object.keys(COUNTRY_DATA).forEach(recalculateOpportunity);
+}
+
 (function testStorage(){
   try{
     const t='__test__'+Date.now();
@@ -24,6 +119,7 @@ function applyAtlasPayload(saved){
   if(!saved) return;
   if(saved.data) Object.assign(COUNTRY_DATA, saved.data);
   if(saved.markdown) Object.assign(COUNTRY_MARKDOWN, saved.markdown);
+  recalculateAllOpportunities();
 }
 
 function loadSavedData(){
@@ -38,6 +134,7 @@ function loadSavedData(){
 
 function cacheLocally(){
   if(!STORAGE_OK) return false;
+  recalculateAllOpportunities();
   try{
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
       data:COUNTRY_DATA, markdown:COUNTRY_MARKDOWN, savedAt:new Date().toISOString()
@@ -121,6 +218,8 @@ async function persistAtlasToDb(source){
 
 // Write current data to browser cache + Neon. Called after every change.
 function saveData(iso3, source){
+  if(iso3) recalculateOpportunity(iso3);
+  else recalculateAllOpportunities();
   cacheLocally();
   // Fire-and-forget server persist; UI stays responsive.
   const job = iso3 ? persistCountryToDb(iso3, source) : persistAtlasToDb(source);
@@ -607,6 +706,13 @@ window.closeDrawer=closeDrawer;
 function buildSnapshot(r){
   const oppC=r.opportunity_score>=66?C.good:r.opportunity_score>=40?C.mid:C.bad;
   const autoC=r.automation_rate_estimate>=66?C.bad:r.automation_rate_estimate>=40?C.mid:C.good;
+  const bd=r.opportunity_score_breakdown||{};
+  const scoreDetail=[
+    ['Automation gap',bd.automationGap],['Hub gap',bd.hubGap],
+    ['Market scale',bd.marketScale],['Growth',bd.growth],
+    ['Regulatory openness',bd.regulatoryOpenness],['Competitive gap',bd.competitiveGap],
+    ['Network fit',bd.networkFit]
+  ].filter(([,v])=>Number.isFinite(v));
   return `
   <button class="drawer-close" onclick="closeDrawer()">×</button>
   <div class="drawer-head">
@@ -616,7 +722,7 @@ function buildSnapshot(r){
   </div>
   <div class="scroll">
     <div class="kpis">
-      <div class="kpi"><div class="k">Opportunity score</div><div class="v" style="color:${oppC}">${r.opportunity_score}<small>/100</small></div><div class="bar"><i style="width:${r.opportunity_score}%;background:${oppC}"></i></div></div>
+      <div class="kpi" title="${scoreDetail.map(([label,value])=>`${label}: ${value}`).join(' · ')}"><div class="k">Opportunity score · calculated</div><div class="v" style="color:${oppC}">${r.opportunity_score}<small>/100</small></div><div class="bar"><i style="width:${r.opportunity_score}%;background:${oppC}"></i></div></div>
       <div class="kpi"><div class="k">Automation estimate</div><div class="v">${r.automation_rate_estimate}<small>%</small></div><div class="bar"><i style="width:${r.automation_rate_estimate}%;background:${autoC}"></i></div></div>
       <div class="kpi"><div class="k">Priority tier</div><div class="v" style="font-size:17px">${r.priority_tier}</div></div>
       <div class="kpi"><div class="k">AUM band</div><div class="v" style="font-size:13px;font-family:var(--sans);line-height:1.3;margin-top:7px">${r.market_aum_band}</div></div>
@@ -1514,6 +1620,7 @@ fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json').then(r=>r.json(
   const geo=topojson.feature(topology,topology.objects.countries);
   world=geo.features;
   world.forEach(f=>{f.iso_a3=NAME_TO_ISO[f.properties.name]||null;});
+  recalculateAllOpportunities(); // score the bundled defaults before any cache/DB overlay
   loadSavedData();   // local cache first for fast paint
   const fromDb = await loadAtlasFromDb(); // Neon wins when reachable
   if(!STORAGE_OK && !fromDb) showSaveBanner();
