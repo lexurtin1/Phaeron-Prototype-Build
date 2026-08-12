@@ -1724,11 +1724,59 @@ function addMsg(role, text){
   chatLog.appendChild(d); chatLog.scrollTop=chatLog.scrollHeight;
   return d;
 }
-// light markdown for bot replies: bold, code, line breaks
-function renderChatMarkdown(s){
+function renderChatInline(s){
   return escapeHtml(s)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
-    .replace(/`([^`]+)`/g,'<code>$1</code>');
+    .replace(/\*([^*]+)\*/g,'<em>$1</em>');
+}
+
+// Small, safe Markdown renderer for assistant replies. Input is escaped before
+// formatting so Claude cannot inject arbitrary HTML into the page.
+function renderChatMarkdown(s){
+  const lines=String(s||'').replace(/\r\n?/g,'\n').split('\n');
+  const html=[];
+  let paragraph=[];
+  let listType=null;
+
+  const flushParagraph=()=>{
+    if(paragraph.length){
+      html.push(`<p>${paragraph.map(line=>renderChatInline(line.trim())).join(' ')}</p>`);
+      paragraph=[];
+    }
+  };
+  const closeList=()=>{
+    if(listType){ html.push(`</${listType}>`); listType=null; }
+  };
+
+  lines.forEach(line=>{
+    const trimmed=line.trim();
+    const heading=trimmed.match(/^(#{1,4})\s+(.+)$/);
+    const bullet=trimmed.match(/^[-*]\s+(.+)$/);
+    const numbered=trimmed.match(/^\d+[.)]\s+(.+)$/);
+
+    if(!trimmed){ flushParagraph(); closeList(); return; }
+    if(/^([-*_])\1{2,}$/.test(trimmed)){
+      flushParagraph(); closeList(); html.push('<hr>'); return;
+    }
+    if(heading){
+      flushParagraph(); closeList();
+      const level=Math.min(4,heading[1].length+1);
+      html.push(`<h${level}>${renderChatInline(heading[2])}</h${level}>`);
+      return;
+    }
+    if(bullet||numbered){
+      flushParagraph();
+      const nextType=bullet?'ul':'ol';
+      if(listType!==nextType){ closeList(); listType=nextType; html.push(`<${listType}>`); }
+      html.push(`<li>${renderChatInline((bullet||numbered)[1])}</li>`);
+      return;
+    }
+    closeList();
+    paragraph.push(trimmed);
+  });
+  flushParagraph(); closeList();
+  return html.join('');
 }
 
 async function sendChat(){
