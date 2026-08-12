@@ -677,6 +677,7 @@ const drawer=document.getElementById('drawer');
 const drawerContent=document.getElementById('drawerContent');
 function openDrawer(f){
   const rec=recordFor(f),name=featName(f);
+  clearGlobeHover();
   drawer.classList.remove('wide');
   if(!rec){
     const iso=featISO(f)||'';
@@ -1645,8 +1646,27 @@ fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json').then(r=>r.json(
 }).catch(err=>{document.getElementById('loader').innerHTML='<div class="lt" style="color:var(--bad)">Failed to load map data — check network access</div>';console.error(err);});
 
 let hoverFeat=null;
-function handleHover(f,prev){if(prev)prev.__hover=false;if(hoverFeat&&hoverFeat!==f)hoverFeat.__hover=false;hoverFeat=f;document.getElementById('globeViz').style.cursor=f?'pointer':'grab';if(f)f.__hover=true;refreshGlobe();if(!f)hideTooltip();}
-document.getElementById('globeViz').addEventListener('mousemove',e=>{if(hoverFeat)showTooltip(hoverFeat,e.clientX,e.clientY);else hideTooltip();});
+function handleHover(f,prev){
+  if(drawer.classList.contains('open')){ clearGlobeHover(); return; }
+  if(prev)prev.__hover=false;
+  if(hoverFeat&&hoverFeat!==f)hoverFeat.__hover=false;
+  hoverFeat=f;
+  document.getElementById('globeViz').style.cursor=f?'pointer':'grab';
+  if(f)f.__hover=true;
+  refreshGlobe();
+  if(!f)hideTooltip();
+}
+function clearGlobeHover(){
+  if(hoverFeat) hoverFeat.__hover=false;
+  hoverFeat=null;
+  document.getElementById('globeViz').style.cursor='grab';
+  hideTooltip();
+  refreshGlobe();
+}
+document.getElementById('globeViz').addEventListener('mousemove',e=>{
+  if(drawer.classList.contains('open')){ hideTooltip(); return; }
+  if(hoverFeat) showTooltip(hoverFeat,e.clientX,e.clientY); else hideTooltip();
+});
 function handleClick(f){if(!f)return;selectedISO=featISO(f);const c=centroid(f);if(c)globe.pointOfView({lat:c.lat,lng:c.lng,altitude:1.7},1100);refreshGlobe();openDrawer(f);if(EDIT_MODE)console.log('Record:',recordFor(f)||('No profile for '+featISO(f)));}
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modalVeil').classList.contains('open')){closeModal();return;}closeDrawer();document.getElementById('filterPanel').classList.remove('open');document.getElementById('filterBtn').classList.remove('active');}});
 
@@ -1736,14 +1756,17 @@ async function sendChat(){
     } else {
       const data=await res.json();
       const reply=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim() || '(no reply)';
-      addMsg('bot',reply);
+      const replyEl=addMsg('bot',reply);
+      // Start each completed answer at its beginning instead of leaving the
+      // reader at the bottom of a long response.
+      chatLog.scrollTop=Math.max(0,replyEl.offsetTop-chatLog.offsetTop-18);
       CHAT_HISTORY.push({role:'assistant', content:reply});
     }
   }catch(err){
     typing.remove();
     const e=document.createElement('div'); e.className='chat-err'; e.textContent=(err.message||'Network error — request failed'); chatLog.appendChild(e);
   }finally{
-    chatBusy=false; chatSend.disabled=false; chatLog.scrollTop=chatLog.scrollHeight; chatInput.focus();
+    chatBusy=false; chatSend.disabled=false; chatInput.focus();
   }
 }
 
