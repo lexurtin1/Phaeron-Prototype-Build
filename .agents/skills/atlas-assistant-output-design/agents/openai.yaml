@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atlas Assistant Output Design"
+  short_description: "Design crisp, scannable Atlas answers"
+  default_prompt: "Use $atlas-assistant-output-design to turn this market analysis into a concise, visually structured Atlas Assistant response."
