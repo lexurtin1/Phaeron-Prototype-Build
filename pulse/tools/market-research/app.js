@@ -19,6 +19,8 @@ const OPPORTUNITY_WEIGHTS = Object.freeze({
   automationGap:25, hubGap:15, marketScale:15, growth:15,
   regulatoryOpenness:10, competitiveGap:15, networkFit:5
 });
+// Strategic coverage decisions take precedence over inferred market headroom.
+const OPPORTUNITY_SCORE_OVERRIDES = Object.freeze({ AUS:25 });
 
 function evidenceText(profile, note){
   // Ignore any old score declaration in a note so it cannot feed the new score.
@@ -89,7 +91,8 @@ function calculateOpportunity(profile, note){
   const components={automationGap,hubGap,marketScale,growth,regulatoryOpenness:regulatory,competitiveGap,networkFit};
   const score=Math.round(Object.entries(OPPORTUNITY_WEIGHTS)
     .reduce((sum,[key,weight])=>sum+components[key]*weight,0));
-  return {score:Math.max(0,Math.min(100,score)),components};
+  const override=OPPORTUNITY_SCORE_OVERRIDES[String(profile.iso3||'').toUpperCase()];
+  return {score:Number.isFinite(override)?override:Math.max(0,Math.min(100,score)),components};
 }
 
 function recalculateOpportunity(iso3){
