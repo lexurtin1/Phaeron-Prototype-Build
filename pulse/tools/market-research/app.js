@@ -605,13 +605,35 @@ const C = {
   developed:'#007DB7', emerging:'#2D9A8E', frontier:'#6AAD6A', unknown:'#a7b3bd',
   none:'#cdd8e1'
 };
-function scoreColor(v){ if(v==null)return null; if(v>=66)return C.good; if(v>=40)return C.mid; return C.bad; }
+/* Opportunity is a magnitude, so it gets a sequential one-hue ramp (light→dark)
+   rather than the 3-band good/mid/bad split — 11 of 18 markets scored 40–65 and
+   came out the same colour, which hid the differences the score exists to show.
+   Seven steps is the readable maximum; past that adjacent classes blur.
+   Steps are generated in OKLCH on the brand teal and validated as rendered
+   (painted at OPP_ALPHA over the globe): lightness monotone, adjacent ΔL ≥ 0.06,
+   lightest step 2.11:1 on the globe, and every step ≥ 15 OKLab ΔE from the
+   "no profile" grey so a low score never reads as missing data. */
+const OPP_ALPHA = 0.92;
+const OPP_BANDS = [
+  { min:80, c:'#00352a', label:'80 +' },
+  { min:70, c:'#004a3b', label:'70 – 79' },
+  { min:60, c:'#005f4e', label:'60 – 69' },
+  { min:50, c:'#007561', label:'50 – 59' },
+  { min:40, c:'#158a75', label:'40 – 49' },
+  { min:30, c:'#409c89', label:'30 – 39' },
+  { min:0,  c:'#63af9d', label:'under 30' }
+];
+function oppColor(v){
+  if(v==null) return null;
+  return (OPP_BANDS.find(b=>v>=b.min) || OPP_BANDS[OPP_BANDS.length-1]).c;
+}
+function scoreColor(v){ return oppColor(v); }
 function scoreColorInv(v){ if(v==null)return null; if(v>=66)return C.bad; if(v>=40)return C.mid; return C.good; }
 function hubColor(s){ if(s==='No central hub')return C.good; if(s==='Partial hub')return C.mid; if(s==='Full hub')return C.bad; return null; }
 function classColor(c){ if(c==='Developed')return C.developed; if(c==='Emerging')return C.emerging; if(c==='Frontier')return C.frontier; return C.unknown; }
 
 const LEGENDS = {
-  opportunity:{title:'Opportunity',items:[{c:C.good,t:'High — friction & headroom (66+)'},{c:C.mid,t:'Medium (40–65)'},{c:C.bad,t:'Low — mature / well served (<40)'},{c:C.none,t:'No profile yet'}]},
+  opportunity:{title:'Opportunity',scale:true,items:[{c:C.none,t:'No profile yet'}]},
   hub:{title:'Hub Maturity',items:[{c:C.good,t:'No central hub — fragmented'},{c:C.mid,t:'Partial hub'},{c:C.bad,t:'Full hub — well covered'},{c:C.none,t:'No profile yet'}]},
   automation:{title:'Automation',items:[{c:C.good,t:'Low automation — headroom'},{c:C.mid,t:'Medium automation'},{c:C.bad,t:'High automation — saturated'},{c:C.none,t:'No profile yet'}]},
   classification:{title:'Market Classification',items:[{c:C.developed,t:'Developed'},{c:C.emerging,t:'Emerging'},{c:C.frontier,t:'Frontier'},{c:C.unknown,t:'Unknown / no profile'}]}
@@ -646,7 +668,10 @@ function polyCapColor(f){
   else if(MODE==='automation')col=scoreColorInv(rec.automation_rate_estimate);
   else col=classColor(rec.market_classification);
   if(!col)col=C.none;
-  return hexA(col, selectedISO===rec.iso3?0.95:0.82);
+  // The opportunity ramp was validated at OPP_ALPHA — keep the fill opaque
+  // enough that the steps land where they were measured.
+  const base = MODE==='opportunity' ? OPP_ALPHA : 0.82;
+  return hexA(col, selectedISO===rec.iso3 ? Math.min(1, base+0.06) : base);
 }
 function polySideColor(){return 'rgba(0,80,120,0.10)';}
 function polyStrokeColor(f){const rec=recordFor(f);if(selectedISO&&rec&&rec.iso3===selectedISO)return '#007DB7';return 'rgba(15,34,48,0.12)';}
@@ -667,7 +692,7 @@ function showTooltip(f,x,y){
 function positionTooltip(x,y){const pad=16,w=tooltipEl.offsetWidth,h=tooltipEl.offsetHeight;let nx=x+pad,ny=y+pad;if(nx+w>innerWidth-10)nx=x-w-pad;if(ny+h>innerHeight-10)ny=y-h-pad;tooltipEl.style.left=nx+'px';tooltipEl.style.top=ny+'px';}
 function hideTooltip(){tooltipEl.classList.remove('show');}
 
-function pillScore(v){const c=v>=66?C.good:v>=40?C.mid:C.bad;return`<span class="pill" style="background:${hexA(c,0.16)};color:${c}">${v}</span>`;}
+function pillScore(v){const c=oppColor(v)||C.unknown;return`<span class="pill" style="background:${hexA(c,0.16)};color:${c}">${v}</span>`;}
 function tierPill(t){const m={'Tier 1':C.good,'Tier 2':C.mid,'Tier 3':C.bad,'Watch':C.unknown};const c=m[t]||C.unknown;return`<span class="pill" style="background:${hexA(c,0.16)};color:${c}">${t}</span>`;}
 function classPill(c){const col=classColor(c);return`<span class="pill" style="background:${hexA(col,0.14)};color:${col}">${c}</span>`;}
 function hubPill(s){const c=hubColor(s)||C.unknown;return`<span class="pill" style="background:${hexA(c,0.16)};color:${c}">${s}</span>`;}
@@ -709,7 +734,7 @@ function closeDrawer(){drawer.classList.remove('open','wide');selectedISO=null;r
 window.closeDrawer=closeDrawer;
 
 function buildSnapshot(r){
-  const oppC=r.opportunity_score>=66?C.good:r.opportunity_score>=40?C.mid:C.bad;
+  const oppC=oppColor(r.opportunity_score)||C.unknown;
   const autoC=r.automation_rate_estimate>=66?C.bad:r.automation_rate_estimate>=40?C.mid:C.good;
   const bd=r.opportunity_score_breakdown||{};
   const scoreDetail=[
@@ -1613,7 +1638,23 @@ function applyEdit(note, ed){
 function renderLegend(){
   const L=LEGENDS[MODE];
   document.getElementById('legendTitle').textContent=L.title;
-  document.getElementById('legendItems').innerHTML=L.items.map(i=>`<div class="item"><span class="sw" style="background:${i.c}"></span>${i.t}</div>`).join('');
+  const items=L.items.map(i=>`<div class="item"><span class="sw" style="background:${i.c}"></span>${i.t}</div>`).join('');
+  document.getElementById('legendItems').innerHTML=(L.scale?opportunityScaleHtml():'')+items;
+}
+
+/* Scale legend for the sequential opportunity ramp. The seven bands are drawn
+   at equal width, so ticks are placed at the segment joins they actually mark
+   (30 at 1/7, 50 at 3/7, 70 at 5/7) rather than on a linear 0–100 axis. */
+function opportunityScaleHtml(){
+  const steps=[...OPP_BANDS].reverse();   // low → high, left to right
+  const segs=steps.map(b=>`<span class="seg" style="background:${b.c}" title="${b.label}"></span>`).join('');
+  const ticks=[[30,1],[50,3],[70,5]]
+    .map(([v,i])=>`<span class="tk" style="left:${(i/7*100).toFixed(2)}%">${v}</span>`).join('');
+  return `<div class="scale">
+      <div class="scale-bar">${segs}</div>
+      <div class="scale-ticks">${ticks}</div>
+      <div class="scale-ends"><span>Lower</span><span>Higher</span></div>
+    </div>`;
 }
 function refreshGlobe(){if(!globe)return;globe.polygonCapColor(polyCapColor).polygonStrokeColor(polyStrokeColor).polygonAltitude(polyAltitude);}
 
