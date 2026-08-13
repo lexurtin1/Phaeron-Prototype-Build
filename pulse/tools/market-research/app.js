@@ -605,23 +605,29 @@ const C = {
   developed:'#007DB7', emerging:'#2D9A8E', frontier:'#6AAD6A', unknown:'#a7b3bd',
   none:'#cdd8e1'
 };
-/* Opportunity is a magnitude, so it gets a sequential one-hue ramp (light→dark)
-   rather than the 3-band good/mid/bad split — 11 of 18 markets scored 40–65 and
-   came out the same colour, which hid the differences the score exists to show.
-   Seven steps is the readable maximum; past that adjacent classes blur.
-   Steps are generated in OKLCH on the brand teal and validated as rendered
-   (painted at OPP_ALPHA over the globe): lightness monotone, adjacent ΔL ≥ 0.06,
-   lightest step 2.11:1 on the globe, and every step ≥ 15 OKLab ΔE from the
-   "no profile" grey so a low score never reads as missing data. */
+/* Opportunity uses a red→green heat scale: red is a weak opportunity, green a
+   strong one. The old good/mid/bad split gave 11 of 18 markets the same amber,
+   which hid the differences the score exists to show.
+
+   Five bands, not more: red→green cannot carry seven steps without two of them
+   colliding — a 7-step version put yellow next to yellow-green at ΔE 8.9 (and
+   1.0 under protanopia), i.e. the same colour. Hues and lightnesses were
+   searched in OKLCH and measured AS RENDERED (painted at OPP_ALPHA over the
+   globe): worst adjacent pair ΔE 16.4, above the 15 "tell apart" floor, and
+   every band ≥ 19.5 from the "no profile" grey so a low score never reads as
+   missing data.
+
+   Known limit: red↔green is the classic colour-vision confusion — under
+   deuteranopia the orange and lime bands converge. The score is printed as a
+   number in the tooltip and the drawer, and the legend labels every band, so
+   colour is never the only channel. */
 const OPP_ALPHA = 0.92;
 const OPP_BANDS = [
-  { min:80, c:'#00352a', label:'80 +' },
-  { min:70, c:'#004a3b', label:'70 – 79' },
-  { min:60, c:'#005f4e', label:'60 – 69' },
-  { min:50, c:'#007561', label:'50 – 59' },
-  { min:40, c:'#158a75', label:'40 – 49' },
-  { min:30, c:'#409c89', label:'30 – 39' },
-  { min:0,  c:'#63af9d', label:'under 30' }
+  { min:70, c:'#008244', label:'70 +' },
+  { min:60, c:'#6caf00', label:'60 – 69' },
+  { min:50, c:'#ebbb00', label:'50 – 59' },
+  { min:30, c:'#fe6200', label:'30 – 49' },
+  { min:0,  c:'#b7000a', label:'under 30' }
 ];
 function oppColor(v){
   if(v==null) return null;
@@ -1642,18 +1648,19 @@ function renderLegend(){
   document.getElementById('legendItems').innerHTML=(L.scale?opportunityScaleHtml():'')+items;
 }
 
-/* Scale legend for the sequential opportunity ramp. The seven bands are drawn
-   at equal width, so ticks are placed at the segment joins they actually mark
-   (30 at 1/7, 50 at 3/7, 70 at 5/7) rather than on a linear 0–100 axis. */
+/* Scale legend for the opportunity heat scale. Bands are drawn at equal width
+   regardless of how many points they span, so each tick sits on the join it
+   actually marks (the next band's lower bound) rather than on a 0–100 axis. */
 function opportunityScaleHtml(){
   const steps=[...OPP_BANDS].reverse();   // low → high, left to right
+  const n=steps.length;
   const segs=steps.map(b=>`<span class="seg" style="background:${b.c}" title="${b.label}"></span>`).join('');
-  const ticks=[[30,1],[50,3],[70,5]]
-    .map(([v,i])=>`<span class="tk" style="left:${(i/7*100).toFixed(2)}%">${v}</span>`).join('');
+  const ticks=steps.slice(1)
+    .map((b,i)=>`<span class="tk" style="left:${((i+1)/n*100).toFixed(2)}%">${b.min}</span>`).join('');
   return `<div class="scale">
       <div class="scale-bar">${segs}</div>
       <div class="scale-ticks">${ticks}</div>
-      <div class="scale-ends"><span>Lower</span><span>Higher</span></div>
+      <div class="scale-ends"><span>Weaker opportunity</span><span>Stronger</span></div>
     </div>`;
 }
 function refreshGlobe(){if(!globe)return;globe.polygonCapColor(polyCapColor).polygonStrokeColor(polyStrokeColor).polygonAltitude(polyAltitude);}
