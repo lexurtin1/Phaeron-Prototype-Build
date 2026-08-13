@@ -699,6 +699,7 @@ function openDrawer(f){
           </div>
           <div class="dz-status" id="dzStatus"></div>
         </div>
+        ${relatedDocsPanel(iso)}
         ${renderNotePanel(iso, 'Research note', existingNote, 'No note yet — drop a Markdown file above or edit to create one.')}
       </div>`;
   } else { drawerContent.innerHTML=buildSnapshot(rec); }
@@ -777,7 +778,24 @@ function buildNote(r){
       </div>
       <div class="dz-status" id="dzStatus"></div>
     </div>`;
-  return dz + renderNotePanel(r.iso3, 'Full research note', md, 'No research note yet for this country.');
+  return dz + relatedDocsPanel(r.iso3) + renderNotePanel(r.iso3, 'Full research note', md, 'No research note yet for this country.');
+}
+
+/* Global library documents tagged with this market (library.js owns the data). */
+function relatedDocsPanel(iso){
+  if(typeof docsForCountry !== 'function') return '';
+  const docs = docsForCountry(iso);
+  if(!docs.length) return '';
+  const rows = docs.map(d=>{
+    const meta=[d.doc_type, d.publisher, d.published_at].filter(Boolean).join(' · ');
+    return `<button type="button" class="related-doc" onclick="openLibrary(${d.id})">
+      ${escapeHtml(d.title)}<span class="rd-meta">${escapeHtml(meta)}</span>
+    </button>`;
+  }).join('');
+  return `<div class="section">
+      <div class="s-title">Related global research</div>
+      <div class="related-docs">${rows}</div>
+    </div>`;
 }
 
 /* View-mode research note panel with Edit control. */
@@ -1347,6 +1365,16 @@ function openModal(proposal, iso){
   const body=document.getElementById('modalBody');
   document.getElementById('modalSummary').textContent=proposal.summary||'';
 
+  if(proposal.__mode==='library'){
+    // Global research library document (library.js owns the card + apply).
+    PENDING={mode:'library', doc:proposal.doc};
+    document.getElementById('modalCopy').style.display='none';
+    document.getElementById('modalApply').style.display='';
+    body.innerHTML=libraryModalCardHtml(proposal.doc, proposal.__truncated);
+    document.getElementById('modalVeil').classList.add('open');
+    return;
+  }
+
   if(proposal.__mode==='build'){
     // building a brand-new note + structured record
     const note=cleanNote(proposal.note||'');
@@ -1423,7 +1451,12 @@ function openModal(proposal, iso){
 function cleanNote(s){
   return String(s).replace(/^\s*"?(note|newContent)"?\s*:?\s*/i,'').trim();
 }
-function closeModal(){ document.getElementById('modalVeil').classList.remove('open'); PENDING=null; }
+function closeModal(){
+  document.getElementById('modalVeil').classList.remove('open');
+  PENDING=null;
+  // Let a queued library→markets run continue to the next country.
+  if(typeof resolveLibraryModalWait==='function') resolveLibraryModalWait();
+}
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 document.getElementById('modalClose').addEventListener('click',closeModal);
@@ -1474,6 +1507,20 @@ document.getElementById('modalVeil').addEventListener('click',e=>{ if(e.target.i
 document.getElementById('modalApply').addEventListener('click',()=>{
   if(!PENDING) return;
   const iso=PENDING.iso;
+
+  if(PENDING.mode==='library'){
+    const pending=PENDING;
+    const applyBtn=document.getElementById('modalApply');
+    applyBtn.disabled=true;
+    applyLibraryPending(pending).then(
+      ()=>{ applyBtn.disabled=false; closeModal(); },
+      err=>{
+        applyBtn.disabled=false;
+        alert('Could not save to the library: '+(err.message||'request failed'));
+      }
+    );
+    return;
+  }
 
   if(PENDING.mode==='build'){
     const c=document.getElementById('bcheck');
@@ -1668,7 +1715,7 @@ document.getElementById('globeViz').addEventListener('mousemove',e=>{
   if(hoverFeat) showTooltip(hoverFeat,e.clientX,e.clientY); else hideTooltip();
 });
 function handleClick(f){if(!f)return;selectedISO=featISO(f);const c=centroid(f);if(c)globe.pointOfView({lat:c.lat,lng:c.lng,altitude:1.7},1100);refreshGlobe();openDrawer(f);if(EDIT_MODE)console.log('Record:',recordFor(f)||('No profile for '+featISO(f)));}
-addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modalVeil').classList.contains('open')){closeModal();return;}closeDrawer();document.getElementById('filterPanel').classList.remove('open');document.getElementById('filterBtn').classList.remove('active');}});
+addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modalVeil').classList.contains('open')){closeModal();return;}const lv=document.getElementById('libVeil');if(lv&&lv.classList.contains('open')){closeLibrary();return;}closeDrawer();document.getElementById('filterPanel').classList.remove('open');document.getElementById('filterBtn').classList.remove('active');}});
 
 /* ================================================================
    =====================   AI CHATBOT   =========================
@@ -1680,6 +1727,8 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('
 const CHAT_SYSTEM_PROMPT = `You are the Atlas Assistant inside Calastone's Global Order-Routing Atlas, a tool about mutual fund order-routing infrastructure by country.
 
 You may be given a CONTEXT block summarising the countries currently profiled in the app (hub status, scores, key facts). Use it when the user asks about specific markets or comparisons. You can also answer general questions using your own knowledge.
+
+You may also be given a GLOBAL RESEARCH LIBRARY block: an index of cross-market documents uploaded to this app (platform reports, regulatory notes, articles), and — when a document looks relevant to the question — its full text under a GLOBAL RESEARCH DOCUMENT heading. Treat those documents as the most authoritative source available: prefer them over your own general knowledge for questions about distribution, platforms, regulation, flows and cross-border market structure, and use their figures exactly as written. Name the document in your answer when a fact comes from one, e.g. "per the European Fund Distribution Platforms report". If the index lists a document that looks relevant but its text was not supplied, say which document should be consulted rather than guessing at its contents. Never attribute a figure to a document that does not contain it.
 
 Write for a narrow chat panel. Give the direct answer or verdict in the first one or two sentences. Do not restate the question or open with generic scene-setting.
 
@@ -1803,7 +1852,14 @@ async function sendChat(){
 
   try{
     // Send the context as a system addendum + the running history (cap to last 12 turns).
-    const sys = CHAT_SYSTEM_PROMPT + '\n\n' + chatContextSummary();
+    // Library retrieval is best-effort — a failure must never block the answer.
+    let libraryBlock = '';
+    if(typeof libraryChatContext === 'function'){
+      try{ libraryBlock = await libraryChatContext(text); }
+      catch(err){ console.warn('library context unavailable', err); }
+    }
+    const sys = CHAT_SYSTEM_PROMPT + '\n\n' + chatContextSummary()
+      + (libraryBlock ? '\n\n' + libraryBlock : '');
     const msgs = CHAT_HISTORY.slice(-12);
     const res=await anthropicMessages({ model:CLAUDE_MODEL, max_tokens:1024, system:sys, messages:msgs });
     typing.remove();

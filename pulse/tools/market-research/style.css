@@ -348,6 +348,69 @@ body{
 .btn-apply:hover{background:var(--blue-d)}
 .modal-empty{font-size:13px;color:var(--ink-2);text-align:center;padding:30px 0}
 
+/* ---------- global research library ---------- */
+.lib-veil{
+  position:fixed;inset:0;z-index:58;background:rgba(15,34,48,0.45);
+  backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px;
+}
+.lib-veil.open{display:flex}
+.lib-panel{
+  background:var(--panel);border-radius:16px;box-shadow:var(--shadow);
+  width:820px;max-width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+}
+.lib-head{padding:20px 24px 16px;border-bottom:1px solid var(--line);position:relative}
+.lib-head h3{font-size:17px;font-weight:700;color:var(--ink-strong)}
+.lib-upload{padding:4px 24px 14px;border-bottom:1px solid var(--line-2)}
+.lib-upload .dropzone{margin-top:14px}
+.lib-filter{
+  width:100%;margin-top:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;
+  font-family:inherit;font-size:12.5px;color:var(--ink);background:var(--bg);
+}
+.lib-filter:focus{outline:none;border-color:var(--blue)}
+.lib-list{overflow-y:auto;padding:16px 24px 22px}
+.lib-empty{font-size:13px;color:var(--ink-2);text-align:center;padding:34px 10px;line-height:1.6}
+.lib-card{border:1px solid var(--line);border-radius:12px;padding:15px 16px;margin-bottom:12px;transition:border-color .2s,box-shadow .2s}
+.lib-card:hover{border-color:var(--line)}
+.lib-card.flash{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+.lib-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.lib-title{font-size:14px;font-weight:700;color:var(--ink-strong);line-height:1.35}
+.lib-x{
+  background:var(--panel);border:1px solid var(--line);color:var(--ink-2);width:26px;height:26px;
+  border-radius:7px;cursor:pointer;font-size:15px;line-height:1;flex:none;
+}
+.lib-x:hover{border-color:var(--bad);color:var(--bad)}
+.lib-meta{font-size:11px;font-family:var(--mono);color:var(--ink-3);margin-top:5px}
+.lib-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.lib-chip{
+  font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:20px;
+  background:var(--bg);color:var(--ink-2);border:1px solid var(--line-2);
+}
+.lib-chip.market{background:var(--blue-s);color:var(--blue);border-color:transparent;font-family:var(--mono)}
+.lib-summary{font-size:12.5px;line-height:1.55;color:var(--ink-1);margin-top:10px}
+.lib-insights{margin:10px 0 0 18px;font-size:12px;line-height:1.5;color:var(--ink-1)}
+.lib-insights li{margin:3px 0}
+.lib-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.lib-body{
+  margin-top:14px;border-top:1px solid var(--line-2);padding-top:4px;max-height:420px;overflow-y:auto;
+}
+.lib-body.loading{font-size:12px;color:var(--ink-2);font-family:var(--mono);padding:14px 0}
+.lib-warn{font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.lib-field{margin-top:10px;flex:1;min-width:120px}
+.lib-field label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:700;margin-bottom:5px}
+.lib-field input,.lib-field select{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;
+  font-family:inherit;font-size:12.5px;color:var(--ink);background:var(--panel);
+}
+.lib-field input:focus,.lib-field select:focus{outline:none;border-color:var(--blue)}
+.lib-field-row{display:flex;gap:10px;flex-wrap:wrap}
+.related-docs{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.related-doc{
+  text-align:left;background:var(--bg);border:1px solid var(--line-2);border-radius:9px;
+  padding:9px 11px;cursor:pointer;font-family:inherit;font-size:12px;color:var(--ink-1);line-height:1.45;
+}
+.related-doc:hover{border-color:var(--blue);color:var(--blue)}
+.related-doc .rd-meta{display:block;font-size:10px;font-family:var(--mono);color:var(--ink-3);margin-top:3px}
+
 /* ---------- AI chatbot ---------- */
 .chat-fab{
   position:fixed;z-index:45;right:24px;bottom:24px;
