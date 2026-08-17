@@ -12,88 +12,590 @@ const STORAGE_KEY = 'calastone_atlas_v1';
 let STORAGE_OK = true;
 let DB_OK = null; // null=unknown, true/false after first attempt
 
-/* Opportunity scores are derived, not manually assigned. The weights total 100:
-   automation gap 25, missing/fragmented hub 15, market scale 15, growth 15,
-   regulatory openness 10, addressable competitive gap 15, network fit 5. */
-const OPPORTUNITY_WEIGHTS = Object.freeze({
-  automationGap:25, hubGap:15, marketScale:15, growth:15,
-  regulatoryOpenness:10, competitiveGap:15, networkFit:5
-});
-// Strategic coverage decisions take precedence over inferred market headroom.
-const OPPORTUNITY_SCORE_OVERRIDES = Object.freeze({ AUS:25 });
+/* ================================================================
+   ==============   OPPORTUNITY SCORING MODEL   ==================
+   ================================================================
+   Opportunity scores are derived, never hand-typed. Five weighted
+   categories (total 100):
 
-function evidenceText(profile, note){
+     Manual operations intensity      30
+     Market size & growth             20
+     Network density & reachability   20
+     Regulatory tailwinds/complexity  15
+     Go-to-market feasibility         15
+
+   Each category is built from named sub-indicators, and every
+   indicator resolves through the same precedence chain — best
+   evidence first:
+
+     stated   an explicit number/enum in the record's `indicators`
+     derived  computed from another structured field (automation
+              rate, hub status, flow diagram, parsed AUM figure)
+     inferred a phrase match against the profile text + note
+     assumed  neutral fallback; contributes nothing to confidence
+
+   The chain is the point. The old model read almost everything off
+   phrase matches, so a rewording of a narrative line moved a score.
+   Now a market with real indicators is scored on those numbers, the
+   drawer shows which categories earned which points, and the
+   confidence figure says how much of the score rests on evidence
+   rather than on wording. */
+
+const OPPORTUNITY_MODEL_VERSION = 2;
+
+/* How much each evidence class counts toward a record's confidence.
+   `estimated` is a stated indicator on a record marked
+   indicators_basis:"estimate" — an analyst's structural read of the
+   market rather than a figure lifted from a source pack. It moves the
+   score exactly as a stated value does, but it must not claim the
+   confidence of one. */
+const CONFIDENCE_BY_SOURCE = Object.freeze({
+  stated:1, derived:0.8, estimated:0.65, inferred:0.45, assumed:0
+});
+
+/* Strategic coverage decisions take precedence over inferred market
+   headroom, and are surfaced in the drawer rather than applied silently.
+
+   Both entries are the same case: a universal domestic utility already
+   routes every order, so the market's size and counterparty count are
+   real but unreachable. A weighted sum cannot express "large but fully
+   served" — 50% of the model's weight sits on market size and network
+   density, which stay high however saturated the market is — so the
+   judgement is recorded here instead of being tuned into the inputs. */
+const OPPORTUNITY_SCORE_OVERRIDES = Object.freeze({
+  AUS:{ score:25, reason:'Calastone already provides near-complete coverage of this market — no incremental routing headroom.' },
+  USA:{ score:22, reason:'DTCC/NSCC Fund/SERV is an entrenched universal domestic order-routing utility. Order flow is ~98% straight-through, so there is no addressable manual-processing gap despite the market being the largest in the world.' }
+});
+
+/* ---------- small numeric helpers ---------- */
+/* null and '' must not become 0 here: Number(null) is 0, so a parser
+   that found nothing would otherwise read as a hard zero. */
+function toNum(v){
+  if(v==null || v==='') return null;
+  const n=Number(v);
+  return Number.isFinite(n)?n:null;
+}
+function clamp01(v){ return v==null?null:Math.max(0,Math.min(1,v)); }
+function pct01(v){ const n=toNum(v); return n==null?null:clamp01(n/100); }
+function inv01(v){ return v==null?null:1-v; }
+/** Position of v on a log scale between lo and hi, clamped to 0–1. */
+function logScale(v, lo, hi){
+  const n=toNum(v);
+  if(n==null || n<=0) return null;
+  return clamp01((Math.log10(n)-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo)));
+}
+/** Piecewise-linear lookup over [[x,y],…] sorted by x. */
+function curve(v, points){
+  const n=toNum(v);
+  if(n==null) return null;
+  if(n<=points[0][0]) return points[0][1];
+  for(let i=1;i<points.length;i++){
+    const [x0,y0]=points[i-1], [x1,y1]=points[i];
+    if(n<=x1) return y0+(y1-y0)*((n-x0)/((x1-x0)||1));
+  }
+  return points[points.length-1][1];
+}
+function enumScale(v, map){
+  if(v==null) return null;
+  const k=String(v).trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(map,k) ? map[k] : null;
+}
+
+/* ---------- evidence wrappers ---------- */
+function stated(value, evidence){ const v=clamp01(value); return v==null?null:{value:v, source:'stated', evidence}; }
+function derived(value, evidence){ const v=clamp01(value); return v==null?null:{value:v, source:'derived', evidence}; }
+/** Ordered bands: the FIRST band with a matching phrase wins, so list
+    the phrases that should dominate (usually the negatives) first. */
+function inferred(text, bands){
+  for(const [value, phrases] of bands){
+    const hit=phrases.find(p=>text.includes(p));
+    if(hit) return {value:clamp01(value), source:'inferred', evidence:'"'+hit+'"'};
+  }
+  return null;
+}
+/** Prior used when the record says nothing. Carries a value but no
+    confidence, so "we assume most markets have no T+1 mandate" never
+    reads as "this market was checked". */
+function assumed(value, evidence){ return {value:clamp01(value), source:'assumed', evidence}; }
+/** First candidate that resolved; neutral 0.5 if none did. */
+function pick(...candidates){
+  for(const c of candidates) if(c && c.value!=null) return c;
+  return {value:0.5, source:'assumed', evidence:'no evidence in record'};
+}
+/** Re-use a resolved candidate as a proxy for a related indicator. A
+    proxy is never better than derived, however good its own source. */
+function proxy(base, factor, evidence){
+  if(!base || base.value==null) return null;
+  return { value:clamp01(base.value*factor),
+           source: base.source==='stated' ? 'derived' : base.source,
+           evidence };
+}
+/** Weighted mix of two resolved candidates, keeping the weaker source
+    so confidence never claims more than the evidence supports. */
+function blend(a, b, bShare){
+  if(!a || a.value==null) return b || null;
+  if(!b || b.value==null) return a;
+  const weaker = CONFIDENCE_BY_SOURCE[a.source] <= CONFIDENCE_BY_SOURCE[b.source] ? a : b;
+  return {
+    value: clamp01(a.value*(1-bShare) + b.value*bShare),
+    source: weaker.source,
+    evidence: [a.evidence,b.evidence].filter(Boolean).join(' + ')
+  };
+}
+
+/* ---------- parsers over the free-text fields ---------- */
+/* Rough spot rates, only ever used to put an AUM band on a common
+   log scale — a 10% FX move cannot shift a score by a whole point. */
+const FX_TO_USD = Object.freeze({
+  'us$':1,'usd':1,'$':1,'£':1.27,'gbp':1.27,'€':1.08,'eur':1.08,'chf':1.12,
+  'a$':0.66,'aud':0.66,'r$':0.18,'brl':0.18,'₹':0.012,'inr':0.012,
+  'rmb':0.14,'cny':0.14,'¥':0.0067,'jpy':0.0067,'s$':0.74,'sgd':0.74,
+  'hk$':0.128,'hkd':0.128,'zar':0.055
+});
+const AUM_RE = /(us\$|hk\$|a\$|s\$|r\$|usd|gbp|eur|aud|brl|inr|rmb|cny|jpy|chf|sgd|hkd|zar|£|€|₹|¥|\$)\s*([\d][\d,.]*)\s*(trillion|tn|t\b|billion|bn|b\b)/gi;
+/** Largest credible AUM figure in a band string, in USD billions.
+    A stated USD figure wins over a local-currency one for the same market. */
+function parseAumUsdBn(band){
+  const text=String(band||'').toLowerCase();
+  let best=null, bestIsUsd=false;
+  for(const m of text.matchAll(AUM_RE)){
+    const rate=FX_TO_USD[m[1]];
+    const amount=Number(String(m[2]).replace(/,/g,'').replace(/\.$/,''));
+    if(rate==null || !Number.isFinite(amount)) continue;
+    const bn=amount*(/^(trillion|tn|t)$/.test(m[3].trim())?1000:1)*rate;
+    const isUsd=(m[1]==='usd'||m[1]==='us$'||m[1]==='$');
+    if(best==null || (isUsd && !bestIsUsd) || (isUsd===bestIsUsd && bn>best)){ best=bn; bestIsUsd=isUsd; }
+  }
+  return best;
+}
+/** "~34,000 funds" / "1,200 share classes" → 34000 / 1200. */
+function parseFundCount(text){
+  let best=null;
+  for(const m of String(text||'').matchAll(/([\d][\d,]{2,})\s*(?:registered\s+|mutual\s+|investment\s+)?(?:funds|share classes)\b/g)){
+    const n=Number(m[1].replace(/,/g,''));
+    if(Number.isFinite(n) && (best==null || n>best)) best=n;
+  }
+  return best;
+}
+/** "~10.4% CAGR" / "projected to grow 4.8%" → 10.4 / 4.8. */
+function parseCagr(text){
+  const t=String(text||'');
+  const cagr=t.match(/([\d.]+)\s*%\s*(?:compound|cagr)/i) || t.match(/cagr[^\d]{0,12}([\d.]+)\s*%/i);
+  if(cagr) return Number(cagr[1]);
+  const grow=t.match(/(?:grow|growth|expand)[^.%]{0,30}?([\d.]+)\s*%/i);
+  return grow?Number(grow[1]):null;
+}
+
+/* Benchmarks from published fund-market forecasts: ~7–8% CAGR for
+   North America and Europe, ~10.4% for APAC ex-Japan. 7.5% therefore
+   sits mid-scale and only a clearly above-trend market scores high. */
+const CAGR_CURVE = [[0,0.05],[3,0.18],[7.5,0.5],[10.4,0.78],[14,1]];
+const HUB_GAP = { 'No central hub':1, 'Partial hub':0.62, 'Full hub':0.18 };
+const NETWORK_REACH = { 'Emerging':1, 'Established':0.68, 'None':0.45 };
+// Distance from a hub Calastone can already service the market from.
+const REGION_HUB_REACH = { 'Europe':0.9, 'Asia':0.8, 'Oceania':0.75, 'Americas':0.55, 'Africa':0.45 };
+
+/* Market scale is resolved once and reused: fund counts and counterparty
+   counts are rarely stated anywhere, and both track market size closely
+   enough to be a better fallback than a blind 0.5. */
+function resolveMarketScale(ctx){
+  return pick(
+    stated(logScale(ctx.ind.fund_aum_usd_bn,10,25000), 'indicator: fund_aum_usd_bn'),
+    derived(logScale(ctx.aumUsdBn,10,25000), 'AUM figure in band'),
+    inferred(ctx.text, [
+      [1,['largest fund market','largest retail','largest cross-border','among the largest','fourth-largest','4th largest']],
+      [0.85,['very large','major regional','major continental','leading private','large distribution','large managed','large domestic','trillions']],
+      [0.65,['large','regional gateway','growing market']],
+      [0.45,['medium','mid-sized','moderate size']],
+      [0.25,['small domestic','small but','small market','limited aum','smaller absolute']]
+    ])
+  );
+}
+
+/** Everything the indicator resolvers read, assembled once per country. */
+function scoringContext(profile, note){
   // Ignore any old score declaration in a note so it cannot feed the new score.
   const cleanNote=String(note||'').split(/\r?\n/)
     .filter(line=>!(/opportunity\s+score/i.test(line))).join(' ');
-  return [
-    profile.market_aum_band, profile.mutual_fund_relevance, profile.growth_signal,
-    profile.dominant_order_model, profile.current_order_channels,
-    profile.manuality_snapshot, profile.regulatory_openness,
-    profile.risks_or_barriers, cleanNote
-  ].filter(Boolean).join(' ').toLowerCase();
+  const join=(...parts)=>parts.filter(Boolean).join(' ').toLowerCase();
+  const flow=Array.isArray(profile.flow_diagram)?profile.flow_diagram:[];
+  return {
+    profile,
+    ind: profile.indicators||{},
+    text: join(profile.market_aum_band, profile.mutual_fund_relevance, profile.growth_signal,
+               profile.dominant_order_model, profile.current_order_channels, profile.manuality_snapshot,
+               profile.regulatory_openness, profile.risks_or_barriers, profile.hub_name, profile.operator, cleanNote),
+    ops: join(profile.dominant_order_model, profile.current_order_channels, profile.manuality_snapshot, cleanNote),
+    growthText: join(profile.growth_signal, profile.mutual_fund_relevance, profile.market_aum_band, cleanNote),
+    regText: join(profile.regulatory_openness, cleanNote),
+    riskText: join(profile.risks_or_barriers, profile.regulatory_openness, cleanNote),
+    automation: pct01(profile.automation_rate_estimate),
+    // Share of the drawn order path that is not straight-through.
+    manualStages: flow.length
+      ? flow.reduce((s,st)=>s+(st.mode==='manual'?1:st.mode==='mixed'?0.5:0),0)/flow.length
+      : null,
+    aumUsdBn: parseAumUsdBn(profile.market_aum_band)
+  };
 }
 
-function phraseRating(text, bands, fallback){
-  for(const [rating, phrases] of bands){
-    if(phrases.some(p=>text.includes(p))) return rating;
-  }
-  return fallback;
+function buildScoringContext(profile, note){
+  const ctx=scoringContext(profile, note);
+  ctx.marketScale=resolveMarketScale(ctx);
+  return ctx;
 }
+
+/* The optional `indicators` block on a country record — the "stated"
+   rung of the evidence chain. Every field is optional; anything absent
+   falls back to derivation or phrase matching. Shared by the validator,
+   the extraction prompts and the paste-ready snippet writer so the
+   three can never drift apart. */
+const INDICATOR_SCHEMA = Object.freeze([
+  {key:'stp_rate_pct', type:'pct', hint:'straight-through-processing rate, % of orders'},
+  {key:'manual_transfer_pct', type:'pct', hint:'% of transfers / re-registrations handled manually'},
+  {key:'legacy_instruction_pct', type:'pct', hint:'% of instructions arriving by fax, email, PDF or portal re-keying'},
+  {key:'failed_trade_pct', type:'num', max:100, hint:'% of trades failing or needing repair'},
+  {key:'fund_aum_usd_bn', type:'num', max:1e6, hint:'domestic fund AUM in USD billions'},
+  {key:'net_flow_trend', type:'enum', values:['Strong inflows','Inflows','Flat','Outflows']},
+  {key:'registered_funds', type:'num', max:1e6, hint:'count of registered funds / share classes'},
+  {key:'projected_cagr_pct', type:'num', max:100, hint:'projected AUM CAGR, %'},
+  {key:'fund_managers', type:'num', max:1e5, hint:'count of distinct fund managers'},
+  {key:'transfer_agents', type:'num', max:1e5, hint:'count of transfer agents / administrators'},
+  {key:'distributors', type:'num', max:1e5, hint:'count of distributors'},
+  {key:'platforms', type:'num', max:1e5, hint:'count of platforms'},
+  // Measures how fragmented instruction formats are, not how modern they
+  // are: one mandatory domestic standard is not a fragmented market.
+  {key:'message_standard', type:'enum', values:['ISO 20022','Single domestic standard','Mixed','Proprietary bilateral','None']},
+  {key:'settlement_compression', type:'enum', values:['Mandated','Consultation','Proposed','None']},
+  {key:'cross_border_regime', type:'enum', values:['Open passporting','Partial','Restricted','Closed']},
+  {key:'reporting_mandate', type:'enum', values:['Standardised mandate','Emerging','None']},
+  {key:'regulatory_openness_rating', type:'enum', values:['Very high','High','Moderate-high','Moderate','Low','Closed']},
+  {key:'data_localisation', type:'enum', values:['None','Partial','Strict']},
+  {key:'licensing_barrier', type:'enum', values:['Low','Moderate','High','Prohibitive']},
+  {key:'local_competitor_strength', type:'enum', values:['None','Fragmented','Credible','Dominant']},
+  {key:'operating_complexity', type:'enum', values:['Low','Moderate','High']},
+  {key:'servicing_hub', type:'text', hint:'existing hub the market can be serviced from'}
+]);
+
+/** Keep only well-formed indicator values; drop anything unrecognised. */
+function normalizeIndicators(raw){
+  if(!raw || typeof raw!=='object' || Array.isArray(raw)) return null;
+  const out={};
+  INDICATOR_SCHEMA.forEach(f=>{
+    const v=raw[f.key];
+    if(v==null || v==='') return;
+    if(f.type==='pct'){
+      const n=toNum(v); if(n==null) return;
+      out[f.key]=Math.max(0,Math.min(100,Math.round(n*10)/10));
+    }else if(f.type==='num'){
+      const n=toNum(v); if(n==null || n<0 || n>f.max) return;
+      out[f.key]=Math.round(n*100)/100;
+    }else if(f.type==='enum'){
+      const match=f.values.find(o=>o.toLowerCase()===String(v).trim().toLowerCase());
+      if(match) out[f.key]=match;
+    }else{
+      const s=String(v).trim();
+      if(s && s!=='—' && s!=='-') out[f.key]=s;
+    }
+  });
+  return Object.keys(out).length?out:null;
+}
+
+/** The indicators block as prompt text, so Claude fills exactly these keys. */
+function indicatorPromptSpec(){
+  return INDICATOR_SCHEMA.map(f=>{
+    const type=f.type==='enum' ? f.values.join(' | ') : (f.hint||f.type);
+    return `      "${f.key}": ${f.type==='enum'||f.type==='text'?`"${type}"`:`0   // ${type}`}`;
+  }).join(',\n');
+}
+
+/* Every sub-indicator returns 0–1 where 1 = most attractive to Calastone.
+   Sub-weights within a category sum to 1. */
+const OPPORTUNITY_MODEL = Object.freeze([
+  {
+    key:'manualOperations', label:'Manual operations intensity', weight:30,
+    blurb:'Straight-through-processing gap, manual transfer load, legacy instruction channels and failed trades.',
+    parts:[
+      { key:'stpGap', label:'STP gap', weight:0.40, resolve:c=>pick(
+          stated(inv01(pct01(c.ind.stp_rate_pct)), 'indicator: stp_rate_pct'),
+          derived(inv01(c.automation), 'automation estimate'),
+          derived(c.manualStages, 'order-flow stages')
+        )},
+      { key:'manualTransfers', label:'Manual transfers & re-registration', weight:0.20, resolve:c=>pick(
+          stated(pct01(c.ind.manual_transfer_pct), 'indicator: manual_transfer_pct'),
+          inferred(c.ops, [
+            [0.95,['manual re-registration','manual transfer','paper transfer','re-registration is manual']],
+            [0.8,['re-keying','rekeying','manual file','manual processing','paper-heavy']],
+            [0.2,['automated transfer','electronic re-registration']]
+          ]),
+          derived(c.manualStages, 'order-flow stages'),
+          derived(inv01(c.automation), 'automation estimate')
+        )},
+      { key:'legacyChannels', label:'Fax / email / PDF instruction load', weight:0.25, resolve:c=>{
+          const stated_=stated(pct01(c.ind.legacy_instruction_pct), 'indicator: legacy_instruction_pct');
+          if(stated_) return stated_;
+          const hit=pick(
+            // Positive evidence of legacy channels is checked first: notes
+            // routinely expand "STP (straight-through processing)" while
+            // describing a fax-and-email market, and the acronym gloss must
+            // not outrank the fax.
+            inferred(c.ops, [
+              [0.95,['fax','paper-heavy','re-keying','rekeying']],
+              [0.8,['pdf','csv','email','spreadsheet']],
+              [0.6,['proprietary portal','portal','bilateral file exchange','bilateral file']],
+              [0.12,['near-complete market coverage','fully automated','centralised automated','straight-through across']],
+              [0.35,['partly automated','mixed']]
+            ]),
+            derived(c.automation==null?null:inv01(c.automation)*0.9, 'automation estimate')
+          );
+          // Naming a channel says it exists, not how much flow it carries.
+          // The STP rate is the ceiling: a 95%-automated market with a
+          // "residual fax tail" cannot be a fax-run market.
+          if(c.automation==null) return hit;
+          const cap=clamp01(inv01(c.automation)+0.25);
+          return hit.value<=cap ? hit
+            : { value:cap, source:hit.source,
+                evidence:(hit.evidence?hit.evidence+', ':'')+'capped by automation estimate' };
+        }},
+      { key:'failedTrades', label:'Errors & failed trades', weight:0.15, resolve:c=>pick(
+          // 8%+ of trades failing or needing repair is treated as the top of the scale.
+          stated(toNum(c.ind.failed_trade_pct)==null?null:toNum(c.ind.failed_trade_pct)/8, 'indicator: failed_trade_pct'),
+          inferred(c.ops, [
+            [0.25,['low error','few fails','minimal exceptions','low failure']],
+            [0.9,['settlement fails','failed trades','trade fails','high error','reconciliation breaks','repair rate']],
+            [0.7,['errors','breaks','repairs','exceptions']]
+          ]),
+          derived(c.automation==null?null:inv01(c.automation)*0.8, 'automation estimate')
+        )}
+    ]
+  },
+  {
+    key:'marketSizeGrowth', label:'Market size & growth', weight:20,
+    blurb:'Domestic fund AUM, net new flows, the registered fund universe and projected CAGR.',
+    parts:[
+      { key:'aumScale', label:'Domestic fund AUM', weight:0.45, resolve:c=>c.marketScale },
+      { key:'netFlows', label:'Net new fund flows', weight:0.20, resolve:c=>pick(
+          stated(enumScale(c.ind.net_flow_trend,{'strong inflows':1,'inflows':0.75,'flat':0.45,'outflows':0.15}), 'indicator: net_flow_trend'),
+          inferred(c.growthText, [
+            [0.15,['net outflows','redemptions exceed','shrinking','declining']],
+            [1,['record inflows','record capital','strong net inflows','surging','mass adoption']],
+            [0.75,['net inflows','inflows','rising domestic','compounding fast']],
+            [0.5,['steady','stable','moderate']]
+          ]),
+          // A market growing above trend is taking money in.
+          derived(curve(toNum(c.ind.projected_cagr_pct) ?? parseCagr(c.growthText),
+                        [[0,0.15],[5,0.5],[10,0.85],[14,1]]), 'implied by growth rate')
+        )},
+      { key:'fundUniverse', label:'Registered funds & share classes', weight:0.15, resolve:c=>pick(
+          stated(logScale(c.ind.registered_funds,200,40000), 'indicator: registered_funds'),
+          derived(logScale(parseFundCount(c.text),200,40000), 'fund count in profile text'),
+          inferred(c.text, [
+            [0.75,['thousands of funds','many funds','wide fund range']],
+            [0.4,['concentrated','few funds','narrow fund range']]
+          ]),
+          proxy(c.marketScale, 0.9, 'scaled from market size')
+        )},
+      { key:'growthOutlook', label:'Projected AUM CAGR', weight:0.20, resolve:c=>pick(
+          stated(curve(c.ind.projected_cagr_pct, CAGR_CURVE), 'indicator: projected_cagr_pct'),
+          derived(curve(parseCagr(c.growthText), CAGR_CURVE), 'growth rate in profile text'),
+          inferred(c.growthText, [
+            [0.15,['declining','stagnant','mature and stable','volume growth limited']],
+            [1,['very strong','fastest-growing','rapid growth','structural retail growth']],
+            [0.8,['strong growth','strong;','compounding fast','unlock','reform-driven']],
+            [0.6,['growing','growth','expanding']],
+            [0.4,['moderate','steady','stable']],
+            [0.28,['constrained']]
+          ])
+        )}
+    ]
+  },
+  {
+    key:'networkDensity', label:'Network density & reachability', weight:20,
+    blurb:'How many distinct counterparties a hub would connect, how fragmented their formats are, and whether Calastone can already reach them.',
+    parts:[
+      { key:'counterpartyBreadth', label:'Managers, TAs, distributors & platforms', weight:0.40, resolve:c=>pick(
+          stated(logScale(
+            ['fund_managers','transfer_agents','distributors','platforms']
+              .reduce((s,k)=>{ const n=toNum(c.ind[k]); return n==null?s:(s==null?n:s+n); }, null),
+            20, 3000), 'indicator: counterparty counts'),
+          inferred(c.text, [
+            [0.95,['more than 100','over 100','hundreds of','many small','fragmented administrators','fragmented domestic intermediaries','intermediary-heavy']],
+            [0.75,['bank platforms','broad distribution','large distribution','ifas','multiple']],
+            [0.45,['bank-dominated','concentrated','handful','few intermediaries']],
+            [0.3,['single utility','one dominant']]
+          ]),
+          // Bigger markets carry more counterparties; a weak proxy, so it sits last.
+          proxy(c.marketScale, 0.85, 'scaled from market size')
+        )},
+      { key:'formatFragmentation', label:'Standards fragmentation & hub gap', weight:0.35, resolve:c=>blend(
+          pick(
+            stated(enumScale(c.ind.message_standard,
+              {'none':1,'proprietary bilateral':0.9,'mixed':0.6,'single domestic standard':0.35,'iso 20022':0.25}),
+              'indicator: message_standard'),
+            derived(HUB_GAP[c.profile.central_hub_status], 'hub status')
+          ),
+          inferred(c.text, [
+            [1,['no neutral routing','no fund routing utility','no routing utility','proprietary domestic messaging','no iso 20022','fully bilateral']],
+            [0.85,['fragmented bilateral','fragmented','bilateral file exchange']],
+            [0.65,['bilateral','manual tail','automation gaps','cross-border friction']],
+            [0.25,['iso 20022','standardised messaging']]
+          ]),
+          0.4
+        )},
+      { key:'reachability', label:'Existing Calastone footprint', weight:0.25, resolve:c=>pick(
+          // A foothold makes the rest of the market reachable; full coverage
+          // leaves less to win, a cold start costs more to open.
+          derived(NETWORK_REACH[c.profile.existing_network_presence], 'network presence')
+        )}
+    ]
+  },
+  {
+    key:'regulatoryTailwinds', label:'Regulatory tailwinds & complexity', weight:15,
+    blurb:'Settlement-cycle compression, cross-border passporting, reporting mandates, and how much localisation offsets them.',
+    parts:[
+      { key:'settlementCompression', label:'Settlement-cycle compression', weight:0.30, resolve:c=>pick(
+          stated(enumScale(c.ind.settlement_compression,{'mandated':1,'consultation':0.75,'proposed':0.6,'none':0.3}), 'indicator: settlement_compression'),
+          inferred(c.text, [
+            [1,['t+1 mandate','t+0','mandated settlement','settlement compression','shorten the settlement']],
+            [0.75,['t+1 consultation','t+1','settlement cycle']],
+            [0.3,['t+2','t+3']]
+          ]),
+          // Silence on settlement cycles almost always means no live mandate.
+          assumed(0.35, 'no settlement-cycle mandate recorded')
+        )},
+      { key:'crossBorderRegime', label:'Cross-border / passporting regime', weight:0.25, resolve:c=>pick(
+          stated(enumScale(c.ind.cross_border_regime,{'open passporting':1,'open':1,'partial':0.6,'restricted':0.3,'closed':0.1}), 'indicator: cross_border_regime'),
+          inferred(c.text, [
+            [0.1,['closed market','prohibited']],
+            [0.25,['capital controls','safe quotas','quota','domestic-first','domestic-protective']],
+            [1,['passporting','ucits','opening cross-border','cross-border distribution','mutual recognition','gift city']],
+            [0.65,['cross-border','regional gateway']]
+          ])
+        )},
+      { key:'reportingMandates', label:'Reporting & standardisation mandates', weight:0.20, resolve:c=>pick(
+          stated(enumScale(c.ind.reporting_mandate,{'standardised mandate':1,'emerging':0.6,'none':0.3}), 'indicator: reporting_mandate'),
+          inferred(c.text, [
+            [1,['standardised reporting','reporting mandate','reporting requirement','iso 20022 migration','cvm 175']],
+            [0.6,['reporting','disclosure']]
+          ]),
+          assumed(0.4, 'no reporting mandate recorded')
+        )},
+      { key:'regulatoryAccess', label:'Openness net of localisation', weight:0.25, resolve:c=>{
+          const openness=pick(
+            stated(enumScale(c.ind.regulatory_openness_rating,{'very high':1,'high':0.82,'moderate-high':0.62,'moderate':0.48,'low':0.25,'closed':0.1}), 'indicator: regulatory_openness_rating'),
+            inferred(c.regText, [
+              [0.1,['closed market','prohibited']],
+              [0.25,['tightly managed','domestic-protective','restrictive']],
+              [1,['very high','actively opening','actively court','supportive of infrastructure']],
+              [0.82,['high —','high -','infrastructure-friendly','politically supported','eu-harmonised']],
+              [0.62,['moderate-high','moderate high','reform-minded']],
+              [0.48,['moderate —','moderate -','partially open']],
+              // Bare ratings, checked last so the qualified phrasings win.
+              [0.82,['high']],
+              [0.48,['moderate']],
+              [0.25,['low']]
+            ])
+          );
+          // Localisation and capital controls discount openness rather than replace it.
+          const drag=pick(
+            stated(enumScale(c.ind.data_localisation,{'none':1,'partial':0.8,'strict':0.55}), 'indicator: data_localisation'),
+            inferred(c.text, [
+              [0.55,['data localisation','regulatory localisation','capital controls','data residency','onshore hosting']],
+              [0.8,['localisation','local presence required']]
+            ]),
+            {value:1, source:'derived', evidence:'no localisation signal'}
+          );
+          return { value:clamp01(openness.value*drag.value), source:openness.source,
+                   evidence:[openness.evidence, drag.value<1?drag.evidence:null].filter(Boolean).join(' × ') };
+        }}
+    ]
+  },
+  {
+    key:'goToMarket', label:'Go-to-market feasibility', weight:15,
+    blurb:'Licensing friction, whether a credible incumbent already owns the rails, operating complexity, and hub serviceability.',
+    parts:[
+      { key:'licensingFriction', label:'Licensing & entry friction', weight:0.35, resolve:c=>pick(
+          stated(enumScale(c.ind.licensing_barrier,{'low':1,'moderate':0.6,'high':0.3,'prohibitive':0.08}), 'indicator: licensing_barrier'),
+          inferred(c.riskText, [
+            [0.15,['prohibited','closed market','foreign-entrant scrutiny','regulatory posture toward foreign providers']],
+            [0.35,['regulatory localisation','tightly managed','capital controls','csrc approvals','domestic-protective']],
+            [1,['0% corporate','actively court','no licensing requirement','very high']],
+            [0.8,['eu-harmonised','infrastructure-friendly','supportive of infrastructure','high']],
+            [0.55,['moderate','licensing','approval']]
+          ])
+        )},
+      { key:'competitiveWhitespace', label:'Absence of a dominant incumbent', weight:0.30, resolve:c=>pick(
+          stated(enumScale(c.ind.local_competitor_strength,{'none':1,'fragmented':0.85,'credible':0.5,'dominant':0.2}), 'indicator: local_competitor_strength'),
+          inferred(c.text, [
+            [0.12,['market saturation','dominant domestic utility','already fully covered','near-complete market coverage','incumbent-protected','little friction']],
+            [0.3,['entrenched utility','entrenched transfer agents','entrenched registry','entrenched intermediaries','entrenched domestic','dominant clearing','strong domestic infrastructure','bank vertical integration']],
+            [0.5,['competitive infrastructure','relationship-driven','relationship-led','vestima','clearstream','allfunds','euroclear']],
+            [1,['no neutral routing','no fund routing utility','no routing utility','no central hub']]
+          ]),
+          // A market already served end-to-end by one hub has an incumbent,
+          // whether or not the narrative names it.
+          derived(({'Full hub':0.3,'Partial hub':0.55,'No central hub':0.9})[c.profile.central_hub_status], 'hub status')
+        )},
+      { key:'operatingComplexity', label:'Language, currency & rails complexity', weight:0.20, resolve:c=>pick(
+          stated(enumScale(c.ind.operating_complexity,{'low':1,'moderate':0.6,'high':0.3}), 'indicator: operating_complexity'),
+          inferred(c.riskText, [
+            [0.25,['fx/settlement complexity','currency and regulatory complexity','capital controls','nominee vs','language']],
+            [0.45,['currency','fx','price sensitivity','long sales cycles','conservative procurement']],
+            [0.9,['eu-harmonised','0% corporate']]
+          ]),
+          // Developed markets tend to have convertible currencies and
+          // established banking rails; frontier ones rarely do.
+          derived(({'Developed':0.7,'Emerging':0.45,'Frontier':0.3})[c.profile.market_classification], 'market classification')
+        )},
+      { key:'hubServiceability', label:'Servable from an existing hub', weight:0.15, resolve:c=>pick(
+          stated(c.ind.servicing_hub?1:null, 'indicator: servicing_hub'),
+          inferred(c.text, [
+            [1,['regional gateway','cross-border hub','offshore hub','gateway']],
+            [0.5,['domestic-first']]
+          ]),
+          derived(REGION_HUB_REACH[c.profile.region], 'region')
+        )}
+    ]
+  }
+]);
 
 function calculateOpportunity(profile, note){
-  const text=evidenceText(profile, note);
-  const noteText=String(note||'').toLowerCase();
-  const growthText=(String(profile.growth_signal||'')+' '+noteText).toLowerCase();
-  const regulatoryText=(String(profile.regulatory_openness||'')+' '+noteText).toLowerCase();
-  const automation=Math.max(0,Math.min(100,Number(profile.automation_rate_estimate)||0));
-  const automationGap=(100-automation)/100;
-  const hubGap=({'No central hub':1,'Partial hub':0.62,'Full hub':0.18})[profile.central_hub_status]??0.5;
-  const marketScale=phraseRating(text, [
-    [1,['largest fund market','largest retail','trillion','£1.5t','a$3.9t','r$10.8t','₹60t','rmb trillions']],
-    [.82,['very large','major regional','major continental','leading private','large distribution','large managed','large domestic']],
-    [.64,['large','regional gateway','growing market']],
-    [.42,['medium','mid-sized','moderate size']],
-    [.22,['small domestic','small but','small market','limited aum']]
-  ],.55);
-  const growth=phraseRating(growthText, [
-    [.18,['declining','stagnant','mature and stable','volume growth limited']],
-    [1,['very strong','fastest-growing','rapid growth','surging','structural retail growth']],
-    [.82,['strong growth','strong;','compounding fast','rising domestic','unlock']],
-    [.64,['growing','growth','expanding','reform-driven']],
-    [.42,['moderate','steady','stable']],
-    [.28,['constrained']]
-  ],.5);
-  const regulatory=phraseRating(regulatoryText, [
-    [1,['very high','actively opening','actively court','supportive of infrastructure']],
-    [.82,['high —','high -','infrastructure-friendly','politically supported']],
-    [.62,['moderate-high','moderate high','reform-minded']],
-    [.48,['moderate —','moderate -','partially open']],
-    [.25,['tightly managed','domestic-protective','restrictive']],
-    [.1,['closed market','prohibited']]
-  ],.5);
-  // High values mean there is an addressable gap; entrenched utilities and
-  // saturated competition reduce it, while fragmentation/manuality increase it.
-  let competitiveGap=phraseRating(text, [
-    [1,['no neutral routing','no fund routing utility','no routing utility','no central hub','fragmented bilateral','fully bilateral']],
-    [.86,['highly manual','paper-heavy','re-keying','fax','email','manual processing','fragmented']],
-    [.68,['manual tail','automation gaps','cross-border friction','bilateral']],
-  ],.55);
-  // Explicit competitive barriers cap, rather than erase, the operational gap.
-  const competitiveCap=phraseRating(text, [
-    [.18,['market saturation','dominant domestic utility','incumbent-protected','little friction','highly automated']],
-    [.38,['entrenched utility','entrenched domestic','dominant clearing']],
-    [.48,['competitive infrastructure','entrenched registry','relationship-driven']],
-    [.62,['bank vertical integration','strong domestic infrastructure','entrenched intermediaries']]
-  ],1);
-  competitiveGap=Math.min(competitiveGap,competitiveCap);
-  const networkFit=({'Established':0.72,'Emerging':1,'None':0.58})[profile.existing_network_presence]??0.5;
-  const components={automationGap,hubGap,marketScale,growth,regulatoryOpenness:regulatory,competitiveGap,networkFit};
-  const score=Math.round(Object.entries(OPPORTUNITY_WEIGHTS)
-    .reduce((sum,[key,weight])=>sum+components[key]*weight,0));
-  const override=OPPORTUNITY_SCORE_OVERRIDES[String(profile.iso3||'').toUpperCase()];
-  return {score:Number.isFinite(override)?override:Math.max(0,Math.min(100,score)),components};
+  const ctx=buildScoringContext(profile, note);
+  // Indicators an analyst estimated still drive the score, but they are
+  // not evidence in the way a sourced figure is.
+  const estimated=String(profile.indicators_basis||'').toLowerCase()==='estimate';
+  const categories=OPPORTUNITY_MODEL.map(cat=>{
+    const parts=cat.parts.map(p=>{
+      const r=p.resolve(ctx) || {value:0.5, source:'assumed', evidence:'no evidence in record'};
+      const source=(estimated && r.source==='stated') ? 'estimated' : r.source;
+      return { key:p.key, label:p.label, weight:p.weight,
+               value:clamp01(r.value)??0.5, source, evidence:r.evidence||null };
+    });
+    const value=parts.reduce((s,p)=>s+p.value*p.weight,0);
+    const confidence=parts.reduce((s,p)=>s+CONFIDENCE_BY_SOURCE[p.source]*p.weight,0);
+    return { key:cat.key, label:cat.label, blurb:cat.blurb, weight:cat.weight, value,
+             points:Math.round(value*cat.weight*10)/10, confidence, parts };
+  });
+  const calculated=Math.max(0,Math.min(100,Math.round(
+    categories.reduce((s,c)=>s+c.value*c.weight,0))));
+  const confidence=Math.round(100*categories.reduce((s,c)=>s+c.confidence*c.weight,0)/100);
+  const override=OPPORTUNITY_SCORE_OVERRIDES[String(profile.iso3||'').toUpperCase()]||null;
+  return {
+    score: override ? override.score : calculated,
+    calculated, override, categories, confidence,
+    version: OPPORTUNITY_MODEL_VERSION
+  };
 }
+
+function confidenceBand(v){
+  if(v>=75) return 'High';
+  if(v>=55) return 'Moderate';
+  if(v>=35) return 'Low';
+  return 'Indicative';
+}
+
+/* Full per-indicator detail is kept out of COUNTRY_DATA so it never
+   travels to Neon or localStorage; only the 5 category totals do. */
+const OPPORTUNITY_DETAIL = {};
 
 function recalculateOpportunity(iso3){
   const code=String(iso3||'').toUpperCase(), profile=COUNTRY_DATA[code];
@@ -101,8 +603,10 @@ function recalculateOpportunity(iso3){
   const result=calculateOpportunity(profile, COUNTRY_MARKDOWN[code]||'');
   profile.opportunity_score=result.score;
   profile.opportunity_score_breakdown=Object.fromEntries(
-    Object.entries(OPPORTUNITY_WEIGHTS).map(([key,weight])=>[key,Math.round(result.components[key]*weight)])
+    result.categories.map(c=>[c.key, c.points])
   );
+  profile.opportunity_score_confidence=result.confidence;
+  OPPORTUNITY_DETAIL[code]=result;
   return result;
 }
 
@@ -450,9 +954,10 @@ Your job:
 - Propose structured edits to the note. Do not rewrite unchanged sections.
 - Spell out every acronym in full on first use with the abbreviation in brackets.
 - Never delete existing content; only add or revise.
-- ALWAYS populate profile_updates with every structured KPI the document supports (scores, AUM, hub status, order model, flow diagram, etc.). Do not put scores only in the markdown edits — the app's drawer cards and globe colours come from profile_updates.
+- ALWAYS populate profile_updates with every structured KPI the document supports (AUM, hub status, order model, flow diagram, indicators, etc.). Do not put figures only in the markdown edits — the app's drawer cards and globe colours come from profile_updates.
 - If the document is itself a structured country brief / research pack with explicit KPIs, prefer filling profile_updates completely even when few markdown edits are needed.
 - flow_diagram must be a complete 4–7 stage path when order routing is described. Never return a one-stage diagram.
+- Never return an opportunity score. The app calculates it from the "indicators" block below; a score you invent would be discarded. Instead, fill in every indicator the document supports — those are what move the score.
 
 Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
 {
@@ -470,7 +975,6 @@ Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
     "central_hub_status": "Full hub | Partial hub | No central hub",
     "hub_name": "name or —",
     "operator": "who runs it or —",
-    "opportunity_score": 0,
     "automation_rate_estimate": 0,
     "priority_tier": "Tier 1 | Tier 2 | Tier 3 | Watch",
     "existing_network_presence": "Established | Emerging | None",
@@ -482,6 +986,9 @@ Respond with JSON ONLY — no prose, no markdown fences — matching exactly:
     "manuality_snapshot": "one line",
     "regulatory_openness": "one line",
     "risks_or_barriers": "one line",
+    "indicators": {
+${indicatorPromptSpec()}
+    },
     "flow_diagram": [
       { "label": "Investor / Adviser", "mode": "auto" },
       { "label": "Broker / Platform", "mode": "mixed" },
@@ -497,12 +1004,13 @@ If the document has nothing relevant, return {"summary":"No relevant content fou
 /* Dedicated pass: fill drawer KPIs / flow diagram from the upload alone. */
 const PROFILE_SYSTEM_PROMPT = `You extract structured mutual-fund order-routing profile fields for ONE country from an uploaded document.
 
-The app drawer cards (opportunity score, automation, AUM, hub, priority tier, order-flow diagram) are populated ONLY from your JSON — not from the research note. Markdown commentary is useless here.
+The app drawer cards (automation, AUM, hub, priority tier, order-flow diagram) and the calculated opportunity score are populated ONLY from your JSON — not from the research note. Markdown commentary is useless here.
 
 Rules:
 - Use only facts supported by the document. Do not invent numbers.
-- If the document states scores, AUM, hub status, tiers, automation, or order-path stages, copy them into the matching fields.
+- If the document states AUM, hub status, tiers, automation, or order-path stages, copy them into the matching fields.
 - flow_diagram must be a complete 4–7 stage end-to-end path when the document describes order routing. Never return one stage. Each stage: { "label", "mode": "auto"|"mixed"|"manual" }.
+- Never return an opportunity score — the app calculates it. Fill the "indicators" block instead: those measurements are what the score is built from. Omit any indicator the document does not support rather than guessing, and use the exact enum wording offered.
 - Respond with JSON ONLY — no prose, no markdown fences.
 
 {
@@ -515,7 +1023,6 @@ Rules:
     "central_hub_status": "Full hub | Partial hub | No central hub",
     "hub_name": "name or —",
     "operator": "who runs it or —",
-    "opportunity_score": 0,
     "automation_rate_estimate": 0,
     "priority_tier": "Tier 1 | Tier 2 | Tier 3 | Watch",
     "existing_network_presence": "Established | Emerging | None",
@@ -527,6 +1034,9 @@ Rules:
     "manuality_snapshot": "one line",
     "regulatory_openness": "one line",
     "risks_or_barriers": "one line",
+    "indicators": {
+${indicatorPromptSpec()}
+    },
     "flow_diagram": [
       { "label": "Investor / Adviser", "mode": "auto" },
       { "label": "Broker / Platform", "mode": "mixed" },
@@ -547,7 +1057,8 @@ Your job:
 - Use this structure: a level-1 title (# Country), a blockquote header summarising ISO3/Region/Classification/Hub Status, then ## sections such as Market Overview, How Fund Orders Work Today, Distribution Channels, Key Participants, Risks, and Sources.
 - Spell out every acronym in full on first use with the abbreviation in brackets.
 - Use only information supported by the document. Do not invent figures.
-- If the document states explicit KPIs (opportunity score, automation %, priority tier, AUM band, hub status, network presence, order model, channels, risks), copy those values into the ===FIELDS=== JSON. Do not leave scores at 0 or text fields blank when the document provides them. Markdown alone is not enough — the drawer cards and globe colours read only from the JSON fields.
+- If the document states explicit KPIs (automation %, priority tier, AUM band, hub status, network presence, order model, channels, risks), copy those values into the ===FIELDS=== JSON. Do not leave numbers at 0 or text fields blank when the document provides them. Markdown alone is not enough — the drawer cards and globe colours read only from the JSON fields.
+- Never return an opportunity score — the app calculates it from the "indicators" block. Fill in every indicator the document supports (STP rate, manual transfer share, fax/email/PDF reliance, failed trades, AUM, flows, fund counts, CAGR, counterparty counts, messaging standard, settlement and reporting mandates, licensing barriers, competitor strength). Omit any indicator the document does not support rather than guessing, and use the exact enum wording offered.
 
 ORDER-FLOW DIAGRAM (required — the app draws this automatically from flow_diagram):
 - Always include a complete end-to-end order path in "flow_diagram". Never leave it empty. Never return only one stage.
@@ -578,7 +1089,6 @@ Then output a small JSON object (and nothing after it) with these structured fie
   "central_hub_status": "Full hub | Partial hub | No central hub",
   "hub_name": "name or —",
   "operator": "who runs it or —",
-  "opportunity_score": 0,
   "automation_rate_estimate": 0,
   "priority_tier": "Tier 1 | Tier 2 | Tier 3 | Watch",
   "existing_network_presence": "Established | Emerging | None",
@@ -590,6 +1100,9 @@ Then output a small JSON object (and nothing after it) with these structured fie
   "manuality_snapshot": "one line",
   "regulatory_openness": "one line",
   "risks_or_barriers": "one line",
+  "indicators": {
+${indicatorPromptSpec()}
+  },
   "flow_diagram": [
     { "label": "Investor / Adviser", "mode": "auto" },
     { "label": "Broker / Platform", "mode": "mixed" },
@@ -739,16 +1252,57 @@ function openDrawer(f){
 function closeDrawer(){drawer.classList.remove('open','wide');selectedISO=null;refreshGlobe();}
 window.closeDrawer=closeDrawer;
 
+/* Category-by-category account of where the score came from, plus the
+   evidence class behind every sub-indicator. The score is only useful
+   if a reader can see which parts of it are measured and which are
+   read off a phrase. */
+const SOURCE_LABEL = { stated:'Sourced', estimated:'Estimate', derived:'Derived', inferred:'Inferred', assumed:'Assumed' };
+function buildScoreBreakdown(r){
+  const detail=OPPORTUNITY_DETAIL[r.iso3];
+  if(!detail) return '';
+  const rows=detail.categories.map(cat=>{
+    const pct=Math.round(cat.value*100);
+    const col=oppColor(pct)||C.unknown;
+    const parts=cat.parts.map(p=>
+      `<div class="sb-part">
+         <span class="sb-p-name">${escapeHtml(p.label)}</span>
+         <span class="sb-p-src ${p.source}">${SOURCE_LABEL[p.source]}</span>
+         <span class="sb-p-val">${Math.round(p.value*100)}</span>
+       </div>
+       ${p.evidence?`<div class="sb-p-ev">${escapeHtml(p.evidence)}</div>`:''}`).join('');
+    return `<details class="sb-cat">
+      <summary>
+        <span class="sb-c-name">${escapeHtml(cat.label)}</span>
+        <span class="sb-c-wt">${cat.weight}%</span>
+        <span class="sb-c-pts" style="color:${col}">${cat.points.toFixed(1)}<small>/${cat.weight}</small></span>
+      </summary>
+      <div class="sb-body">
+        <div class="sb-bar"><i style="width:${pct}%;background:${col}"></i></div>
+        <p class="sb-blurb">${escapeHtml(cat.blurb)}</p>
+        ${parts}
+      </div>
+    </details>`;
+  }).join('');
+  const conf=detail.confidence;
+  const confC=conf>=75?C.good:conf>=45?C.mid:C.bad;
+  const override=detail.override
+    ? `<div class="sb-override">Manual override in force — published score ${detail.override.score}, model score ${detail.calculated}. ${escapeHtml(detail.override.reason)}</div>`
+    : '';
+  return `<div class="section score-breakdown"><div class="s-title">How this score was built</div>
+    ${override}
+    <div class="sb-conf">Evidence confidence <b style="color:${confC}">${conf}/100 · ${confidenceBand(conf)}</b>
+      <span>— share of the score backed by sourced, estimated or derived indicators rather than phrase matching.</span></div>
+    ${rows}
+  </div>`;
+}
+
 function buildSnapshot(r){
   const oppC=oppColor(r.opportunity_score)||C.unknown;
   const autoC=r.automation_rate_estimate>=66?C.bad:r.automation_rate_estimate>=40?C.mid:C.good;
-  const bd=r.opportunity_score_breakdown||{};
-  const scoreDetail=[
-    ['Automation gap',bd.automationGap],['Hub gap',bd.hubGap],
-    ['Market scale',bd.marketScale],['Growth',bd.growth],
-    ['Regulatory openness',bd.regulatoryOpenness],['Competitive gap',bd.competitiveGap],
-    ['Network fit',bd.networkFit]
-  ].filter(([,v])=>Number.isFinite(v));
+  const detail=OPPORTUNITY_DETAIL[r.iso3];
+  const scoreDetail=detail
+    ? detail.categories.map(c=>`${c.label}: ${c.points.toFixed(1)}/${c.weight}`)
+    : [];
   return `
   <button class="drawer-close" onclick="closeDrawer()">×</button>
   <div class="drawer-head">
@@ -758,7 +1312,7 @@ function buildSnapshot(r){
   </div>
   <div class="scroll">
     <div class="kpis">
-      <div class="kpi" title="${scoreDetail.map(([label,value])=>`${label}: ${value}`).join(' · ')}"><div class="k">Opportunity score · calculated</div><div class="v" style="color:${oppC}">${r.opportunity_score}<small>/100</small></div><div class="bar"><i style="width:${r.opportunity_score}%;background:${oppC}"></i></div></div>
+      <div class="kpi" title="${scoreDetail.join(' · ')}"><div class="k">Opportunity score · calculated</div><div class="v" style="color:${oppC}">${r.opportunity_score}<small>/100</small></div><div class="bar"><i style="width:${r.opportunity_score}%;background:${oppC}"></i></div></div>
       <div class="kpi"><div class="k">Automation estimate</div><div class="v">${r.automation_rate_estimate}<small>%</small></div><div class="bar"><i style="width:${r.automation_rate_estimate}%;background:${autoC}"></i></div></div>
       <div class="kpi"><div class="k">Priority tier</div><div class="v" style="font-size:17px">${r.priority_tier}</div></div>
       <div class="kpi"><div class="k">AUM band</div><div class="v" style="font-size:13px;font-family:var(--sans);line-height:1.3;margin-top:7px">${r.market_aum_band}</div></div>
@@ -772,6 +1326,8 @@ function buildSnapshot(r){
     </button>
 
     <div class="detail" id="detailBlock">
+      ${buildScoreBreakdown(r)}
+
       ${buildFlow(r)}
 
       <div class="section"><div class="s-title">Why this market matters</div><p>${r.mutual_fund_relevance}</p></div>
@@ -1094,7 +1650,7 @@ function fileToBase64(file){
 async function callClaude(iso, currentNote, payload, isBlank, onProgress){
   const sys = isBlank ? BUILD_SYSTEM_PROMPT : EXTRACTION_SYSTEM_PROMPT;
   const instruction = isBlank
-    ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it. Remember: ===FIELDS=== must include every KPI the document provides (opportunity_score, automation_rate_estimate, priority_tier, market_aum_band, hub fields, narrative KPI lines) plus a complete 4–7 stage flow_diagram.`
+    ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it. Remember: ===FIELDS=== must include every KPI the document provides (automation_rate_estimate, priority_tier, market_aum_band, hub fields, narrative KPI lines, and the indicators block) plus a complete 4–7 stage flow_diagram. Do not return an opportunity score — the app calculates it from the indicators.`
     : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete. ALWAYS include profile_updates with every KPI the document provides (scores, AUM, hub, tiers, order model, flow_diagram) — do not only edit the markdown note.`;
 
   // Build the user content: instruction text + the document (PDF block or inline text).
@@ -1128,7 +1684,7 @@ async function callClaude(iso, currentNote, payload, isBlank, onProgress){
     // If KPIs/diagram came back thin, run a focused profile pass on the same upload.
     const fields = parsed.fields || {};
     const flowLen = Array.isArray(fields.flow_diagram) ? fields.flow_diagram.length : 0;
-    const thin = !(fields.opportunity_score!=null && fields.market_aum_band) || flowLen < 4;
+    const thin = !(fields.market_aum_band && fields.automation_rate_estimate!=null) || !normalizeIndicators(fields.indicators) || flowLen < 4;
     if(thin){
       const profileOnly = await extractProfileUpdates(iso, payload, onProgress);
       if(profileOnly && profileUpdateCount(profileOnly)){
@@ -1276,7 +1832,8 @@ const PROFILE_TEXT_KEYS = [
   'mutual_fund_relevance','growth_signal','dominant_order_model','current_order_channels',
   'manuality_snapshot','regulatory_openness','risks_or_barriers'
 ];
-const PROFILE_NUM_KEYS = ['opportunity_score','automation_rate_estimate'];
+// opportunity_score is deliberately absent: it is calculated, never accepted from a document.
+const PROFILE_NUM_KEYS = ['automation_rate_estimate'];
 
 /** Strip empty/placeholder profile_updates and normalize flow_diagram. */
 function normalizeProfileUpdates(raw){
@@ -1294,6 +1851,8 @@ function normalizeProfileUpdates(raw){
     if(!Number.isFinite(n)) return;
     out[k]=Math.max(0, Math.min(100, Math.round(n)));
   });
+  const indicators=normalizeIndicators(raw.indicators);
+  if(indicators) out.indicators=indicators;
   if(Array.isArray(raw.flow_diagram)){
     const flow=normalizeFlowDiagram(raw.flow_diagram);
     if(flow.length) out.flow_diagram=flow;
@@ -1309,7 +1868,7 @@ function profileUpdateCount(u){
 function profileUpdatesPreviewHtml(u){
   if(!u || !profileUpdateCount(u)) return '';
   const rows=[];
-  if(u.opportunity_score!=null) rows.push(['Opportunity', u.opportunity_score+'/100']);
+  if(u.indicators) rows.push(['Scoring indicators', Object.entries(u.indicators).map(([k,v])=>k.replace(/_/g,' ')+' '+v).join(', ')]);
   if(u.automation_rate_estimate!=null) rows.push(['Automation', u.automation_rate_estimate+'%']);
   if(u.priority_tier) rows.push(['Priority tier', u.priority_tier]);
   if(u.market_aum_band) rows.push(['AUM band', u.market_aum_band]);
@@ -1335,20 +1894,23 @@ function applyProfileUpdates(iso, updates){
       market_classification:u.market_classification||'Unknown',
       central_hub_status:u.central_hub_status||'No central hub',
       hub_name:u.hub_name||'—', operator:u.operator||'—',
-      opportunity_score:u.opportunity_score??60,
+      opportunity_score:0,   // replaced by recalculateOpportunity on the next save
       automation_rate_estimate:u.automation_rate_estimate??50,
       priority_tier:u.priority_tier||'Watch',
       existing_network_presence:u.existing_network_presence||'None',
       market_aum_band:u.market_aum_band||'—',
       mutual_fund_relevance:'', growth_signal:'', dominant_order_model:'',
       current_order_channels:'', manuality_snapshot:'', regulatory_openness:'',
-      risks_or_barriers:'', flow_image:'', flow_diagram:[],
+      risks_or_barriers:'', indicators:u.indicators||{}, flow_image:'', flow_diagram:[],
       last_updated:new Date().toISOString().slice(0,7)
     };
   }
   const rec=COUNTRY_DATA[iso];
   PROFILE_TEXT_KEYS.forEach(k=>{ if(u[k]!=null) rec[k]=u[k]; });
   PROFILE_NUM_KEYS.forEach(k=>{ if(u[k]!=null) rec[k]=u[k]; });
+  // Merge indicators: a new document adds measurements, it never blanks
+  // the ones an earlier source established.
+  if(u.indicators) rec.indicators=Object.assign({}, rec.indicators, u.indicators);
   if(u.flow_diagram){
     rec.flow_diagram=u.flow_diagram;
     rec.flow_image=rec.flow_image||'';
@@ -1430,7 +1992,7 @@ function openModal(proposal, iso){
       const flowWarn = flow.length < 4
         ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Order-flow diagram looks incomplete (${flow.length||0} stage${flow.length===1?'':'s'}). Prefer re-running the upload so Claude returns a full 4–7 stage path.</div>`
         : `<div style="font-size:11.5px;color:var(--ink-2);margin:0 0 10px">Order-flow path: ${flowPreview}</div>`;
-      const missingKpis = !(f.opportunity_score!=null && f.market_aum_band && f.dominant_order_model);
+      const missingKpis = !(f.market_aum_band && f.dominant_order_model) || !normalizeIndicators(f.indicators);
       const kpiWarn = missingKpis
         ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Structured KPIs look thin (score / AUM / order model). Check the source pack was fully read — drawer cards need the ===FIELDS=== JSON, not just the note.</div>`
         : '';
@@ -1442,7 +2004,7 @@ function openModal(proposal, iso){
         ${flowWarn}
         <div class="edit-card">
           <div class="ec-top">${chips}</div>
-          <div style="font-size:12px;color:var(--ink-2);margin-bottom:8px">Opportunity ${f.opportunity_score??'—'} · Automation ${f.automation_rate_estimate??'—'}% · ${escapeHtml(f.market_aum_band||'')}</div>
+          <div style="font-size:12px;color:var(--ink-2);margin-bottom:8px">Indicators ${Object.keys(normalizeIndicators(f.indicators)||{}).length} · Automation ${f.automation_rate_estimate??'—'}% · ${escapeHtml(f.market_aum_band||'')}</div>
           <div class="ec-content">${escapeHtml(note.slice(0,1400))}${note.length>1400?'\n…':''}</div>
           <label class="ec-check"><input type="checkbox" id="bcheck" checked> Create this country profile and note</label>
         </div>`;
@@ -1507,13 +2069,18 @@ function buildRecordSnippet(iso, f, note){
   const q=s=>JSON.stringify(s==null?'':String(s));
   const arr=Array.isArray(f.flow_diagram)?f.flow_diagram:[];
   const flow=arr.map(s=>`      {label:${q(s.label)}, mode:${q(s.mode||'mixed')}}`).join(',\n');
+  const ind=normalizeIndicators(f.indicators);
+  const indLine = ind
+    ? '    indicators:{ '+Object.entries(ind)
+        .map(([k,v])=>`${k}:${typeof v==='number'?v:q(v)}`).join(', ')+' },\n'
+    : '';
   const rec =
 `  // ---- paste this inside COUNTRY_DATA ----
   ${q(iso)}: {
     country:${q(f.country||iso)}, iso3:${q(iso)}, region:${q(f.region||'Asia')}, subregion:${q(f.subregion||'')},
     market_classification:${q(f.market_classification||'Unknown')},
     central_hub_status:${q(f.central_hub_status||'No central hub')}, hub_name:${q(f.hub_name||'—')}, operator:${q(f.operator||'—')},
-    opportunity_score:${clampNum(f.opportunity_score,60)}, automation_rate_estimate:${clampNum(f.automation_rate_estimate,50)},
+    opportunity_score:0, automation_rate_estimate:${clampNum(f.automation_rate_estimate,50)},
     priority_tier:${q(f.priority_tier||'Watch')}, existing_network_presence:${q(f.existing_network_presence||'None')},
     market_aum_band:${q(f.market_aum_band||'—')},
     mutual_fund_relevance:${q(f.mutual_fund_relevance||'')},
@@ -1523,7 +2090,7 @@ function buildRecordSnippet(iso, f, note){
     manuality_snapshot:${q(f.manuality_snapshot||'')},
     regulatory_openness:${q(f.regulatory_openness||'')},
     risks_or_barriers:${q(f.risks_or_barriers||'')},
-    flow_image:"", flow_diagram:[\n${flow}\n    ],
+${indLine}    flow_image:"", flow_diagram:[\n${flow}\n    ],
     last_updated:${q(new Date().toISOString().slice(0,7))}
   },`;
   // Use a placeholder for the backtick so we don't break this template string.
@@ -1566,7 +2133,7 @@ document.getElementById('modalApply').addEventListener('click',()=>{
       market_classification:f0.market_classification||'Unknown',
       central_hub_status:f0.central_hub_status||'No central hub',
       hub_name:f0.hub_name||'—', operator:f0.operator||'—',
-      opportunity_score:clampNum(f0.opportunity_score,60),
+      opportunity_score:0,   // calculated on save
       automation_rate_estimate:clampNum(f0.automation_rate_estimate,50),
       priority_tier:f0.priority_tier||'Watch',
       existing_network_presence:f0.existing_network_presence||'None',
@@ -1575,6 +2142,7 @@ document.getElementById('modalApply').addEventListener('click',()=>{
       growth_signal:f0.growth_signal||'', dominant_order_model:f0.dominant_order_model||'',
       current_order_channels:f0.current_order_channels||'', manuality_snapshot:f0.manuality_snapshot||'',
       regulatory_openness:f0.regulatory_openness||'', risks_or_barriers:f0.risks_or_barriers||'',
+      indicators:normalizeIndicators(f0.indicators)||{},
       flow_image:'', flow_diagram:normalizeFlowDiagram(f0.flow_diagram),
       last_updated:new Date().toISOString().slice(0,7)
     };
@@ -1794,10 +2362,18 @@ let chatBusy=false;
 
 function chatContextSummary(){
   // Build a compact, token-efficient summary of profiled countries.
-  const rows=Object.values(COUNTRY_DATA).map(r=>
-    `${r.country} (${r.iso3}): ${r.market_classification}, ${r.central_hub_status}; opp ${r.opportunity_score}, automation ${r.automation_rate_estimate}%, ${r.priority_tier}; ${r.dominant_order_model}`
-  );
-  return 'CONTEXT — profiled markets in the app:\n'+rows.join('\n');
+  // The category split travels with the score so the assistant can say
+  // WHY a market scores the way it does instead of just quoting a number.
+  const rows=Object.values(COUNTRY_DATA).map(r=>{
+    const bd=r.opportunity_score_breakdown||{};
+    const split=OPPORTUNITY_MODEL.map(c=>`${c.key} ${bd[c.key]??'?'}/${c.weight}`).join(', ');
+    return `${r.country} (${r.iso3}): ${r.market_classification}, ${r.central_hub_status}; opportunity ${r.opportunity_score}/100 [${split}; evidence confidence ${r.opportunity_score_confidence??0}], automation ${r.automation_rate_estimate}%, ${r.priority_tier}; ${r.dominant_order_model}`;
+  });
+  return 'CONTEXT — profiled markets in the app.\n'
+    +'Opportunity scores are calculated, not hand-set: manual operations intensity 30, market size & growth 20, '
+    +'network density & reachability 20, regulatory tailwinds 15, go-to-market feasibility 15. '
+    +'Evidence confidence (0–100) is how much of a score rests on sourced, estimated or derived indicators rather than phrase matching.\n'
+    +rows.join('\n');
 }
 
 const chatFab=document.getElementById('chatFab');

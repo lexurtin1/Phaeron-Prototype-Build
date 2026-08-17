@@ -228,6 +228,38 @@ body{
 
 .risk-box .s-title:before{background:var(--bad)}
 
+/* opportunity score breakdown */
+.score-breakdown .s-title:before{background:var(--blue)}
+.sb-conf{font-size:11.5px;line-height:1.55;color:var(--ink-2);margin-bottom:11px}
+.sb-conf span{color:var(--ink-3)}
+.sb-override{font-size:11.5px;line-height:1.55;color:var(--ink-1);background:var(--mid-s);
+  border-radius:9px;padding:9px 11px;margin-bottom:11px}
+.sb-cat{border:1px solid var(--line);border-radius:10px;margin-bottom:7px;background:var(--bg)}
+.sb-cat > summary{display:flex;align-items:center;gap:9px;padding:10px 12px;cursor:pointer;list-style:none}
+.sb-cat > summary::-webkit-details-marker{display:none}
+.sb-cat > summary:before{content:"▸";color:var(--ink-3);font-size:10px;flex:none;transition:transform .15s ease}
+.sb-cat[open] > summary:before{transform:rotate(90deg)}
+.sb-c-name{flex:1;font-size:12.5px;font-weight:700;color:var(--ink-strong)}
+.sb-c-wt{font-size:10px;font-family:var(--mono);color:var(--ink-3);flex:none}
+.sb-c-pts{font-size:14px;font-weight:700;font-family:var(--mono);flex:none;min-width:56px;text-align:right}
+.sb-c-pts small{font-size:10px;color:var(--ink-3);font-weight:600}
+.sb-body{padding:0 12px 12px}
+.sb-bar{height:4px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:9px}
+.sb-bar > i{display:block;height:100%;border-radius:3px}
+.sb-blurb{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:10px}
+.sb-part{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line-2)}
+.sb-p-name{flex:1;font-size:11.5px;color:var(--ink-1)}
+.sb-p-src{font-size:8.5px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;
+  padding:2px 6px;border-radius:20px;flex:none;font-family:var(--mono)}
+.sb-p-src.stated{background:var(--good-s);color:var(--good)}
+.sb-p-src.estimated{background:var(--teal-s);color:var(--teal)}
+.sb-p-src.derived{background:var(--blue-s);color:var(--blue)}
+.sb-p-src.inferred{background:var(--mid-s);color:var(--mid)}
+.sb-p-src.assumed{background:var(--bad-s);color:var(--bad)}
+.sb-p-val{font-size:11.5px;font-family:var(--mono);font-weight:700;color:var(--ink-2);
+  flex:none;min-width:26px;text-align:right}
+.sb-p-ev{font-size:10.5px;color:var(--ink-3);line-height:1.45;padding:0 0 3px 2px}
+
 /* flow diagram */
 .flow{margin-top:10px}
 .flow-img{width:100%;border-radius:11px;border:1px solid var(--line);display:block}

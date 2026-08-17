@@ -12,10 +12,48 @@
    VALUE-CONSTRAINED FIELDS (the colour modes/filters rely on these):
      market_classification : "Developed" | "Emerging" | "Frontier" | "Unknown"
      central_hub_status    : "Full hub" | "Partial hub" | "No central hub"
-     opportunity_score     : 0–100   (higher = more attractive)
+     opportunity_score     : CALCULATED — do not edit. The app recomputes it
+                             on every load and save from the scoring model in
+                             app.js. Anything typed here is overwritten.
      automation_rate_estimate : 0–100 (% of order flow automated)
      priority_tier         : "Tier 1" | "Tier 2" | "Tier 3" | "Watch"
      existing_network_presence : "Established" | "Emerging" | "None"
+
+   INDICATORS (optional block — this is how you move a country's score)
+     The opportunity score is built from five weighted categories:
+     manual operations intensity 30, market size & growth 20, network
+     density & reachability 20, regulatory tailwinds 15, go-to-market
+     feasibility 15. Each sub-indicator prefers a stated number here,
+     falls back to a derived structured field, then to a phrase match
+     on the text below, and finally to a neutral assumption. The drawer
+     shows which rung each indicator landed on, and the confidence
+     figure is the share of the score backed by real evidence — so
+     filling these in is the way to make a score trustworthy.
+
+     Every field is optional. OMIT anything the research does not
+     support; a guess here looks like evidence and is worse than a
+     blank. Numbers:
+       stp_rate_pct, manual_transfer_pct, legacy_instruction_pct  0–100
+       failed_trade_pct        % of trades failing or needing repair
+       fund_aum_usd_bn         domestic fund AUM, USD billions
+       registered_funds        count of funds / share classes
+       projected_cagr_pct      projected AUM CAGR (7.5% ≈ trend)
+       fund_managers, transfer_agents, distributors, platforms  counts
+     Enums (use the exact wording):
+       net_flow_trend      "Strong inflows"|"Inflows"|"Flat"|"Outflows"
+       message_standard    "ISO 20022"|"Single domestic standard"|"Mixed"
+                           |"Proprietary bilateral"|"None"
+       settlement_compression  "Mandated"|"Consultation"|"Proposed"|"None"
+       cross_border_regime "Open passporting"|"Partial"|"Restricted"|"Closed"
+       reporting_mandate   "Standardised mandate"|"Emerging"|"None"
+       regulatory_openness_rating "Very high"|"High"|"Moderate-high"
+                           |"Moderate"|"Low"|"Closed"
+       data_localisation   "None"|"Partial"|"Strict"
+       licensing_barrier   "Low"|"Moderate"|"High"|"Prohibitive"
+       local_competitor_strength "None"|"Fragmented"|"Credible"|"Dominant"
+       operating_complexity "Low"|"Moderate"|"High"
+       servicing_hub       free text — an existing hub this market can be
+                           serviced from
 
    ORDER-FLOW DIAGRAM (two options, use either or both):
      flow_image : ""  -> a URL to your own diagram image. If set, it is shown.
@@ -34,7 +72,7 @@ const COUNTRY_DATA = {
     country:"United Kingdom", iso3:"GBR", region:"Europe", subregion:"Northern Europe",
     market_classification:"Developed",
     central_hub_status:"Full hub", hub_name:"Calastone Network", operator:"Calastone",
-    opportunity_score:38, automation_rate_estimate:95,
+    opportunity_score:0, automation_rate_estimate:95,
     priority_tier:"Tier 1", existing_network_presence:"Established",
     market_aum_band:"£1.5T+ funds under routing",
     mutual_fund_relevance:"Largest retail and platform fund-flow pool in Europe.",
@@ -44,6 +82,19 @@ const COUNTRY_DATA = {
     manuality_snapshot:"~95% of order routing automated; manual processing minimal.",
     regulatory_openness:"High — FCA supportive of infrastructure modernisation.",
     risks_or_barriers:"Market saturation; volume growth limited; EMX/Euroclear contest the margin tail.",
+    // Calastone home market + EMX/Euroclear; UK Accelerated Settlement
+    // Taskforce has confirmed T+1 for 11 October 2027. Re-registration and
+    // ISA/pension transfers remain the manual tail.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:95, manual_transfer_pct:35, legacy_instruction_pct:5,
+      failed_trade_pct:1, fund_aum_usd_bn:1900, registered_funds:3500,
+      projected_cagr_pct:6, net_flow_trend:"Flat",
+      fund_managers:250, transfer_agents:25, distributors:120, platforms:30,
+      message_standard:"Mixed", settlement_compression:"Mandated",
+      cross_border_regime:"Partial", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"High", data_localisation:"None",
+      licensing_barrier:"Low", local_competitor_strength:"Credible",
+      operating_complexity:"Low", servicing_hub:"London" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor / Adviser", mode:"auto"},
@@ -59,7 +110,7 @@ const COUNTRY_DATA = {
     country:"Australia", iso3:"AUS", region:"Oceania", subregion:"Australia & NZ",
     market_classification:"Developed",
     central_hub_status:"Full hub", hub_name:"Calastone Network", operator:"Calastone",
-    opportunity_score:25, automation_rate_estimate:100,
+    opportunity_score:0, automation_rate_estimate:100,
     priority_tier:"Tier 3", existing_network_presence:"Established",
     market_aum_band:"A$3.9T+ superannuation & managed funds",
     mutual_fund_relevance:"Large managed-funds and superannuation market already covered by Calastone.",
@@ -69,6 +120,17 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Approximately 100% of the addressable market is controlled through Calastone coverage.",
     regulatory_openness:"Moderate-high — efficiency agenda politically supported.",
     risks_or_barriers:"Market is already fully covered by Calastone, leaving little incremental routing opportunity.",
+    // Calastone provides near-complete coverage; superannuation flows are
+    // already straight-through. No settlement-compression mandate in train.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:98, manual_transfer_pct:15, legacy_instruction_pct:3,
+      failed_trade_pct:0.5, fund_aum_usd_bn:2600, registered_funds:4000,
+      projected_cagr_pct:7, net_flow_trend:"Inflows",
+      message_standard:"Single domestic standard", settlement_compression:"None",
+      cross_border_regime:"Partial", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"Moderate-high", data_localisation:"None",
+      licensing_barrier:"Low", local_competitor_strength:"Dominant",
+      operating_complexity:"Low", servicing_hub:"Sydney" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -84,7 +146,7 @@ const COUNTRY_DATA = {
     country:"Brazil", iso3:"BRA", region:"Americas", subregion:"South America",
     market_classification:"Emerging",
     central_hub_status:"No central hub", hub_name:"—", operator:"Bilateral; bank-vertical infrastructure (B3 settlement)",
-    opportunity_score:83, automation_rate_estimate:35,
+    opportunity_score:0, automation_rate_estimate:35,
     priority_tier:"Tier 1", existing_network_presence:"Emerging",
     market_aum_band:"~R$10.8T (~USD 1.7T) — 4th largest fund industry globally",
     mutual_fund_relevance:"Fourth-largest fund market globally; ~34,000 funds, bank-dominated distribution.",
@@ -94,6 +156,14 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Low-moderate automation; high within bank groups, very low for cross-border and IFA flows.",
     regulatory_openness:"High — CVM 175 mandate (June 2025 deadline) actively opening the market.",
     risks_or_barriers:"Bank vertical integration suppresses demand for neutral routing; no ISO 20022 fund messaging in domestic use.",
+    // From this country's research note: R$10.8T (~USD 1.7T), ~34,000 funds,
+    // 100+ fiduciary administrators, CVM 175 standardised reporting, no domestic
+    // ISO 20022 fund messaging, fax/email/PDF and portal re-keying.
+    indicators:{ fund_aum_usd_bn:1700, registered_funds:34000, transfer_agents:100,
+      net_flow_trend:"Strong inflows", message_standard:"None",
+      cross_border_regime:"Partial", reporting_mandate:"Standardised mandate",
+      regulatory_openness_rating:"High", local_competitor_strength:"Fragmented",
+      operating_complexity:"High" },
     flow_image:"",
     flow_diagram:[
       {label:"Distributor / Bank / IFA", mode:"manual"},
@@ -109,7 +179,7 @@ const COUNTRY_DATA = {
     country:"Singapore", iso3:"SGP", region:"Asia", subregion:"South-East Asia",
     market_classification:"Developed",
     central_hub_status:"Partial hub", hub_name:"Regional gateway", operator:"Multiple; MAS-supportive infrastructure",
-    opportunity_score:74, automation_rate_estimate:70,
+    opportunity_score:0, automation_rate_estimate:70,
     priority_tier:"Tier 1", existing_network_presence:"Emerging",
     market_aum_band:"Major regional AUM gateway",
     mutual_fund_relevance:"Regional distribution and fund-domicile hub for Asian flows.",
@@ -119,6 +189,18 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~70% automated; cross-border Asian flows carry friction.",
     regulatory_openness:"Very high — MAS actively courts fintech infrastructure.",
     risks_or_barriers:"Competitive infrastructure landscape; must add value beyond MAS-backed initiatives.",
+    // Regional gateway: domestic leg is well automated, the cross-border
+    // Asian leg carries the friction. AUM figure is fund AUM, not the much
+    // larger total assets-under-management number MAS publishes.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:70, manual_transfer_pct:50, legacy_instruction_pct:25,
+      failed_trade_pct:3, fund_aum_usd_bn:1500, registered_funds:1200,
+      projected_cagr_pct:10, net_flow_trend:"Strong inflows",
+      message_standard:"Mixed", settlement_compression:"None",
+      cross_border_regime:"Partial", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"Very high", data_localisation:"None",
+      licensing_barrier:"Low", local_competitor_strength:"Credible",
+      operating_complexity:"Low", servicing_hub:"Singapore" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -134,7 +216,7 @@ const COUNTRY_DATA = {
     country:"Hong Kong", iso3:"HKG", region:"Asia", subregion:"East Asia",
     market_classification:"Developed",
     central_hub_status:"Partial hub", hub_name:"China-connect gateway", operator:"Local infrastructure + connect schemes",
-    opportunity_score:66, automation_rate_estimate:68,
+    opportunity_score:0, automation_rate_estimate:68,
     priority_tier:"Tier 2", existing_network_presence:"Emerging",
     market_aum_band:"Large distribution / Greater China gateway",
     mutual_fund_relevance:"Gateway to Greater China fund flows with a large distribution base.",
@@ -144,6 +226,17 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~68% automated across cross-border distribution.",
     regulatory_openness:"Moderate — capable but policy-sensitive.",
     risks_or_barriers:"Geopolitical sensitivity; China-policy dependence; Singapore competes for the hub role.",
+    // Greater China gateway: bank distribution plus connect schemes, with
+    // manual handling concentrated in the cross-border and mainland legs.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:68, manual_transfer_pct:55, legacy_instruction_pct:28,
+      failed_trade_pct:3, fund_aum_usd_bn:1800, registered_funds:2400,
+      projected_cagr_pct:8, net_flow_trend:"Inflows",
+      message_standard:"Mixed", settlement_compression:"None",
+      cross_border_regime:"Partial", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"Moderate", data_localisation:"Partial",
+      licensing_barrier:"Moderate", local_competitor_strength:"Credible",
+      operating_complexity:"Moderate", servicing_hub:"Hong Kong" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -159,7 +252,7 @@ const COUNTRY_DATA = {
     country:"Japan", iso3:"JPN", region:"Asia", subregion:"East Asia",
     market_classification:"Developed",
     central_hub_status:"No central hub", hub_name:"—", operator:"Fragmented domestic intermediaries",
-    opportunity_score:70, automation_rate_estimate:45,
+    opportunity_score:0, automation_rate_estimate:45,
     priority_tier:"Tier 2", existing_network_presence:"None",
     market_aum_band:"Among the largest savings pools globally",
     mutual_fund_relevance:"Very large savings pool, historically domestic and paper-heavy.",
@@ -169,6 +262,18 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~45% automated; high manual processing across intermediaries.",
     regulatory_openness:"Moderate — reform-minded but slow-moving.",
     risks_or_barriers:"Language, entrenched intermediaries, conservative procurement, long sales cycles.",
+    // No central fund hub: bank and broker channels re-key between
+    // intermediaries, and the market remains materially paper-based. NISA
+    // expansion is driving strong retail inflows into that infrastructure.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:45, manual_transfer_pct:70, legacy_instruction_pct:45,
+      failed_trade_pct:4, fund_aum_usd_bn:2400, registered_funds:6000,
+      projected_cagr_pct:8, net_flow_trend:"Strong inflows",
+      message_standard:"Proprietary bilateral", settlement_compression:"None",
+      cross_border_regime:"Restricted", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"Moderate", data_localisation:"Partial",
+      licensing_barrier:"Moderate", local_competitor_strength:"Fragmented",
+      operating_complexity:"High", servicing_hub:"Singapore" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -184,7 +289,7 @@ const COUNTRY_DATA = {
     country:"United States", iso3:"USA", region:"Americas", subregion:"North America",
     market_classification:"Developed",
     central_hub_status:"Full hub", hub_name:"Domestic clearing utility", operator:"Incumbent US clearing infrastructure",
-    opportunity_score:30, automation_rate_estimate:92,
+    opportunity_score:0, automation_rate_estimate:92,
     priority_tier:"Tier 3", existing_network_presence:"None",
     market_aum_band:"Largest fund market globally",
     mutual_fund_relevance:"World's largest fund market, operating on its own domestic clearing rails.",
@@ -194,6 +299,18 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~92% automated; little manual processing remains.",
     regulatory_openness:"Moderate — open but incumbent-protected by network effects.",
     risks_or_barriers:"Dominant domestic utility; little friction to monetise; high cost to contest.",
+    // DTCC/NSCC Fund/SERV is a universal domestic routing utility: order
+    // flow is ~98% straight-through and ACATS automates transfers. T+1 has
+    // been mandated since May 2024. Mutual funds are in net outflow to ETFs.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:98, manual_transfer_pct:10, legacy_instruction_pct:4,
+      failed_trade_pct:0.5, fund_aum_usd_bn:20000, registered_funds:7500,
+      projected_cagr_pct:7, net_flow_trend:"Outflows",
+      message_standard:"Single domestic standard", settlement_compression:"Mandated",
+      cross_border_regime:"Restricted", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"Moderate", data_localisation:"None",
+      licensing_barrier:"High", local_competitor_strength:"Dominant",
+      operating_complexity:"Low" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -209,7 +326,7 @@ const COUNTRY_DATA = {
     country:"Luxembourg", iso3:"LUX", region:"Europe", subregion:"Western Europe",
     market_classification:"Developed",
     central_hub_status:"Partial hub", hub_name:"Cross-border distribution centre", operator:"Transfer agents & global custodians",
-    opportunity_score:64, automation_rate_estimate:80,
+    opportunity_score:0, automation_rate_estimate:80,
     priority_tier:"Tier 1", existing_network_presence:"Established",
     market_aum_band:"Largest cross-border fund domicile",
     mutual_fund_relevance:"Cross-border fund-domicile centre for global UCITS distribution.",
@@ -219,6 +336,18 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~80% automated; cross-border TA flows carry some friction.",
     regulatory_openness:"High — infrastructure-friendly and distribution-oriented.",
     risks_or_barriers:"Entrenched transfer agents; relationship-led; value must be incremental over existing TA automation.",
+    // Cross-border UCITS domicile: TA-centric, high but not complete STP,
+    // with the friction concentrated in cross-border transfer and share-class
+    // handling. EU T+1 confirmed for 11 October 2027.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:85, manual_transfer_pct:40, legacy_instruction_pct:12,
+      failed_trade_pct:2, fund_aum_usd_bn:5800, registered_funds:14000,
+      projected_cagr_pct:6, net_flow_trend:"Inflows",
+      message_standard:"Mixed", settlement_compression:"Mandated",
+      cross_border_regime:"Open passporting", reporting_mandate:"Standardised mandate",
+      regulatory_openness_rating:"High", data_localisation:"None",
+      licensing_barrier:"Low", local_competitor_strength:"Credible",
+      operating_complexity:"Low", servicing_hub:"Luxembourg" },
     flow_image:"",
     flow_diagram:[
       {label:"Distributor (global)", mode:"auto"},
@@ -234,7 +363,7 @@ const COUNTRY_DATA = {
     country:"India", iso3:"IND", region:"Asia", subregion:"South Asia",
     market_classification:"Emerging",
     central_hub_status:"Partial hub", hub_name:"RTA-centric domestic model", operator:"Domestic RTAs / exchanges",
-    opportunity_score:80, automation_rate_estimate:65,
+    opportunity_score:0, automation_rate_estimate:65,
     priority_tier:"Tier 2", existing_network_presence:"None",
     market_aum_band:"₹60T+ AUM, compounding fast",
     mutual_fund_relevance:"Fastest-growing retail fund market, driven by SIP mass adoption.",
@@ -244,6 +373,19 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~65% automated domestically; cross-border largely undeveloped.",
     regulatory_openness:"Moderate — domestic-protective; GIFT City opening cross-border.",
     risks_or_barriers:"Strong domestic infrastructure, regulatory localisation, price sensitivity, foreign-entrant scrutiny.",
+    // Domestic routing runs through an RTA duopoly (CAMS, KFintech) and the
+    // exchange platforms, which is efficient but closed: cross-border is the
+    // gap. Fastest-growing fund market of the set.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:65, manual_transfer_pct:40, legacy_instruction_pct:20,
+      failed_trade_pct:2, fund_aum_usd_bn:800, registered_funds:1500,
+      projected_cagr_pct:14, net_flow_trend:"Strong inflows",
+      fund_managers:45, transfer_agents:2, distributors:150,
+      message_standard:"Single domestic standard", settlement_compression:"Mandated",
+      cross_border_regime:"Restricted", reporting_mandate:"Standardised mandate",
+      regulatory_openness_rating:"Moderate", data_localisation:"Strict",
+      licensing_barrier:"High", local_competitor_strength:"Dominant",
+      operating_complexity:"Moderate", servicing_hub:"Singapore" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor (SIP)", mode:"auto"},
@@ -259,7 +401,7 @@ const COUNTRY_DATA = {
     country:"Germany", iso3:"DEU", region:"Europe", subregion:"Western Europe",
     market_classification:"Developed",
     central_hub_status:"Partial hub", hub_name:"Custodian / platform led", operator:"Banks, custodians, platforms",
-    opportunity_score:58, automation_rate_estimate:75,
+    opportunity_score:0, automation_rate_estimate:75,
     priority_tier:"Tier 2", existing_network_presence:"Emerging",
     market_aum_band:"Major continental European AUM",
     mutual_fund_relevance:"Large continental fund market with growing retail distribution.",
@@ -269,6 +411,17 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~75% automated; friction concentrated in platform onboarding.",
     regulatory_openness:"High — EU-harmonised and infrastructure-open.",
     risks_or_barriers:"Conservative banks; fragmented relationships; incremental rather than green-field opportunity.",
+    // Bank- and custodian-led distribution; friction sits in platform
+    // onboarding and transfers rather than in the order leg. EU T+1 2027.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:75, manual_transfer_pct:45, legacy_instruction_pct:18,
+      failed_trade_pct:2.5, fund_aum_usd_bn:2900, registered_funds:6000,
+      projected_cagr_pct:6, net_flow_trend:"Inflows",
+      message_standard:"Mixed", settlement_compression:"Mandated",
+      cross_border_regime:"Open passporting", reporting_mandate:"Standardised mandate",
+      regulatory_openness_rating:"High", data_localisation:"None",
+      licensing_barrier:"Low", local_competitor_strength:"Credible",
+      operating_complexity:"Low", servicing_hub:"Luxembourg" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -284,7 +437,7 @@ const COUNTRY_DATA = {
     country:"South Africa", iso3:"ZAF", region:"Africa", subregion:"Southern Africa",
     market_classification:"Emerging",
     central_hub_status:"No central hub", hub_name:"—", operator:"Fragmented administrators",
-    opportunity_score:68, automation_rate_estimate:50,
+    opportunity_score:0, automation_rate_estimate:50,
     priority_tier:"Tier 3", existing_network_presence:"None",
     market_aum_band:"Largest African collective-investment market",
     mutual_fund_relevance:"Most developed African fund market with regional gateway potential.",
@@ -294,6 +447,17 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~50% automated; clear manual processing tail.",
     regulatory_openness:"Moderate — open but resource-constrained.",
     risks_or_barriers:"Smaller absolute volumes; currency and regulatory complexity; limited near-term ROI.",
+    // Fragmented administrator and LISP landscape with a clear manual tail;
+    // regionally the most developed African market but small in absolute AUM.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:50, manual_transfer_pct:65, legacy_instruction_pct:40,
+      failed_trade_pct:4, fund_aum_usd_bn:180, registered_funds:1800,
+      projected_cagr_pct:6, net_flow_trend:"Inflows",
+      message_standard:"Proprietary bilateral", settlement_compression:"None",
+      cross_border_regime:"Restricted", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"Moderate", data_localisation:"Partial",
+      licensing_barrier:"Moderate", local_competitor_strength:"Fragmented",
+      operating_complexity:"High", servicing_hub:"London" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -309,7 +473,7 @@ const COUNTRY_DATA = {
     country:"United Arab Emirates", iso3:"ARE", region:"Asia", subregion:"Middle East",
     market_classification:"Developed",
     central_hub_status:"Full hub", hub_name:"DIFC & ADGM (offshore)", operator:"DIFC / ADGM; Clearstream Vestima (UAE funds from Dec 2025)",
-    opportunity_score:83, automation_rate_estimate:75,
+    opportunity_score:0, automation_rate_estimate:75,
     priority_tier:"Tier 1", existing_network_presence:"Emerging",
     market_aum_band:"GCC total ~USD 2.2T; UAE the key offshore hub",
     mutual_fund_relevance:"Primary fund domicile and distribution hub for the Middle East, Africa and South Asia region.",
@@ -319,6 +483,12 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Hub-to-international automated via Vestima; domestic-to-hub layer largely manual.",
     regulatory_openness:"Very high — DFSA and FSRA actively court infrastructure; 0% corporate/income/CGT.",
     risks_or_barriers:"GCC-wide domestic routing layer missing; no confirmed Calastone DIFC anchor client.",
+    // From the note: DIFC/ADGM mature and internationally connected, Vestima
+    // covers UAE funds from Dec 2025, 0% corporate/income/CGT, GCC bridge missing.
+    indicators:{ message_standard:"Mixed", cross_border_regime:"Partial",
+      regulatory_openness_rating:"Very high", local_competitor_strength:"Credible",
+      licensing_barrier:"Low", operating_complexity:"Low", data_localisation:"None",
+      servicing_hub:"DIFC" },
     flow_image:"",
     flow_diagram:[
       {label:"International Distributor", mode:"auto"},
@@ -334,7 +504,7 @@ const COUNTRY_DATA = {
     country:"Switzerland", iso3:"CHE", region:"Europe", subregion:"Western Europe",
     market_classification:"Developed",
     central_hub_status:"Partial hub", hub_name:"Private-bank distribution", operator:"Private banks & custodians",
-    opportunity_score:52, automation_rate_estimate:78,
+    opportunity_score:0, automation_rate_estimate:78,
     priority_tier:"Tier 3", existing_network_presence:"Emerging",
     market_aum_band:"Leading private-wealth centre",
     mutual_fund_relevance:"Major private-wealth and cross-border distribution centre.",
@@ -344,6 +514,17 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Estimated ~78% automated; relatively well automated.",
     regulatory_openness:"High but discreet — open yet privacy-oriented.",
     risks_or_barriers:"Highly relationship-driven; conservative; limited open friction to capture.",
+    // Private-bank distribution: relationship-led, custodian-mediated, with
+    // a persistent manual tail in transfers. Outside the EU settlement regime.
+    indicators_basis:"estimate",
+    indicators:{ stp_rate_pct:78, manual_transfer_pct:45, legacy_instruction_pct:20,
+      failed_trade_pct:2.5, fund_aum_usd_bn:1400, registered_funds:2000,
+      projected_cagr_pct:5, net_flow_trend:"Inflows",
+      message_standard:"Mixed", settlement_compression:"Consultation",
+      cross_border_regime:"Partial", reporting_mandate:"Emerging",
+      regulatory_openness_rating:"High", data_localisation:"Partial",
+      licensing_barrier:"Moderate", local_competitor_strength:"Credible",
+      operating_complexity:"Moderate", servicing_hub:"Luxembourg" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -359,7 +540,7 @@ const COUNTRY_DATA = {
     country:"Indonesia", iso3:"IDN", region:"Asia", subregion:"South-East Asia",
     market_classification:"Emerging",
     central_hub_status:"Full hub", hub_name:"S-INVEST (domestic, mandatory)", operator:"KSEI (Indonesian Central Securities Depository)",
-    opportunity_score:63, automation_rate_estimate:80,
+    opportunity_score:0, automation_rate_estimate:80,
     priority_tier:"Tier 2", existing_network_presence:"Emerging",
     market_aum_band:"IDR 1,039T (~USD 65B), 2024; fast-growing",
     mutual_fund_relevance:"Most mature central fund order-routing infrastructure in South-East Asia.",
@@ -369,6 +550,12 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Domestic routing highly standardised via S-INVEST; offshore access remains bilateral.",
     regulatory_openness:"High — OJK active; KSEI upgrading; SPRINT/SPEK launched Dec 2025.",
     risks_or_barriers:"S-INVEST is domestic only — no cross-border routing layer; offshore access bilateral.",
+    // From the note: IDR 1,039T (~USD 65B) 2024; S-INVEST mandatory since
+    // 2016/17 with a standardised reporting module; no cross-border layer.
+    indicators:{ fund_aum_usd_bn:65, message_standard:"Single domestic standard",
+      reporting_mandate:"Standardised mandate", cross_border_regime:"Restricted",
+      local_competitor_strength:"Dominant", licensing_barrier:"Moderate",
+      servicing_hub:"Singapore" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -384,7 +571,7 @@ const COUNTRY_DATA = {
     country:"Saudi Arabia", iso3:"SAU", region:"Asia", subregion:"Middle East",
     market_classification:"Emerging",
     central_hub_status:"Partial hub", hub_name:"Edaa Connect (domestic, from Feb 2025)", operator:"Edaa (Securities Depository Center), Saudi Tadawul Group",
-    opportunity_score:87, automation_rate_estimate:45,
+    opportunity_score:0, automation_rate_estimate:45,
     priority_tier:"Tier 1", existing_network_presence:"None",
     market_aum_band:"~USD 295B (Q1 2025); ~12% CAGR; target USD 500B by 2030",
     mutual_fund_relevance:"Largest Gulf fund market; 1,549 funds; subscribers up 47% year-on-year.",
@@ -394,6 +581,13 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Early-stage hub adoption; QFI and institutional flows still bilateral and manual.",
     regulatory_openness:"Very high — CMA July 2025 digital reforms; QFI restriction removal.",
     risks_or_barriers:"Edaa Connect only launched Feb 2025; no cross-border bridge; cross-border often routed via DIFC/ADGM.",
+    // From the note: ~USD 295B Q1 2025, 12% CAGR 2015-2024, 1,549 funds,
+    // subscribers +47% YoY, Edaa Connect domestic-only since Feb 2025.
+    indicators:{ fund_aum_usd_bn:295, registered_funds:1549, projected_cagr_pct:12,
+      net_flow_trend:"Strong inflows", message_standard:"Mixed",
+      cross_border_regime:"Partial", regulatory_openness_rating:"Very high",
+      local_competitor_strength:"Credible", licensing_barrier:"Moderate",
+      operating_complexity:"Moderate", servicing_hub:"DIFC" },
     flow_image:"",
     flow_diagram:[
       {label:"Retail Investor", mode:"auto"},
@@ -409,7 +603,7 @@ const COUNTRY_DATA = {
     country:"Turkey", iso3:"TUR", region:"Europe", subregion:"Eastern Europe / Middle East",
     market_classification:"Emerging",
     central_hub_status:"Partial hub", hub_name:"TEFAS (domestic) + IFC Istanbul zone", operator:"Takasbank (TEFAS); MKK (CSD)",
-    opportunity_score:63, automation_rate_estimate:55,
+    opportunity_score:0, automation_rate_estimate:55,
     priority_tier:"Tier 2", existing_network_presence:"None",
     market_aum_band:"Small domestic fund market; IFC Istanbul early-stage",
     mutual_fund_relevance:"Small domestic fund market; strategic bet on IFC Istanbul as a new financial zone.",
@@ -419,6 +613,11 @@ const COUNTRY_DATA = {
     manuality_snapshot:"TEFAS centralises retail trading but is not a full order-routing utility; cross-border fully bilateral.",
     regulatory_openness:"Moderate-high — SPK active; government-backed wealth-fund routing project discussed.",
     risks_or_barriers:"No fund routing in IFC zone yet; no confirmed Calastone presence; small domestic AUM.",
+    // From the note: small domestic fund market, TEFAS covers domestic retail
+    // only with bilateral institutional/cross-border flow, IFC Istanbul early-stage.
+    indicators:{ message_standard:"Mixed", cross_border_regime:"Restricted",
+      regulatory_openness_rating:"Moderate", local_competitor_strength:"Credible",
+      licensing_barrier:"Moderate", operating_complexity:"High" },
     flow_image:"",
     flow_diagram:[
       {label:"Retail Investor", mode:"auto"},
@@ -434,7 +633,7 @@ const COUNTRY_DATA = {
     country:"Vietnam", iso3:"VNM", region:"Asia", subregion:"South-East Asia",
     market_classification:"Frontier",
     central_hub_status:"No central hub", hub_name:"—", operator:"Bilateral distributor-to-AMC; VSDC registers fund units only",
-    opportunity_score:63, automation_rate_estimate:35,
+    opportunity_score:0, automation_rate_estimate:35,
     priority_tier:"Tier 2", existing_network_presence:"None",
     market_aum_band:"Small but fast-growing; FTSE upgrade effective Sep 2026",
     mutual_fund_relevance:"Frontier market upgrading to Secondary Emerging (FTSE, Sep 2026); fund plumbing lags equity reform.",
@@ -444,6 +643,12 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Highly manual; no standardised messaging; no ISO 20022 fund order use domestically.",
     regulatory_openness:"Moderate — SSC active on equity reform but slower on fund-specific infrastructure.",
     risks_or_barriers:"No fund routing utility; reform focused on equities; no confirmed Vietnam domestic presence.",
+    // From the note: no fund order-routing utility, bilateral distributor-to-AMC
+    // flow, FTSE upgrade Sep 2026 unlocking ~USD 1.5B passive / up to USD 6B total.
+    indicators:{ net_flow_trend:"Strong inflows", message_standard:"None",
+      cross_border_regime:"Restricted", local_competitor_strength:"None",
+      regulatory_openness_rating:"Moderate", licensing_barrier:"Moderate",
+      operating_complexity:"High", servicing_hub:"Singapore" },
     flow_image:"",
     flow_diagram:[
       {label:"Investor", mode:"auto"},
@@ -459,7 +664,7 @@ const COUNTRY_DATA = {
     country:"China", iso3:"CHN", region:"Asia", subregion:"East Asia",
     market_classification:"Emerging",
     central_hub_status:"Partial hub", hub_name:"CSDC / ChinaClear", operator:"State-owned / CSRC-approved",
-    opportunity_score:45, automation_rate_estimate:40,
+    opportunity_score:0, automation_rate_estimate:40,
     priority_tier:"Tier 2", existing_network_presence:"Emerging",
     market_aum_band:"Very large (RMB trillions); exact AUM not stated in document",
     mutual_fund_relevance:"Large domestic mutual fund market with growing cross-border MRF and QDII flows; MRF 2.0 (Jan 2025) expands routing volumes",
@@ -469,6 +674,12 @@ const COUNTRY_DATA = {
     manuality_snapshot:"Extent of manual processing across the fund lifecycle is an open question; cross-border FX and settlement steps likely to contain manual elements",
     regulatory_openness:"Partially open but tightly managed; SAFE quotas, CSRC approvals and capital-flow controls limit foreign infrastructure access",
     risks_or_barriers:"Capital controls, regulatory posture toward foreign providers, proprietary domestic messaging standards, FX/settlement complexity, nominee vs. beneficial-owner mismatch",
+    // From the note: proprietary domestic messaging, SAFE quotas and CSRC
+    // approvals, CSDC/ChinaClear as the state settlement spine, MRF 2.0 Jan 2025.
+    indicators:{ message_standard:"Proprietary bilateral", cross_border_regime:"Restricted",
+      data_localisation:"Strict", regulatory_openness_rating:"Low",
+      local_competitor_strength:"Dominant", licensing_barrier:"High",
+      operating_complexity:"High", servicing_hub:"Hong Kong" },
     flow_image:"", flow_diagram:[
       {label:"Investor places order with distributor", mode:"mixed"},
       {label:"Distributor submits via FDEP (Northbound MRF) or CMU OmniClear (Southbound MRF)", mode:"auto"},
@@ -491,7 +702,8 @@ const COUNTRY_DATA = {
     market_classification:"Developed|Emerging|Frontier|Unknown",
     central_hub_status:"Full hub|Partial hub|No central hub",
     hub_name:"Dominant hub or —", operator:"Who runs the infrastructure",
-    opportunity_score:60, automation_rate_estimate:50,
+    opportunity_score:0,                 // calculated — leave at 0
+    automation_rate_estimate:50,
     priority_tier:"Tier 1|Tier 2|Tier 3|Watch",
     existing_network_presence:"Established|Emerging|None",
     market_aum_band:"Rough AUM size band",
@@ -502,6 +714,13 @@ const COUNTRY_DATA = {
     manuality_snapshot:"How manual/automated flows are (fact).",
     regulatory_openness:"Openness to new infrastructure (fact).",
     risks_or_barriers:"What makes entry hard (fact).",
+    indicators:{                         // optional — see the schema at the top.
+      stp_rate_pct:0,                    // Include ONLY what the research
+      fund_aum_usd_bn:0,                 // supports; delete the rest.
+      message_standard:"Mixed",
+      cross_border_regime:"Partial",
+      licensing_barrier:"Moderate"
+    },
     flow_image:"",                       // optional URL to your own diagram
     flow_diagram:[                       // OR let the app draw it:
       {label:"Investor", mode:"auto"},
