@@ -35,6 +35,7 @@ module.exports = async function handler(req, res) {
           p.existing_network_presence, p.market_aum_band, p.mutual_fund_relevance,
           p.growth_signal, p.dominant_order_model, p.current_order_channels,
           p.manuality_snapshot, p.regulatory_openness, p.risks_or_barriers,
+          p.indicators,
           p.flow_image, p.flow_diagram, p.last_updated
         FROM countries c
         LEFT JOIN country_profiles p ON p.iso3 = c.iso3

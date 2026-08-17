@@ -29,11 +29,16 @@ CREATE TABLE IF NOT EXISTS country_profiles (
   manuality_snapshot TEXT,
   regulatory_openness TEXT,
   risks_or_barriers TEXT,
+  indicators JSONB NOT NULL DEFAULT '{}'::jsonb,
   flow_image TEXT,
   flow_diagram JSONB NOT NULL DEFAULT '[]'::jsonb,
   last_updated TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Existing deployments pre-date structured opportunity-score inputs.
+ALTER TABLE country_profiles
+  ADD COLUMN IF NOT EXISTS indicators JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 CREATE TABLE IF NOT EXISTS research_notes (
   id BIGSERIAL PRIMARY KEY,

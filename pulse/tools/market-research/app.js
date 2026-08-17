@@ -1651,7 +1651,7 @@ async function callClaude(iso, currentNote, payload, isBlank, onProgress){
   const sys = isBlank ? BUILD_SYSTEM_PROMPT : EXTRACTION_SYSTEM_PROMPT;
   const instruction = isBlank
     ? `COUNTRY ISO3: ${iso}\n\nThe uploaded document follows. Build the note from it. Remember: ===FIELDS=== must include every KPI the document provides (automation_rate_estimate, priority_tier, market_aum_band, hub fields, narrative KPI lines, and the indicators block) plus a complete 4–7 stage flow_diagram. Do not return an opportunity score — the app calculates it from the indicators.`
-    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete. ALWAYS include profile_updates with every KPI the document provides (scores, AUM, hub, tiers, order model, flow_diagram) — do not only edit the markdown note.`;
+    : `COUNTRY: ${iso}\n\nCURRENT NOTE:\n${currentNote||'(empty)'}\n\nThe uploaded document follows. Extract relevant detail and propose edits. Prefer concise newContent values so the JSON stays complete. ALWAYS include profile_updates with every KPI the document provides (scoring indicators, automation, AUM, hub, tiers, order model, flow_diagram) — do not only edit the markdown note. Do not return an opportunity score — the app calculates it from the indicators.`;
 
   // Build the user content: instruction text + the document (PDF block or inline text).
   let content;
@@ -1994,7 +1994,7 @@ function openModal(proposal, iso){
         : `<div style="font-size:11.5px;color:var(--ink-2);margin:0 0 10px">Order-flow path: ${flowPreview}</div>`;
       const missingKpis = !(f.market_aum_band && f.dominant_order_model) || !normalizeIndicators(f.indicators);
       const kpiWarn = missingKpis
-        ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Structured KPIs look thin (score / AUM / order model). Check the source pack was fully read — drawer cards need the ===FIELDS=== JSON, not just the note.</div>`
+        ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ Structured KPIs look thin (indicators / AUM / order model). Check the source pack was fully read — drawer cards need the ===FIELDS=== JSON, not just the note.</div>`
         : '';
       const warn = proposal.__truncated
         ? `<div style="font-size:11.5px;color:var(--mid);background:var(--mid-s);border-radius:8px;padding:8px 10px;margin-bottom:10px">⚠ The note may be slightly cut off (long source). Review before applying.</div>` : '';
