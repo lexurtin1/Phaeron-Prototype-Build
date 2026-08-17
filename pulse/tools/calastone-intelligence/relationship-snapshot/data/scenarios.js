@@ -1,0 +1,230 @@
+/**
+ * Fictional account scenarios for the Relationship Snapshot simulation.
+ *
+ * ALL NAMES, ORGANISATIONS AND FIGURES ARE INVENTED. No real client, employee
+ * or personal data appears here or is derived from anything real.
+ *
+ * A scenario is a *profile* — it shapes what the generator produces rather than
+ * hard-coding every number, so each account stays internally coherent while
+ * remaining fully deterministic.
+ */
+
+/** Fictional staff, used for relationship managers and account teams. */
+export const STAFF = [
+  { name: 'Rowan Whitfield', title: 'Senior Relationship Manager', region: 'EMEA · London' },
+  { name: 'Priya Raghunathan', title: 'Relationship Manager', region: 'EMEA · London' },
+  { name: 'Tomas Lindqvist', title: 'Client Director', region: 'Nordics · Stockholm' },
+  { name: 'Amara Osei', title: 'Relationship Manager', region: 'EMEA · Dublin' },
+  { name: 'Callum Reyes', title: 'Client Director', region: 'APAC · Singapore' },
+  { name: 'Sofia Marchetti', title: 'Senior Relationship Manager', region: 'EMEA · Milan' },
+];
+
+export const SUPPORT_ROLES = [
+  { name: 'Dan Okonkwo', role: 'Implementation Lead' },
+  { name: 'Freya Halvorsen', role: 'Service Delivery Manager' },
+  { name: 'Mateo Guerrero', role: 'Technical Account Manager' },
+  { name: 'Ines Delacroix', role: 'Billing Analyst' },
+  { name: 'Hugo Brennan', role: 'Onboarding Specialist' },
+  { name: 'Yuki Tanabe', role: 'Solutions Consultant' },
+];
+
+export const CLIENT_CONTACTS = [
+  { name: 'Eleanor Vance', role: 'Head of Operations' },
+  { name: 'Marcus Delaney', role: 'Chief Operating Officer' },
+  { name: 'Sana Qureshi', role: 'Head of Fund Services' },
+  { name: 'Bram de Vries', role: 'Director of Technology' },
+  { name: 'Nadia Kowalski', role: 'Transfer Agency Manager' },
+  { name: 'Oliver Thorne', role: 'Head of Distribution' },
+];
+
+export const MEETING_TYPES = [
+  'Quarterly business review',
+  'Operational service call',
+  'Onboarding checkpoint',
+  'Commercial review',
+  'Technical working session',
+];
+
+export const TICKET_TITLES = [
+  'Settlement file rejected on inbound batch',
+  'Duplicate order acknowledgement received',
+  'SFTP key rotation required before expiry',
+  'Order status webhook retries exhausted',
+  'Missing ISIN mapping on new share class',
+  'Reconciliation break on end-of-day position',
+  'Latency above threshold on order submission',
+  'Client portal export returning empty file',
+  'Cut-off time misaligned for new fund range',
+  'Bulk redemption file partially processed',
+  'Dividend instruction rejected by TA',
+  'Certificate renewal pending on test endpoint',
+];
+
+export const PROJECT_NAMES = [
+  'Digital TA onboarding',
+  'Share class expansion — Luxembourg',
+  'Settlement engine upgrade',
+  'API v3 migration',
+  'Distribution network extension — APAC',
+  'Automated reconciliation rollout',
+];
+
+export const MILESTONES = [
+  'Requirements sign-off',
+  'Sandbox connectivity',
+  'End-to-end test cycle',
+  'UAT sign-off',
+  'Production cutover',
+  'Post-go-live review',
+];
+
+export const JIRA_ITEM_TITLES = [
+  'Map inbound order schema to v3 contract',
+  'Configure client SFTP endpoint',
+  'Build regression pack for settlement flow',
+  'Align cut-off windows with TA calendar',
+  'Enable dual-running reconciliation report',
+  'Document exception-handling runbook',
+  'Provision production credentials',
+  'Load-test bulk redemption path',
+];
+
+/**
+ * Named scenarios required by the brief. Anything not listed falls through to a
+ * deterministic seeded profile (see mock-repo.js → fallbackProfile).
+ *
+ * @typedef {object} ScenarioProfile
+ * @property {string} accountName
+ * @property {string} tier
+ * @property {string} segment
+ * @property {string} region
+ * @property {string} summary          short factual descriptor of the scenario
+ * @property {object} billing          {base, growth, noise, priorFactor, shock?, shockFactor?}
+ * @property {object} transactions     {base, growth, noise, priorFactor, shock?, shockFactor?}
+ * @property {object} production       {servicesLive, servicesTotal, base, growth, noise}
+ * @property {object} tickets          {open, high, oldestDays, monthlyRaised}
+ * @property {number} activeProjects
+ * @property {Record<string,{state:string, note?:string}>} sources
+ */
+
+/** @type {Record<string, ScenarioProfile>} */
+export const SCENARIOS = {
+  // ── Stable account. Everything live, gentle growth, light ticket load. ──
+  101: {
+    accountName: 'Kestrel Fund Services',
+    tier: 'Core',
+    segment: 'Transfer Agent',
+    region: 'EMEA · Dublin',
+    summary: 'Stable account across all four sources.',
+    billing: { base: 148000, growth: 1.008, noise: 0.03, priorFactor: 0.94 },
+    transactions: { base: 41200, growth: 1.006, noise: 0.035, priorFactor: 0.95 },
+    production: { servicesLive: 5, servicesTotal: 5, base: 980000, growth: 1.007, noise: 0.03 },
+    tickets: { open: 3, high: 0, oldestDays: 11, monthlyRaised: [4, 3, 5, 4, 3, 4, 3, 2] },
+    activeProjects: 1,
+    sources: {
+      salesforce: { state: 'live' },
+      billing: { state: 'live' },
+      transactions: { state: 'live' },
+      jira: { state: 'live' },
+    },
+  },
+
+  // ── Billing / transaction trend variation: a visible mid-year dip. ──
+  202: {
+    accountName: 'Halden Capital Partners',
+    tier: 'Strategic',
+    segment: 'Asset Manager',
+    region: 'Nordics · Oslo',
+    summary: 'Billing and transaction volumes vary materially through the period.',
+    billing: { base: 264000, growth: 1.021, noise: 0.11, priorFactor: 1.06, shock: 4, shockFactor: 0.62 },
+    transactions: { base: 78400, growth: 1.018, noise: 0.13, priorFactor: 1.04, shock: 4, shockFactor: 0.58 },
+    production: { servicesLive: 6, servicesTotal: 7, base: 1640000, growth: 1.015, noise: 0.09 },
+    tickets: { open: 6, high: 1, oldestDays: 29, monthlyRaised: [7, 6, 9, 12, 15, 9, 7, 6] },
+    activeProjects: 2,
+    sources: {
+      salesforce: { state: 'live' },
+      billing: { state: 'live' },
+      transactions: { state: 'live' },
+      jira: { state: 'live' },
+    },
+  },
+
+  // ── Heavy operational ticket activity. ──
+  303: {
+    accountName: 'Meridian Asset Partners',
+    tier: 'Strategic',
+    segment: 'Asset Manager',
+    region: 'EMEA · London',
+    summary: 'Elevated operational ticket volume across the period.',
+    billing: { base: 312000, growth: 1.012, noise: 0.05, priorFactor: 0.91 },
+    transactions: { base: 96500, growth: 1.011, noise: 0.06, priorFactor: 0.93 },
+    production: { servicesLive: 7, servicesTotal: 8, base: 2180000, growth: 1.01, noise: 0.05 },
+    tickets: { open: 14, high: 3, oldestDays: 47, monthlyRaised: [12, 15, 18, 22, 19, 24, 21, 17] },
+    activeProjects: 2,
+    sources: {
+      salesforce: { state: 'live' },
+      billing: { state: 'live' },
+      transactions: { state: 'live' },
+      jira: { state: 'live' },
+    },
+  },
+
+  // ── Multiple active delivery projects. ──
+  404: {
+    accountName: 'Aldergate Investment Group',
+    tier: 'Strategic',
+    segment: 'Distributor',
+    region: 'APAC · Singapore',
+    summary: 'Four concurrent delivery projects in flight.',
+    billing: { base: 198000, growth: 1.026, noise: 0.06, priorFactor: 1.18 },
+    transactions: { base: 63800, growth: 1.029, noise: 0.07, priorFactor: 1.21 },
+    production: { servicesLive: 4, servicesTotal: 9, base: 1120000, growth: 1.024, noise: 0.06 },
+    tickets: { open: 7, high: 1, oldestDays: 22, monthlyRaised: [6, 8, 9, 11, 10, 12, 11, 9] },
+    activeProjects: 4,
+    sources: {
+      salesforce: { state: 'live' },
+      billing: { state: 'live' },
+      transactions: { state: 'live' },
+      jira: { state: 'live' },
+    },
+  },
+
+  // ── Delayed / unavailable source state. ──
+  505: {
+    accountName: 'Thornbury Mutual',
+    tier: 'Core',
+    segment: 'Fund Manager',
+    region: 'EMEA · Edinburgh',
+    summary: 'Billing feed delayed; transaction warehouse unavailable.',
+    billing: { base: 121000, growth: 1.004, noise: 0.04, priorFactor: 0.98 },
+    transactions: { base: 33900, growth: 1.003, noise: 0.04, priorFactor: 0.99 },
+    production: { servicesLive: 3, servicesTotal: 4, base: 620000, growth: 1.002, noise: 0.03 },
+    tickets: { open: 5, high: 2, oldestDays: 63, monthlyRaised: [5, 4, 6, 5, 7, 6, 5, 4] },
+    activeProjects: 1,
+    sources: {
+      salesforce: { state: 'live' },
+      billing: {
+        state: 'delayed',
+        note: 'Last successful billing extract is 3 days old. The nightly run has not completed since 14 Aug 2026.',
+      },
+      transactions: {
+        state: 'unavailable',
+        note: 'Transaction warehouse did not respond. No transaction figures are available for this snapshot.',
+      },
+      jira: { state: 'live' },
+    },
+  },
+};
+
+/** Name fragments for deterministically generated accounts outside the fixtures. */
+export const FALLBACK_NAME_PARTS = {
+  first: ['Ashcroft', 'Brindley', 'Carrowmore', 'Denholm', 'Everly', 'Fairhaven',
+    'Granville', 'Hollowbrook', 'Ironvale', 'Juniper', 'Kirkwall', 'Lansdowne'],
+  second: ['Asset Management', 'Capital', 'Fund Services', 'Investment Partners',
+    'Financial Group', 'Securities', 'Wealth', 'Mutual'],
+};
+
+export const TIERS = ['Core', 'Strategic', 'Growth'];
+export const SEGMENTS = ['Asset Manager', 'Transfer Agent', 'Distributor', 'Fund Manager', 'Custodian'];
+export const REGIONS = ['EMEA · London', 'EMEA · Dublin', 'EMEA · Frankfurt',
+  'APAC · Singapore', 'APAC · Hong Kong', 'Nordics · Stockholm'];

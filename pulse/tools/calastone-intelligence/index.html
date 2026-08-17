@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+<!-- Relationship Snapshot feature styles (scoped to #view-snapshot / .rs-*) -->
+<link rel="stylesheet" href="./relationship-snapshot/snapshot.css">
+
 <style>
 :root{
   --c-teal:        #2D9A8E;
@@ -90,6 +93,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 @keyframes fadeScaleUp{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+
+/* Respect prefers-reduced-motion for the page's own entrance keyframes.
+   Content still reaches its final state — `both` fill would otherwise leave
+   elements stuck at opacity 0 if we merely disabled the animation. */
+@media (prefers-reduced-motion: reduce){
+  .nav-item,.proto-badge,.network-vis,#emptyChat h1,#emptyChat .lead,
+  .suggest-chip:nth-child(1),.suggest-chip:nth-child(2),.chip-more-btn{
+    animation:none!important;opacity:1!important;transform:none!important;
+  }
+  *,*::before,*::after{
+    animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important;
+  }
+}
 
 .nav-item{animation:slideInLeft .35s cubic-bezier(.23,1,.32,1) both}
 .nav-item:nth-child(1){animation-delay:.1s}
@@ -774,6 +791,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
       <div class="nav">
         <button class="nav-item active" data-view="chat"><i data-lucide="message-square"></i><span>Chat</span></button>
         <button class="nav-item" data-view="data"><i data-lucide="bar-chart-2"></i><span>Data Analysis</span></button>
+        <button class="nav-item" data-view="snapshot"><i data-lucide="contact-round"></i><span>Relationship Snapshot</span></button>
       </div>
       <div class="nav-divider"></div>
       <div class="recent" id="recent">
@@ -957,6 +975,31 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
         </div>
       </section>
 
+      <!-- ─── VIEW 3: RELATIONSHIP SNAPSHOT ───
+           Populated entirely by ./relationship-snapshot/index.js. The markup
+           here is only the mount shell; every block is rendered by the
+           allow-listed block registry. -->
+      <section class="view" id="view-snapshot">
+        <div class="rs-shell">
+          <div class="rs-main" id="rs-main">
+            <div class="rs-placeholder" id="rs-placeholder">
+              <h1>Relationship Snapshot</h1>
+              <p>
+                Ask for a relationship snapshot in the Chat view, including the three-digit CTN ID
+                for the entity. The dashboard assembles here from four simulated sources.
+              </p>
+              <div class="rs-placeholder-examples">
+                <button type="button" data-rs-example="Give me a relationship snapshot for CTN 303">Relationship snapshot for CTN 303</button>
+                <button type="button" data-rs-example="Show billing and transactions for CTN 202">Billing and transactions for CTN 202</button>
+                <button type="button" data-rs-example="Show operational activity for CTN 404">Operational activity for CTN 404</button>
+                <button type="button" data-rs-example="Prepare a relationship overview for CTN 505">Delayed sources — CTN 505</button>
+              </div>
+            </div>
+          </div>
+          <div class="rs-rail-host" id="rs-rail-host"></div>
+        </div>
+      </section>
+
     </main>
   </div>
 </div>
@@ -966,6 +1009,9 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<!-- ECharts powers the Relationship Snapshot charts only; Chart.js above still
+     serves the Data Analysis view. UMD build, so it lands on window.echarts. -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <script src="../../favicon-pulse.js"></script>
 <script>
 /* ───────────────────── helpers ───────────────────── */
@@ -1067,7 +1113,9 @@ $$('.nav-item').forEach(b=>b.addEventListener('click',()=>{
 
   const vKey = b.dataset.view;
   const outView = $('.view.active');
-  const inView = $('#view-'+(vKey==='chat'?'chat':'data'));
+  // Views are addressed by their data-view key so new views (e.g. snapshot)
+  // need no change here.
+  const inView = $('#view-'+vKey) || $('#view-chat');
   const isChatRoute = vKey === 'chat';
 
   if(isChatRoute){
@@ -1218,8 +1266,14 @@ function submit(){
   scrollBottom();
 
   setTimeout(()=>{
-    const r = resolve(text);
     const node = $('#'+tid);
+
+    /* Relationship Snapshot gets first refusal on the prompt. If it claims the
+       turn it owns this assistant node from here; otherwise the canned-answer
+       path below runs exactly as before. */
+    if(window.RelationshipSnapshot && window.RelationshipSnapshot.tryHandle(text, node)) return;
+
+    const r = resolve(text);
     node.querySelector('.assistant-body').innerHTML = r.html;
     if(r.sources && r.sources.length){
       node.insertAdjacentHTML('beforeend', sourceChipsHTML(r.sources));
@@ -1687,6 +1741,24 @@ document.addEventListener('keydown',e=>{
 });
 
 icons();
+
+/* Relationship Snapshot placeholder shortcuts: send the example prompt through
+   the normal chat path so the CTN gate and classifier run for real. */
+$$('[data-rs-example]').forEach(b=>b.addEventListener('click',()=>{
+  const chatNav = $('.nav-item[data-view="chat"]');
+  if(chatNav) chatNav.click();
+  setTimeout(()=>{
+    input.value = b.dataset.rsExample;
+    input.dispatchEvent(new Event('input'));
+    submit();
+  }, 220);
+}));
 </script>
+
+<!-- Relationship Snapshot feature. ES module, so it is deferred and registers
+     window.RelationshipSnapshot after the classic script above has defined
+     submit(); the hook inside submit() guards with a truthiness check for the
+     brief window before that happens. -->
+<script type="module" src="./relationship-snapshot/index.js"></script>
 </body>
 </html>

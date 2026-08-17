@@ -7,7 +7,9 @@
     "dev": "node scripts/local-pulse-server.js",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed-atlas.js",
-    "db:setup": "npm run migrate && npm run seed"
+    "db:setup": "npm run migrate && npm run seed",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "test:smoke": "node tests/smoke-snapshot.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
