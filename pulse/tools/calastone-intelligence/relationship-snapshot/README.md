@@ -5,6 +5,11 @@ relationship snapshot in the chat; Claude classifies the request and picks displ
 deterministic code gates on a valid CTN; a one-page dashboard assembles from four **simulated**
 sources.
 
+**There is no snapshot tab.** The request is recognised from the ordinary chat and answered in the
+thread: the dashboard assembles inside the assistant message that would otherwise hold a paragraph,
+and the thread column widens from 760px to 1180px to hold it. Ordinary messages keep their 760px
+measure, centred inside the wider column, so nothing already on screen moves.
+
 > **Everything on screen is simulated.** No Salesforce, billing, transaction or Jira system is
 > contacted. All names, organisations and figures are invented.
 
@@ -16,6 +21,11 @@ sources.
 npm run dev                  # http://localhost:4173
 # then open /pulse/tools/calastone-intelligence/index.html
 ```
+
+**It must be served over HTTP.** Opening `index.html` from the filesystem gets you a page that
+looks fine and silently has no snapshot feature: Chrome refuses module scripts from a `file://`
+origin (`blocked by CORS policy`), so `window.RelationshipSnapshot` never registers and every
+prompt falls through to the host's canned answers.
 
 Try: *"Give me a relationship snapshot for CTN 303"*, or *"Prepare a relationship overview"* to see
 the CTN clarification gate.
@@ -41,6 +51,9 @@ submit()  (host page, one line)
    │       Any failure falls back to classifyLocally() — the feature never dies
    │       because the model is unavailable.
    │
+   │       NOTE the model does not decide WHETHER we handle the prompt. See
+   │       "What actually claims a prompt" below.
+   │
    ├─ 2. GATE       extractCtn()  /\bCTN\s*([0-9]{3})\b/i
    │       Deterministic. NOT delegated to the model.
    │       ├─ no CTN → clarification card, pendingWorkflow stored, NOTHING fetched
@@ -53,6 +66,27 @@ submit()  (host page, one line)
    └─ 4. RENDER     blocks/registry.js → renderBlocks(order, snapshot, host)
            Allow-list only. Unknown ids are dropped and logged.
 ```
+
+### What actually claims a prompt
+
+`tryHandle` must answer the host synchronously — `submit()` needs a boolean before it can decide
+whether to run its own path — so the decision to claim a turn is made by **`classifyLocally` alone**.
+The server is consulted afterwards and can only refine focus, period, block order and title. It
+cannot claim a prompt the local classifier passed on, and it cannot veto one it took.
+
+That makes the local hint list the **ceiling** on recognition, not the floor:
+
+| Prompt | `classifyLocally` | Model (if asked) | What happens |
+|---|---|---|---|
+| `how are things going with CTN 303` | snapshot (CTN present) | snapshot | dashboard |
+| `Prepare a relationship overview` | snapshot (hint) | snapshot | clarification card |
+| `what's the picture at Meridian?` | other | snapshot | **falls through to the host** |
+| `How are we charging BlackRock?` | other | snapshot | falls through — and correctly so, the host answers this one |
+
+The last two rows are the same mechanism, and the fourth is why it exists: with no synchronous
+signal, claiming ambiguous prompts speculatively would steal answers the host already gives well.
+Widening recognition beyond the CTN means either extending the hint list or changing the host
+contract so a claim can be handed back after the server answers.
 
 ### What Claude can and cannot do
 
@@ -79,7 +113,7 @@ schemas.js         Zod contracts for both boundaries
 intent.js          CTN regex, local classifier, server classifier, the gate
 index.js           controller: conversation state, assembly sequence, host hook
 format.js          currency/count/date/age formatters
-snapshot.css       all feature CSS, scoped to #view-snapshot / .rs-*
+snapshot.css       all feature CSS, scoped to .rs-root / .rs-*
 
 data/
   seed.js          xmur3 + mulberry32 deterministic PRNG
@@ -152,23 +186,30 @@ from dates, ticket counts or status age.
 
 ## Host integration
 
-Six additive edits to `../index.html`, listed here so they are easy to find or revert:
+Five additive edits to `../index.html`, listed here so they are easy to find or revert:
 
 1. `<link>` to `relationship-snapshot/snapshot.css`
 2. `prefers-reduced-motion` block for the page's own entrance keyframes
-3. `<button class="nav-item" data-view="snapshot">` in the sidebar
-4. `<section class="view" id="view-snapshot">` mount shell
-5. ECharts UMD `<script>` tag, and `<script type="module">` for this feature
-6. Inside `submit()`:
+3. `.thread-inner.has-wide` / `.msg-wide` — the widened chat column (3 rules)
+4. ECharts UMD `<script>` tag, and `<script type="module">` for this feature
+5. Inside `submit()`:
    ```js
    if(window.RelationshipSnapshot && window.RelationshipSnapshot.tryHandle(text, node)) return;
    ```
 
-Plus one behavioural fix: the view switcher previously hardcoded two views
-(`vKey==='chat'?'chat':'data'`) and now resolves `#view-<key>`.
+Plus one suggestion chip (`data-q="Give me a relationship snapshot for CTN 303"`) so the feature is
+discoverable without a nav item, and one behavioural fix: the view switcher previously hardcoded two
+views (`vKey==='chat'?'chat':'data'`) and now resolves `#view-<key>`.
 
 If `tryHandle` returns false the host's canned-answer path runs exactly as before. Nothing in the
 Market Research module or its Claude integration is touched.
+
+### Why the widened column rather than a breakout
+
+`.thread-inner` is a centred flex column. Widening its `max-width` and re-centring ordinary messages
+at 760px inside it leaves every existing message at exactly the same screen position, and can never
+overflow the thread's scroll container. A negative-margin breakout on the snapshot message would
+have done neither.
 
 ---
 

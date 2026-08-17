@@ -169,11 +169,12 @@ async function connect(wsUrl, proc, port) {
           style.id = '__cdp_expand';
           style.textContent = \`
             html,body{height:auto!important;overflow:visible!important}
-            .app,.body-row,.main,.view,.rs-shell,.rs-main,.rs-rail-host{
+            .app,.body-row,.main,.view,.chat-cols,.chat-left,
+            .chat-thread,.thread-inner,.rs-root,.rs-main,.rs-rail-host{
               height:auto!important;max-height:none!important;
               overflow:visible!important;min-height:0!important;
             }
-            .rs-shell{align-items:flex-start!important}\`;
+            .rs-root{align-items:flex-start!important}\`;
           document.head.appendChild(style);
           await new Promise(r => setTimeout(r, 350));
           return true;`);

@@ -47,10 +47,10 @@ export function hasValidCtn(text) {
 /* ───────────────────── local classifier (offline fallback) ───────────────────── */
 
 const SNAPSHOT_HINTS = [
-  /relationship\s+(snapshot|overview|summary|review)/i,
-  /account\s+(snapshot|overview|summary)/i,
+  /relationship\s+(snapshot|overview|summary|review|picture)/i,
+  /account\s+(snapshot|overview|summary|review|picture)/i,
   /\bsnapshot\b/i,
-  /show\s+(me\s+)?(billing|transactions|operational|operations|delivery|projects)/i,
+  /show\s+(me\s+)?(the\s+)?(billing|transactions|operational|operations|delivery|projects)/i,
   /billing\s+and\s+transactions/i,
   /operational\s+activity/i,
 ];
@@ -74,16 +74,31 @@ const PERIOD_HINTS = [
  * A deterministic classifier used when the server route is unavailable, and as
  * the reference implementation the model's output is compared against in tests.
  *
+ * Two independent signals claim a prompt:
+ *
+ *   1. A valid CTN anywhere in the message. `CTN nnn` is this feature's own
+ *      identifier and nothing else in the module recognises it, so its presence
+ *      is unambiguous however the sentence around it is phrased — "how are
+ *      things going with CTN 303" needs no hint list to be understood.
+ *   2. One of the phrasings below, for requests that name no entity yet. These
+ *      lead to the clarification card, not to data.
+ *
+ * The hint list is deliberately narrow: it must not swallow prompts the host's
+ * own answers cover (e.g. "Relationship status with Legal & General").
+ *
+ * This is the CEILING on recognition, not the floor. `tryHandle` has to answer
+ * the host synchronously, so this function alone decides whether we claim a
+ * turn; the server classifier runs afterwards and only refines focus, period,
+ * block order and title. A prompt this function passes on is never shown to the
+ * model at all.
+ *
  * @param {string} text
  * @returns {import('./schemas.js').WorkflowDecision}
  */
 export function classifyLocally(text) {
-  const isSnapshot = SNAPSHOT_HINTS.some((re) => re.test(text));
+  const isSnapshot = hasValidCtn(text) || SNAPSHOT_HINTS.some((re) => re.test(text));
 
-  // A bare "CTN 303" with no other intent still reads as a snapshot request.
-  const bareCtn = !isSnapshot && hasValidCtn(text) && text.trim().length <= 24;
-
-  if (!isSnapshot && !bareCtn) {
+  if (!isSnapshot) {
     return WorkflowDecisionSchema.parse({ workflow: 'other' });
   }
 

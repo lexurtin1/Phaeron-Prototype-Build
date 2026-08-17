@@ -107,6 +107,37 @@ test('a bare CTN reads as a snapshot request', () => {
   assert.equal(classifyLocally('CTN 101').workflow, 'relationship_snapshot');
 });
 
+test('a CTN anywhere in the message claims it, however it is phrased', () => {
+  // The hint list cannot anticipate natural phrasing, but the CTN can: nothing
+  // else in the module recognises `CTN nnn`, so its presence is decisive.
+  const prompts = [
+    'how are things going with CTN 303 lately',
+    'any issues at CTN 505?',
+    'CTN 404 please',
+    'can you pull together what we know about ctn202',
+    'I have a call with CTN 101 tomorrow — what should I have in front of me',
+  ];
+  for (const prompt of prompts) {
+    assert.equal(classifyLocally(prompt).workflow, 'relationship_snapshot', prompt);
+  }
+});
+
+test('the host\'s own canned prompts are still not claimed', () => {
+  // Regression guard on broadening the classifier: these are answered by the
+  // Intelligence Module itself and must fall straight through.
+  const hostPrompts = [
+    'What stage is Digital TA at?',
+    'How are we charging BlackRock?',
+    'Relationship status with Legal & General',
+    'Thailand network presence',
+    'Who is the RM for this Goldman ISIN?',
+    'Q3 ETF pipeline weighting',
+  ];
+  for (const prompt of hostPrompts) {
+    assert.equal(classifyLocally(prompt).workflow, 'other', prompt);
+  }
+});
+
 /* ═══════════════════════ the CTN gate ═══════════════════════ */
 
 test('a snapshot request without a CTN asks for clarification and fetches nothing', () => {

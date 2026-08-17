@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- Relationship Snapshot feature styles (scoped to #view-snapshot / .rs-*) -->
+<!-- Relationship Snapshot feature styles (scoped to .rs-root / .rs-*) -->
 <link rel="stylesheet" href="./relationship-snapshot/snapshot.css">
 
 <style>
@@ -266,7 +266,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .chat-cols{flex:1;display:flex;min-height:0}
 .chat-left{flex:1 1 65%;display:flex;flex-direction:column;min-width:0;min-height:0}
 .chat-thread{flex:1;overflow-y:auto;padding:26px 30px 18px;min-height:0}
-.thread-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.thread-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px;
+  transition:max-width .34s cubic-bezier(.23,1,.32,1)}
+/* A relationship snapshot needs more room than a paragraph does. When one is in
+   the thread the column widens, and ordinary messages keep their 760px measure
+   centred inside it — so nothing already on screen shifts position. */
+.thread-inner.has-wide{max-width:1180px}
+.thread-inner.has-wide>.msg:not(.msg-wide){width:100%;max-width:760px;align-self:center}
+.msg-wide{width:100%}
 
 /* ── Empty state ── */
 .empty-chat{
@@ -791,7 +798,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
       <div class="nav">
         <button class="nav-item active" data-view="chat"><i data-lucide="message-square"></i><span>Chat</span></button>
         <button class="nav-item" data-view="data"><i data-lucide="bar-chart-2"></i><span>Data Analysis</span></button>
-        <button class="nav-item" data-view="snapshot"><i data-lucide="contact-round"></i><span>Relationship Snapshot</span></button>
       </div>
       <div class="nav-divider"></div>
       <div class="recent" id="recent">
@@ -897,6 +903,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                     <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
                     <button class="suggest-chip chip-extra" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
                     <button class="suggest-chip chip-extra" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this ISIN?</button>
+                    <button class="suggest-chip chip-extra" data-q="Give me a relationship snapshot for CTN 303"><i data-lucide="contact-round"></i>Relationship snapshot for CTN 303</button>
                   </div>
                   <button class="chip-more-btn" id="chipMoreBtn">More examples →</button>
                 </div>
@@ -975,30 +982,9 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
         </div>
       </section>
 
-      <!-- ─── VIEW 3: RELATIONSHIP SNAPSHOT ───
-           Populated entirely by ./relationship-snapshot/index.js. The markup
-           here is only the mount shell; every block is rendered by the
-           allow-listed block registry. -->
-      <section class="view" id="view-snapshot">
-        <div class="rs-shell">
-          <div class="rs-main" id="rs-main">
-            <div class="rs-placeholder" id="rs-placeholder">
-              <h1>Relationship Snapshot</h1>
-              <p>
-                Ask for a relationship snapshot in the Chat view, including the three-digit CTN ID
-                for the entity. The dashboard assembles here from four simulated sources.
-              </p>
-              <div class="rs-placeholder-examples">
-                <button type="button" data-rs-example="Give me a relationship snapshot for CTN 303">Relationship snapshot for CTN 303</button>
-                <button type="button" data-rs-example="Show billing and transactions for CTN 202">Billing and transactions for CTN 202</button>
-                <button type="button" data-rs-example="Show operational activity for CTN 404">Operational activity for CTN 404</button>
-                <button type="button" data-rs-example="Prepare a relationship overview for CTN 505">Delayed sources — CTN 505</button>
-              </div>
-            </div>
-          </div>
-          <div class="rs-rail-host" id="rs-rail-host"></div>
-        </div>
-      </section>
+      <!-- A relationship snapshot has no view of its own. It is recognised from
+           the chat and rendered inside its own assistant message by
+           ./relationship-snapshot/index.js. -->
 
     </main>
   </div>
@@ -1741,18 +1727,6 @@ document.addEventListener('keydown',e=>{
 });
 
 icons();
-
-/* Relationship Snapshot placeholder shortcuts: send the example prompt through
-   the normal chat path so the CTN gate and classifier run for real. */
-$$('[data-rs-example]').forEach(b=>b.addEventListener('click',()=>{
-  const chatNav = $('.nav-item[data-view="chat"]');
-  if(chatNav) chatNav.click();
-  setTimeout(()=>{
-    input.value = b.dataset.rsExample;
-    input.dispatchEvent(new Event('input'));
-    submit();
-  }, 220);
-}));
 </script>
 
 <!-- Relationship Snapshot feature. ES module, so it is deferred and registers

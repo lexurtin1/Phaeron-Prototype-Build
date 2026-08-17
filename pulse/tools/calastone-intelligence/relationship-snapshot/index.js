@@ -6,6 +6,10 @@
  * prompt, `tryHandle` returns false and the host's canned-answer path runs
  * exactly as before — the integration is one line and one boolean.
  *
+ * There is no snapshot view or tab. A recognised request is answered in the
+ * chat like any other: the dashboard assembles inside the assistant message
+ * that replaces the typing indicator, and the thread column widens to fit it.
+ *
  * Load order note: this is a module (deferred), so it registers after the host
  * page's classic inline script has already defined `submit()`. The host guards
  * with `window.RelationshipSnapshot?.` for the brief window before that.
@@ -38,51 +42,60 @@ let pendingWorkflow = null;
 /** Guards against two snapshots assembling at once. */
 let running = false;
 
-/* ───────────────────────── DOM plumbing ───────────────────────── */
+/* ───────────────────────── DOM plumbing ─────────────────────────
+ *
+ * The dashboard has no view of its own. It renders inside the assistant message
+ * that answered the prompt, which is why every DOM reference below is relative
+ * to a mount element rather than a page-level id.
+ */
 
-function view() {
-  return document.getElementById('view-snapshot');
-}
+/**
+ * Prepare an assistant message to hold a dashboard: clear the typing indicator
+ * and return the containers to render into, plus the widen step.
+ *
+ * @param {HTMLElement} body the message's `.assistant-body`
+ * @returns {{root: HTMLElement, main: HTMLElement, rail: HTMLElement, widen: () => void}}
+ */
+function mountInMessage(body) {
+  body.replaceChildren();
 
-function mainHost() {
-  return document.getElementById('rs-main');
-}
-
-function railHost() {
-  return document.getElementById('rs-rail-host');
-}
-
-/** Switch the Intelligence Module to the snapshot view via its own nav. */
-function showView() {
-  const btn = document.querySelector('.nav-item[data-view="snapshot"]');
-  if (btn) {
-    btn.click();
-    return;
-  }
-  // Fallback if the nav item is missing for any reason.
-  document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
-  view()?.classList.add('active');
-}
-
-/** A compact card dropped into the chat thread linking to the dashboard. */
-function threadCard(snapshot, { resumed, originalPrompt }) {
-  const node = fromHTML(`
-    <div class="rs-thread-card">
-      <div class="rs-thread-card-head">
-        <span class="rs-status-dot" aria-hidden="true"></span>
-        <span class="rs-thread-card-title">Relationship snapshot ready</span>
-      </div>
-      <p class="rs-thread-card-body">
-        ${esc(snapshot.account.name)} · ${esc(snapshot.ctnLabel)} —
-        ${esc(snapshot.sources.filter((s) => s.state === 'live').length)} of
-        ${esc(snapshot.sources.length)} sources returned data.
-      </p>
-      ${resumed ? `<p class="rs-thread-card-note">Resumed from: “${esc(originalPrompt)}”</p>` : ''}
-      <button type="button" class="rs-thread-card-btn">Open the dashboard →</button>
+  const root = fromHTML(`
+    <div class="rs-root">
+      <div class="rs-main"></div>
+      <div class="rs-rail-host"></div>
     </div>
   `);
-  node.querySelector('.rs-thread-card-btn').addEventListener('click', showView);
-  return node;
+  body.appendChild(root);
+
+  return {
+    root,
+    main: root.querySelector('.rs-main'),
+    rail: root.querySelector('.rs-rail-host'),
+
+    /**
+     * Widen the thread column for the dashboard.
+     *
+     * Deferred until there is something wide to hold: while retrieval is still
+     * running the message is just a status update and belongs at the normal
+     * measure. Ordinary messages are re-centred at 760px inside the wider
+     * column, so nothing already on screen moves — see `.thread-inner.has-wide`
+     * in the host page.
+     */
+    widen() {
+      body.closest('.msg')?.classList.add('msg-wide');
+      document.getElementById('threadInner')?.classList.add('has-wide');
+    },
+  };
+}
+
+/** Keep the newly assembled dashboard in view as it grows. */
+function keepInView(el) {
+  const thread = document.getElementById('chatThread') || el.closest('.chat-thread');
+  if (!thread) return;
+  thread.scrollTo({
+    top: thread.scrollHeight,
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+  });
 }
 
 /* ───────────────────────── assembly sequence ───────────────────────── */
@@ -141,29 +154,36 @@ async function runAssemblySequence(elements, rail) {
  *
  * @param {string} ctn
  * @param {import('./schemas.js').WorkflowDecision} decision
- * @param {{resumed?: boolean, originalPrompt?: string}} meta
+ * @param {{resumed?: boolean, originalPrompt?: string, body?: HTMLElement}} meta
+ *   `body` is the `.assistant-body` to render into. Omit it and the snapshot is
+ *   appended to the thread as a new message — the path used by `run()` from the
+ *   console and by the smoke tests.
  * @returns {Promise<import('./schemas.js').RelationshipSnapshot|null>}
  */
 async function run(ctn, decision, meta = {}) {
   if (running) return null;
   running = true;
 
-  const host = mainHost();
-  const rail = railHost();
-  if (!host) {
+  const body = meta.body || standaloneMessageBody();
+  if (!body) {
     running = false;
     return null;
   }
 
   disposeAll();
-  host.replaceChildren();
-  rail?.replaceChildren();
+  const { root, main: host, rail, widen } = mountInMessage(body);
+
+  if (meta.resumed && meta.originalPrompt) {
+    host.appendChild(fromHTML(
+      `<p class="rs-resumed">Resumed from: “${esc(meta.originalPrompt)}”</p>`,
+    ));
+  }
 
   // 1. Assembly wheel — shown only while retrieval is genuinely in flight.
   const wheel = createAssemblyWheel();
   host.appendChild(wheel.el);
   enter(wheel.el, { duration: DUR.base });
-  showView();
+  keepInView(root);
 
   let snapshot;
   try {
@@ -186,6 +206,8 @@ async function run(ctn, decision, meta = {}) {
   }
   snapshot = parsed.data;
 
+  // Retrieval succeeded, so there is now a dashboard to make room for.
+  widen();
   await pause(0.15);
 
   // 3. Render the allow-listed blocks in the resolved order.
@@ -217,9 +239,26 @@ async function run(ctn, decision, meta = {}) {
 
   await runAssemblySequence(elements, railEl);
 
-  view()?.setAttribute('data-focus', decision.focus || 'default');
+  root.setAttribute('data-focus', decision.focus || 'default');
+  keepInView(root);
   running = false;
   return snapshot;
+}
+
+/**
+ * Append a bare assistant message to the thread and return its body. Used when
+ * `run()` is called outside the chat flow — from the console, or from a test.
+ */
+function standaloneMessageBody() {
+  const thread = document.getElementById('threadInner');
+  if (!thread) return null;
+  thread.style.display = '';
+  const msg = fromHTML(
+    '<div class="msg assistant"><div class="assistant-row">'
+    + '<div class="av">C</div><div class="assistant-body"></div></div></div>',
+  );
+  thread.appendChild(msg);
+  return msg.querySelector('.assistant-body');
 }
 
 /* ───────────────────────── host integration ───────────────────────── */
@@ -289,28 +328,19 @@ async function handleAsync(text, assistantNode) {
     return;
   }
 
-  // action === 'run'
+  // action === 'run' — the dashboard replaces this message's typing indicator
+  // and assembles in place.
   pendingWorkflow = null;
-  if (body) {
-    body.replaceChildren();
-    body.appendChild(fromHTML('<p class="rs-thread-status">Assembling the relationship snapshot…</p>'));
-  }
 
   const snapshot = await run(outcome.ctn, outcome.decision, {
+    body,
     resumed: outcome.resumed,
     originalPrompt: outcome.originalPrompt,
   });
 
-  if (body) {
+  if (!snapshot && body) {
     body.replaceChildren();
-    if (snapshot) {
-      body.appendChild(threadCard(snapshot, {
-        resumed: outcome.resumed,
-        originalPrompt: outcome.originalPrompt,
-      }));
-    } else {
-      body.appendChild(errorState('The snapshot could not be assembled.'));
-    }
+    body.appendChild(errorState('The snapshot could not be assembled.'));
   }
 }
 
@@ -329,16 +359,17 @@ function submitCtn(ctn) {
 const api = {
   tryHandle,
   run,
-  showView,
   extractCtn,
   get pending() { return pendingWorkflow; },
-  /** Test/debug hook: clear conversation state. */
+  /** Test/debug hook: clear conversation state and remove rendered dashboards. */
   reset() {
     pendingWorkflow = null;
     running = false;
     disposeAll();
-    mainHost()?.replaceChildren();
-    railHost()?.replaceChildren();
+    for (const root of document.querySelectorAll('.rs-root')) {
+      root.closest('.msg')?.remove();
+    }
+    document.getElementById('threadInner')?.classList.remove('has-wide');
   },
 };
 
@@ -347,4 +378,4 @@ if (typeof window !== 'undefined') {
 }
 
 export default api;
-export { tryHandle, run, showView };
+export { tryHandle, run };

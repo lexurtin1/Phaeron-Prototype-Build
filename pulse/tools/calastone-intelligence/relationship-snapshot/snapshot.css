@@ -1,8 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════════════
    Relationship Snapshot
    ──────────────────────────────────────────────────────────────────────────
-   Every selector here is scoped to #view-snapshot or prefixed .rs- so this
-   file cannot disturb the ~700 lines of inline CSS in index.html.
+   Every selector here is scoped to .rs-root or prefixed .rs- so this file
+   cannot disturb the ~700 lines of inline CSS in index.html.
+
+   The dashboard renders inside a single assistant message in the chat thread —
+   there is no separate view. .rs-root is that message's container.
 
    Colours come from the Intelligence Module's own token block (--c-teal,
    --c-amber, --c-red …). The global pulse/design-system tokens are NOT linked:
@@ -14,74 +17,34 @@
      red        — explicit high severity / breach / unavailable / error only
    ══════════════════════════════════════════════════════════════════════════ */
 
-#view-snapshot {
-  --rs-gap: 28px;
+.rs-root {
+  --rs-gap: 24px;
   --rs-card-radius: var(--radius-lg, 11px);
-  --rs-rail-w: 320px;
-  overflow: hidden;
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Several collapsible panels here are toggled with the `hidden` attribute, and
    a later `display:flex`/`grid` rule would silently defeat it. Make `hidden`
    win everywhere inside the feature. */
-#view-snapshot [hidden] { display: none !important; }
-
-.rs-shell {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  gap: 0;
-  overflow: hidden;
-}
-
-.rs-main {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-y: auto;
-  padding: 30px 34px 80px;
-  scroll-behavior: smooth;
-}
+.rs-root [hidden] { display: none !important; }
 
 .rs-blocks {
-  max-width: 1080px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--rs-gap);
 }
 
-/* ── empty state before any snapshot has run ── */
-.rs-placeholder {
-  max-width: 560px;
-  margin: 12vh auto 0;
-  text-align: center;
-  color: var(--c-text-muted);
-}
-.rs-placeholder h1 {
-  font-size: 22px; font-weight: 700; color: var(--c-navy);
-  letter-spacing: -0.01em; margin-bottom: 10px;
-}
-.rs-placeholder p { font-size: 14px; line-height: 1.65; margin-bottom: 18px; }
-.rs-placeholder-examples {
-  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
-}
-.rs-placeholder-examples button {
-  font-size: 12.5px; font-weight: 500; color: var(--c-text);
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: var(--radius-md, 7px); padding: 8px 13px;
-  transition: border-color .15s, background .15s, transform .15s;
-}
-.rs-placeholder-examples button:hover {
-  border-color: var(--c-teal); background: var(--c-tint); transform: translateY(-1px);
-}
-
 /* ══════════════ SnapshotAssemblyWheel ══════════════ */
 
+/* Sized for a chat message, not a full-page view: the wheel has to read as one
+   step in a conversation, so it stays under ~300px tall. */
 .rs-wheel {
   display: flex; flex-direction: column; align-items: center;
-  gap: 18px; padding: 56px 0 40px; margin: 0 auto; max-width: 420px;
+  gap: 14px; padding: 12px 0 18px; margin: 0 auto; max-width: 380px;
 }
-.rs-wheel-ring { position: relative; width: 168px; height: 168px; }
+.rs-wheel-ring { position: relative; width: 132px; height: 132px; }
 .rs-wheel-ring svg { width: 100%; height: 100%; display: block; }
 .rs-wheel-track {
   fill: none; stroke: var(--c-surface-3); stroke-width: 7;
@@ -551,18 +514,27 @@
 
 /* ══════════════ Source rail ══════════════ */
 
+/* Inline in the thread the rail is not a rail — it is the last section of the
+   dashboard, so the evidence stays with the figures it backs rather than in a
+   column the reader has to scroll separately. */
 .rs-rail-host {
-  flex: 0 0 var(--rs-rail-w);
-  border-left: 1px solid var(--c-border);
+  margin-top: var(--rs-gap);
+  border-top: 1px solid var(--c-border);
+  border-radius: 0 0 var(--rs-card-radius) var(--rs-card-radius);
   background: var(--c-surface-2);
-  overflow-y: auto;
 }
-.rs-rail { padding: 24px 20px 60px; display: flex; flex-direction: column; gap: 12px; }
+/* The host exists from the moment the wheel starts; it must not draw its rule
+   and background until the cards land in it. */
+.rs-rail-host:empty { display: none; }
+.rs-rail { padding: 20px 18px 22px; display: flex; flex-direction: column; gap: 12px; }
 .rs-rail-head { margin-bottom: 4px; }
 .rs-rail-title { font-size: 12px; font-weight: 700; color: var(--c-navy);
   text-transform: uppercase; letter-spacing: .11em; }
 .rs-rail-sub { font-size: 11.5px; color: var(--c-text-faint); }
-.rs-rail-list { display: flex; flex-direction: column; gap: 11px; }
+.rs-rail-list {
+  display: grid; gap: 11px;
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+}
 .rs-rail-note { font-size: 11px; color: var(--c-text-faint); line-height: 1.55; margin-top: 6px; }
 
 .rs-src {
@@ -640,26 +612,22 @@
 }
 .rs-clarify-chip:hover { background: var(--c-tint); border-color: var(--c-teal); }
 
-/* ══════════════ Thread card ══════════════ */
+/* ══════════════ In-thread framing ══════════════ */
 
 .rs-thread-status { font-size: 13.5px; color: var(--c-text-muted); }
-.rs-thread-card {
-  border: 1px solid var(--c-border); border-radius: var(--radius-md, 7px);
-  padding: 14px 16px; background: var(--c-surface-2);
-}
-.rs-thread-card-head { display: flex; align-items: center; gap: 8px; }
-.rs-thread-card-head .rs-status-dot { background: var(--c-green); }
-.rs-thread-card-title { font-size: 13px; font-weight: 700; color: var(--c-navy); }
-.rs-thread-card-body { font-size: 12.5px; color: var(--c-text-muted); margin-top: 6px; line-height: 1.55; }
-.rs-thread-card-note { font-size: 11.5px; color: var(--c-text-faint); margin-top: 5px; font-style: italic; }
-.rs-thread-card-btn {
-  margin-top: 11px; font-size: 12px; font-weight: 600; color: #fff;
-  background: var(--c-teal); border-radius: var(--radius-md, 7px); padding: 8px 14px;
-  transition: background .15s;
-}
-.rs-thread-card-btn:hover { background: var(--c-teal-hover); }
 
-/* ══════════════ Responsive ══════════════ */
+/* The resumed-from line, shown when a snapshot answers a prompt from an earlier
+   turn that was waiting on a CTN. */
+.rs-resumed {
+  font-size: 11.5px; color: var(--c-text-faint);
+  margin-bottom: 12px; font-style: italic;
+}
+
+/* ══════════════ Responsive ══════════════
+   These thresholds are on the viewport, but the dashboard now lives in a
+   thread column that is narrower than the viewport — hence the container
+   queries below, which are what actually drive the layout. The viewport rules
+   remain as the fallback for browsers without container query support. */
 
 @media (max-width: 1240px) {
   .rs-kpi-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -667,25 +635,39 @@
 }
 
 @media (max-width: 1080px) {
-  .rs-shell { flex-direction: column; }
-  .rs-main { padding: 22px 20px 60px; }
-  /* Source rail becomes a stacked section rather than a crushed column. */
-  .rs-rail-host {
-    flex: 0 0 auto; border-left: none; border-top: 1px solid var(--c-border);
-    max-height: 46vh;
-  }
-  .rs-rail-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
   .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 
-@media (max-width: 860px) {
+.rs-root { container-type: inline-size; container-name: rs; }
+
+@container rs (max-width: 1000px) {
+  .rs-kpi-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rs-ops-charts { grid-template-columns: minmax(0, 1fr); }
+  .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+}
+
+@container rs (max-width: 720px) {
   /* KPI cards scroll horizontally rather than crushing to unreadable widths. */
   .rs-kpi-track {
     display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-    padding-bottom: 8px; margin: 0 -20px; padding-left: 20px; padding-right: 20px;
+    padding-bottom: 8px;
   }
-  .rs-kpi { flex: 0 0 232px; scroll-snap-align: start; }
-  .rs-kpi[data-expanded="true"] { flex: 0 0 min(92vw, 460px); }
+  .rs-kpi { flex: 0 0 220px; scroll-snap-align: start; }
+  .rs-kpi[data-expanded="true"] { flex: 0 0 min(90%, 440px); }
+  .rs-section { padding: 18px 16px 20px; }
+  .rs-account-name { font-size: 20px; }
+  .rs-header-main { flex-direction: column; }
+  .rs-header-status { align-items: flex-start; }
+  .rs-ops-kpis { gap: 20px; }
+}
+
+@media (max-width: 860px) {
+  .rs-kpi-track {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+  }
+  .rs-kpi { flex: 0 0 220px; scroll-snap-align: start; }
+  .rs-kpi[data-expanded="true"] { flex: 0 0 min(92vw, 440px); }
   .rs-section { padding: 18px 16px 20px; }
   .rs-account-name { font-size: 20px; }
   .rs-header-main { flex-direction: column; }
@@ -697,15 +679,14 @@
    Motion is decoration here — content always reaches its final state. */
 
 @media (prefers-reduced-motion: reduce) {
-  #view-snapshot *,
-  #view-snapshot *::before,
-  #view-snapshot *::after {
+  .rs-root *,
+  .rs-root *::before,
+  .rs-root *::after {
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .001ms !important;
     scroll-behavior: auto !important;
   }
-  .rs-main { scroll-behavior: auto; }
   .rs-source-chip { opacity: 1; }
   .rs-kpi:hover, .rs-project:hover { transform: none; }
 }
