@@ -286,7 +286,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* A relationship snapshot needs more room than a paragraph does. When one is in
    the thread the column widens, and ordinary messages keep their 760px measure
    centred inside it — so nothing already on screen shifts position. */
-.thread-inner.has-wide{max-width:1180px}
+.thread-inner.has-wide{max-width:min(1560px,100%)}
 .thread-inner.has-wide>.msg:not(.msg-wide){width:100%;max-width:760px;align-self:center}
 .msg-wide{width:100%}
 

@@ -2,13 +2,17 @@
 
 A self-contained, factual account dashboard inside the Intelligence Module. A user asks for a
 relationship snapshot in the chat; Claude classifies the request and picks display preferences;
-deterministic code gates on a valid CTN; a one-page dashboard assembles from four **simulated**
+deterministic code identifies the account; a one-screen dashboard assembles from four **simulated**
 sources.
 
 **There is no snapshot tab.** The request is recognised from the ordinary chat and answered in the
 thread: the dashboard assembles inside the assistant message that would otherwise hold a paragraph,
-and the thread column widens from 760px to 1180px to hold it. Ordinary messages keep their 760px
+and the thread column widens from 760px to 1560px to hold it. Ordinary messages keep their 760px
 measure, centred inside the wider column, so nothing already on screen moves.
+
+**It is one screen, not a page.** Above 880px of column width the seven blocks tile a fixed-height
+grid sized to the chat viewport, and the dashboard is read whole rather than scrolled. Below that
+they stack into the ordinary list.
 
 > **Everything on screen is simulated.** No Salesforce, billing, transaction or Jira system is
 > contacted. All names, organisations and figures are invented.
@@ -27,12 +31,12 @@ looks fine and silently has no snapshot feature: Chrome refuses module scripts f
 origin (`blocked by CORS policy`), so `window.RelationshipSnapshot` never registers and every
 prompt falls through to the host's canned answers.
 
-Try: *"Give me a relationship snapshot for CTN 303"*, or *"Prepare a relationship overview"* to see
-the CTN clarification gate.
+Try: *"Give me a relationship snapshot for CTN 303"*, *"how are things at Meridian?"*, or
+*"relationship snapshot for BlackRock"* to see what happens when the account does not exist.
 
 ```sh
-npm test                     # 67 unit tests, no browser needed
-npm run test:smoke -- http://localhost:4173   # 46 browser checks + screenshots
+npm test                     # 78 unit tests, no browser needed
+npm run test:smoke -- http://localhost:4173   # 58 browser checks + screenshots
 ```
 
 The smoke suite needs no Playwright install — `tests/cdp.mjs` drives whatever Chromium or Edge is
@@ -54,10 +58,12 @@ submit()  (host page, one line)
    │       NOTE the model does not decide WHETHER we handle the prompt. See
    │       "What actually claims a prompt" below.
    │
-   ├─ 2. GATE       extractCtn()  /\bCTN\s*([0-9]{3})\b/i
-   │       Deterministic. NOT delegated to the model.
-   │       ├─ no CTN → clarification card, pendingWorkflow stored, NOTHING fetched
-   │       └─ CTN    → continue
+   ├─ 2. IDENTIFY   extractCtn() → /\bCTN\s*([0-9]{3})\b/i
+   │                lookupAccount() → exact match in data/directory.js
+   │       Both deterministic. NEITHER delegated to the model.
+   │       ├─ CTN     → continue (a CTN outranks a name in the same message)
+   │       ├─ name    → continue on that account's CTN, and say so on screen
+   │       └─ neither → clarification card, pendingWorkflow stored, NOTHING fetched
    │
    ├─ 3. RETRIEVE   data/mock-repo.js → loadSnapshot(ctn, onStage)
    │       Four staged callbacks drive the assembly wheel. Validated against
@@ -66,6 +72,25 @@ submit()  (host page, one line)
    └─ 4. RENDER     blocks/registry.js → renderBlocks(order, snapshot, host)
            Allow-list only. Unknown ids are dropped and logged.
 ```
+
+### How an account is identified
+
+A dashboard headed with a company the user did not ask about is worse than no dashboard. Two things
+prevent it, and both are code:
+
+| The message says | Resolved by | What appears |
+|---|---|---|
+| `CTN 303` | the regex | the CTN 303 dashboard |
+| "Meridian", "Thornbury Mutual" | exact lookup in `data/directory.js` | that account's dashboard, above the line *Matched "meridian" to Meridian Asset Partners · CTN 303* |
+| "BlackRock", "HSBC" | nothing — the directory has no entry | *There is no account named BlackRock in this simulation*, and the five accounts listed **by name** |
+| nothing | — | the same card, without the first sentence |
+
+The directory is built from the scenario fixtures, so it cannot drift from what the repository can
+actually return. A name matches on the full name or on a distinctive word from it; shared furniture
+("Capital", "Partners", "Fund Services") matches nothing, and a name outside the directory resolves
+to nothing at all rather than to the nearest entry.
+
+Claude is still never asked to guess a CTN or to map an organisation onto one.
 
 ### What actually claims a prompt
 
@@ -79,14 +104,14 @@ That makes the local hint list the **ceiling** on recognition, not the floor:
 | Prompt | `classifyLocally` | Model (if asked) | What happens |
 |---|---|---|---|
 | `how are things going with CTN 303` | snapshot (CTN present) | snapshot | dashboard |
+| `what's the picture at Meridian?` | snapshot (directory name) | snapshot | dashboard |
 | `Prepare a relationship overview` | snapshot (hint) | snapshot | clarification card |
-| `what's the picture at Meridian?` | other | snapshot | **falls through to the host** |
 | `How are we charging BlackRock?` | other | snapshot | falls through — and correctly so, the host answers this one |
 
-The last two rows are the same mechanism, and the fourth is why it exists: with no synchronous
-signal, claiming ambiguous prompts speculatively would steal answers the host already gives well.
-Widening recognition beyond the CTN means either extending the hint list or changing the host
-contract so a claim can be handed back after the server answers.
+The last row is why the ceiling exists: with no synchronous signal, claiming ambiguous prompts
+speculatively would steal answers the host already gives well. The three signals are all things
+nothing else in the module recognises — its own identifier, its own account names, and phrasings
+narrow enough not to overlap the canned answers.
 
 ### What Claude can and cannot do
 
@@ -118,6 +143,7 @@ snapshot.css       all feature CSS, scoped to .rs-root / .rs-*
 data/
   seed.js          xmur3 + mulberry32 deterministic PRNG
   scenarios.js     fictional fixtures for CTN 101/202/303/404/505
+  directory.js     name → CTN, derived from scenarios.js
   mock-repo.js     ← THE CONNECTOR SWAP POINT
 
 blocks/
@@ -139,7 +165,12 @@ motion/
   motion.js        Motion wrapper: reduced-motion enforcement + FLIP helper
   wheel.js         SnapshotAssemblyWheel
 
-vendor/            zod + motion, committed (see vendor/README.md)
+  vendor/            zod + motion, committed (see vendor/README.md)
+
+Colour comes from the Calastone mark: a black wordmark over a blue → teal → green sweep
+(`--rs-blue` #1D7FB8 → `--rs-teal` #2D9A8E → `--rs-lime` #6BBF59). It appears as a rule along the top
+of every card and as the chart series palette. Status colours — amber for attention, red for
+severity — are deliberately **not** on that ramp, so a brand colour can never be read as a state.
 ```
 
 ### Scenarios
@@ -203,6 +234,42 @@ views (`vKey==='chat'?'chat':'data'`) and now resolves `#view-<key>`.
 
 If `tryHandle` returns false the host's canned-answer path runs exactly as before. Nothing in the
 Market Research module or its Claude integration is touched.
+
+### The one-screen layout
+
+Above 880px of column width — `FIT_MIN_WIDTH` in `config.js`, matching the `@container rs` threshold
+in `snapshot.css` — `.rs-blocks` stops being a vertical list and becomes a fixed-height grid:
+
+```
+┌───────────────────────────────────────────────┐
+│ account-header                            12  │   one bar, not four rows
+│ kpi-rail                                  12  │
+├───────────┬───────────┬───────────────────────┤
+│ billing 4 │ trans   4 │ relationship        4 │   0.85fr
+├───────────┴─────┬─────┴───────────────────────┤
+│ operations    7 │ projects                  5 │   1.15fr
+└─────────────────┴─────────────────────────────┘
+  sources: one folded strip
+```
+
+Blocks are placed by `grid-column: span N`, never by named area, so the five focus orderings in
+`config.js` still reorder them — each of the five happens to tile the twelve columns exactly.
+
+Four things make the content fit rather than merely clip:
+
+- **The tile is the boundary.** Every card is a flex column with `min-height: 0`; long lists (contacts,
+  project tiles) scroll inside their own tile. The dashboard does not scroll — a list does.
+- **Long tables fold.** The ticket table and the evidence cards render inside a disclosure, closed in
+  this layout and open in the list layout. `renderBlocks` passes `ctx.fit` so a block knows which one
+  it is in.
+- **Charts follow their box.** `charts/mount.js` observes each chart element and, under ~152px, drops
+  the in-chart title, tightens the legend and halves the gridlines — see `applyDensity`. This lives
+  in the mount layer so `buildOption()` stays pure and testable, and so the density survives a window
+  resize.
+- **Nothing is said twice.** The billing and transaction summary strips repeat their own KPI cards
+  word for word, and each KPI card's "refreshed" line repeats the header's; both are hidden here.
+
+Below 880px none of this applies and the original stacked list renders unchanged.
 
 ### Why the widened column rather than a breakout
 

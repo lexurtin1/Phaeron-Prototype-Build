@@ -78,6 +78,7 @@ const page = await launch({ headless: true });
 
 try {
   console.log(`\nLoading ${URL}\n`);
+  await page.setViewport(1600, 1000);
   await page.goto(URL, { waitMs: 1200 });
 
   /* ─── 1. Feature registers ─── */
@@ -151,6 +152,29 @@ try {
   await page.eval(settle);
   await page.screenshot(path.join(SHOTS, '02-dashboard-303.png'), { fullPage: true, expandScrollers: true });
 
+  /* ─── 2b. One screen ─── */
+  console.log('\n[One screen]');
+  const fit = await page.eval(`
+    const root = document.querySelector('.rs-root');
+    const thread = document.getElementById('chatThread');
+    return {
+      mode: root.dataset.fit || 'list',
+      rootH: Math.round(root.getBoundingClientRect().height),
+      threadH: thread.clientHeight,
+      overflowX: thread.scrollWidth - thread.clientWidth,
+      railFolded: document.querySelector('.rs-rail-body')?.hidden === true,
+      rows: [...root.querySelectorAll('.rs-blocks > [data-block]')]
+        .map(e => Math.round(e.getBoundingClientRect().top)),
+    };`);
+  check('dashboard tiles into the one-screen layout', fit.mode === 'on', fit.mode);
+  check('dashboard fits the thread viewport without scrolling',
+    fit.rootH <= fit.threadH + 2, `${fit.rootH}px in ${fit.threadH}px`);
+  check('no horizontal scroll from the tiled layout', fit.overflowX === 0, `${fit.overflowX}px`);
+  check('evidence rail starts folded in the one-screen layout', fit.railFolded);
+  // Four grid rows: the header, the KPI rail, and two rows of tiles.
+  check('blocks tile into four rows', new Set(fit.rows).size === 4,
+    `${new Set(fit.rows).size} rows`);
+
   /* ─── 3. KPI expansion exclusivity ─── */
   console.log('\n[KPI expansion]');
   await page.eval('document.querySelector(\'.rs-kpi[data-kpi="billing"] .rs-kpi-head\').click(); return 1;');
@@ -177,10 +201,16 @@ try {
   check('clarification card shown',
     await page.eval(waitFor('document.querySelector(".rs-clarify")', 8000)));
 
-  const clarifyText = await page.eval('return document.querySelector(".rs-clarify-body")?.textContent?.trim();');
+  const clarifyText = await page.eval(`return document.querySelector(".rs-clarify-body")
+    ?.textContent?.replace(/\\s+/g, ' ').trim();`);
   check('clarification wording exact',
-    clarifyText === 'Please provide the three-digit CTN ID for the specific entity, for example CTN 303.',
+    clarifyText === 'Which account? Give the three-digit CTN ID — for example CTN 303 — or pick one below.',
     clarifyText);
+  // Five bare codes told a user who knows the account by name nothing at all.
+  const chipText = await page.eval(`return document.querySelector('.rs-clarify-chip')
+    ?.textContent?.replace(/\\s+/g, ' ').trim();`);
+  check('clarification chips name the account, not just the code',
+    chipText === 'CTN 101 Kestrel Fund Services', chipText);
 
   check('no dashboard rendered before CTN',
     await page.eval('return !document.querySelector(".rs-main .rs-header");'));
@@ -203,6 +233,35 @@ try {
     await page.eval(`return document.querySelector('.rs-resumed')?.textContent
       ?.includes('Prepare a relationship overview') === true;`));
   check('pending cleared', await page.eval('return window.RelationshipSnapshot.pending === null;'));
+
+  /* ─── 5b. An organisation the simulation does not hold ─── */
+  console.log('\n[Unrecognised organisation]');
+  await page.eval(resetToChat);
+  await page.eval(ask('relationship snapshot for blackrock'));
+  check('clarification shown for an organisation we do not hold',
+    await page.eval(waitFor('document.querySelector(".rs-clarify")', 10000)));
+  const unknownText = await page.eval(`return document.querySelector('.rs-clarify-body')
+    ?.textContent?.replace(/\\s+/g, ' ').trim();`);
+  // The whole point of the card: a user must never be shown a dashboard headed
+  // with a different company without being told which name was not recognised.
+  check('the card names the organisation it does not have',
+    unknownText?.includes('blackrock') === true, unknownText);
+  check('nothing retrieved for an unrecognised organisation',
+    await page.eval('return !document.querySelector(".rs-main .rs-header");'));
+
+  /* ─── 5c. An account named rather than numbered ─── */
+  console.log('\n[Account named, not numbered]');
+  await page.eval(resetToChat);
+  await page.eval(ask('give me a relationship snapshot for Meridian'));
+  check('a name in the directory resolves to its CTN',
+    await page.eval(waitForAccount('Meridian Asset Partners', 15000)));
+  check('no clarification asked for a name we do hold',
+    await page.eval('return !document.querySelector(".rs-clarify");'));
+  const matchLine = await page.eval(`return document.querySelector('.rs-resumed')
+    ?.textContent?.replace(/\\s+/g, ' ').trim();`);
+  check('the match is stated above the dashboard',
+    matchLine?.includes('meridian') === true && matchLine?.includes('CTN 303') === true,
+    matchLine);
 
   /* ─── 6. Degraded sources: CTN 505 ─── */
   console.log('\n[CTN 505 — degraded sources]');

@@ -8,7 +8,7 @@
  * `buildOption()` is pure (no ECharts import) so it is unit-testable in Node.
  */
 
-import { PALETTE, axisCompact } from './theme.js';
+import { PALETTE, axisCompact, rampGradient } from './theme.js';
 import { formatCurrency } from '../format.js';
 import { mountChart } from './mount.js';
 
@@ -56,8 +56,8 @@ export function buildOption(billing, opts = {}) {
         data: current,
         smooth: true,
         showSymbol: false,
-        lineStyle: { width: 2.4, color: PALETTE.teal },
-        itemStyle: { color: PALETTE.teal },
+        lineStyle: { width: 2.6, color: rampGradient() },
+        itemStyle: { color: PALETTE.brandTeal },
         areaStyle: {
           color: {
             type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
@@ -97,7 +97,7 @@ export function buildSparklineOption(billing) {
       data: billing.monthly,
       smooth: true,
       showSymbol: false,
-      lineStyle: { width: 2, color: PALETTE.teal },
+      lineStyle: { width: 2, color: rampGradient() },
       areaStyle: {
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,

@@ -68,6 +68,42 @@ export function avatar(name, initialsText, { size = 32 } = {}) {
     role="img" aria-label="${esc(name)}">${esc(initialsText)}</span>`;
 }
 
+/**
+ * A disclosure: a labelled toggle over content that starts open or folded.
+ *
+ * Used wherever a tile holds something long — a ticket table, evidence cards —
+ * that must stay reachable but must not be allowed to set the tile's height.
+ *
+ * @param {string} label
+ * @param {Element} content
+ * @param {{open?: boolean, id?: string}} [opts]
+ */
+export function drawer(label, content, opts = {}) {
+  const open = opts.open !== false;
+  const id = opts.id || `rs-drawer-${Math.random().toString(36).slice(2, 9)}`;
+
+  const node = fromHTML(`
+    <div class="rs-drawer">
+      <button type="button" class="rs-drawer-toggle" aria-expanded="${open}" aria-controls="${esc(id)}">
+        <span class="rs-drawer-label">${esc(label)}</span>
+        <span class="rs-kpi-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="rs-drawer-body" id="${esc(id)}"${open ? '' : ' hidden'}></div>
+    </div>`);
+
+  const drawerBody = node.querySelector('.rs-drawer-body');
+  drawerBody.appendChild(content);
+
+  node.querySelector('.rs-drawer-toggle').addEventListener('click', (event) => {
+    const toggle = event.currentTarget;
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+    drawerBody.hidden = isOpen;
+  });
+
+  return node;
+}
+
 /** A status pill. `tone` is one of: neutral, live, attention, severe. */
 export function pill(text, tone = 'neutral') {
   return `<span class="rs-pill rs-pill-${esc(tone)}">${esc(text)}</span>`;

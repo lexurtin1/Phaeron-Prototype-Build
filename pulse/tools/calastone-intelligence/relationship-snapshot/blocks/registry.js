@@ -27,7 +27,7 @@ export const BLOCKS = Object.freeze({
   relationship: (snapshot) => relationshipCard.render(snapshot),
   'billing-revenue': (snapshot, ctx) => renderBillingSection(snapshot, ctx),
   transactions: (snapshot, ctx) => renderTransactionsSection(snapshot, ctx),
-  operations: (snapshot) => operationsPanel.render(snapshot),
+  operations: (snapshot, ctx) => operationsPanel.render(snapshot, { fit: ctx?.fit }),
   projects: (snapshot) => projectTiles.render(snapshot),
 });
 
@@ -78,7 +78,7 @@ export function resolveOrder(requested, opts = {}) {
  * @param {string[]} order
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
  * @param {HTMLElement} host
- * @param {{title?: string|null, period?: string}} [ctx]
+ * @param {{title?: string|null, period?: string, fit?: boolean}} [ctx]
  * @returns {{elements: Element[], dropped: string[]}}
  */
 export function renderBlocks(order, snapshot, host, ctx = {}) {

@@ -8,7 +8,7 @@
  */
 
 import { esc, formatCount, formatDate, formatAge, formatRelative, humanise } from '../format.js';
-import { fromHTML, section, body } from './dom.js';
+import { fromHTML, section, body, drawer } from './dom.js';
 import { unavailableBlock, emptyState } from './states.js';
 import { mountSeverity, mountRaisedResolved, SEVERITY_TITLE } from '../charts/operations.js';
 
@@ -16,8 +16,10 @@ const COLLAPSED_ROWS = 6;
 
 /**
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
+ * @param {{fit?: boolean}} [opts] fit: the tile has one screen-row of height,
+ *   so the ticket table folds away rather than squeezing the charts to nothing.
  */
-export function render(snapshot) {
+export function render(snapshot, opts = {}) {
   const t = snapshot.tickets;
   const sec = section('operations', 'Operations', { subtitle: 'Jira (simulated)' });
   const host = body(sec);
@@ -49,17 +51,20 @@ export function render(snapshot) {
     <div class="rs-ops-charts">
       <div class="rs-chart-card">
         <h3 class="rs-chart-title">${esc(SEVERITY_TITLE)}</h3>
-        <div class="rs-chart" data-chart="severity" style="height:240px"></div>
+        <div class="rs-chart" data-chart="severity" style="--rs-chart-h:240px"></div>
       </div>
       <div class="rs-chart-card">
         <h3 class="rs-chart-title">Tickets raised and resolved by month</h3>
-        <div class="rs-chart" data-chart="raised-resolved" style="height:260px"></div>
+        <div class="rs-chart" data-chart="raised-resolved" style="--rs-chart-h:260px"></div>
       </div>
     </div>
   `);
   host.appendChild(charts);
 
-  host.appendChild(ticketTable(t));
+  const table = ticketTable(t);
+  host.appendChild(opts.fit
+    ? drawer(`Ticket detail · ${t.items.length} tickets`, table, { open: false })
+    : table);
 
   sec.__mount = () => {
     const sev = charts.querySelector('[data-chart="severity"]');

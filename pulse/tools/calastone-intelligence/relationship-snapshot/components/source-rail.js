@@ -1,9 +1,14 @@
 /**
  * SourceStatusRail — the evidence surface.
  *
- * Right-hand rail on desktop; collapses to an accessible disclosure section on
- * narrow viewports. Each card states the source, its state, its last successful
- * refresh, how many records fed the snapshot, and an evidence identifier.
+ * A strip along the foot of the dashboard. Each card states the source, its
+ * state, its last successful refresh, how many records fed the snapshot, and an
+ * evidence identifier.
+ *
+ * The cards fold away behind a disclosure. In the one-screen layout they start
+ * folded: the account header already shows all four sources and their states,
+ * so what the cards add is the evidence behind them — worth one click, not
+ * worth a fifth of the dashboard.
  *
  * Delayed and unavailable states say *why*, quoting the mock source's own note,
  * and stop there — no commentary, no assessment of impact.
@@ -17,24 +22,48 @@ import { animate, stagger, DUR } from '../motion/motion.js';
 /**
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
  */
-export function render(snapshot) {
+/**
+ * @param {import('../schemas.js').RelationshipSnapshot} snapshot
+ * @param {{collapsed?: boolean}} [opts] start folded — used by the one-screen layout
+ */
+export function render(snapshot, opts = {}) {
   const sources = snapshot.sources;
+  const collapsed = Boolean(opts.collapsed);
+  const live = sources.filter((s) => s.state === 'live').length;
+
   const rail = fromHTML(`
     <aside class="rs-rail" aria-labelledby="rs-rail-title">
       <div class="rs-rail-head">
         <h2 class="rs-rail-title" id="rs-rail-title">Sources</h2>
-        <span class="rs-rail-sub">Evidence for every figure shown</span>
+        <span class="rs-rail-sub">Evidence for every figure shown · ${live} of ${sources.length} live</span>
+        <button type="button" class="rs-rail-toggle" aria-controls="rs-rail-body"
+                aria-expanded="${collapsed ? 'false' : 'true'}">
+          ${collapsed ? 'Show evidence' : 'Hide evidence'}
+          <span class="rs-kpi-chevron" aria-hidden="true"></span>
+        </button>
       </div>
-      <div class="rs-rail-list"></div>
-      <p class="rs-rail-note">
-        All four sources are simulated for this prototype. Evidence references are generated
-        placeholders and do not resolve to a real record.
-      </p>
+      <div class="rs-rail-body" id="rs-rail-body"${collapsed ? ' hidden' : ''}>
+        <div class="rs-rail-list"></div>
+        <p class="rs-rail-note">
+          All four sources are simulated for this prototype. Evidence references are generated
+          placeholders and do not resolve to a real record.
+        </p>
+      </div>
     </aside>
   `);
 
   const list = rail.querySelector('.rs-rail-list');
   for (const s of sources) list.appendChild(card(s));
+
+  const toggle = rail.querySelector('.rs-rail-toggle');
+  const railBody = rail.querySelector('.rs-rail-body');
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    railBody.hidden = open;
+    toggle.firstChild.textContent = open ? 'Show evidence ' : 'Hide evidence ';
+  });
+
   return rail;
 }
 

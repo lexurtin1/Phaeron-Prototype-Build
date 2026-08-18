@@ -44,7 +44,7 @@ export function render(snapshot) {
     timelineEl = fromHTML(`
       <div class="rs-chart-card rs-timeline-card">
         <h3 class="rs-chart-title">Project timeline</h3>
-        <div class="rs-chart" data-chart="timeline" style="height:${Math.max(140, projects.length * 46)}px"></div>
+        <div class="rs-chart" data-chart="timeline" style="--rs-chart-h:${Math.max(140, projects.length * 46)}px"></div>
       </div>`);
     host.appendChild(timelineEl);
   }

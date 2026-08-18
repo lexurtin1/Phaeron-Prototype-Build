@@ -6,7 +6,7 @@
  * can't be mistaken for a value in currency.
  */
 
-import { PALETTE, axisCompact } from './theme.js';
+import { PALETTE, axisCompact, rampGradient } from './theme.js';
 import { formatCount } from '../format.js';
 import { mountChart } from './mount.js';
 
@@ -48,7 +48,10 @@ export function buildOption(tx, opts = {}) {
         type: 'bar',
         data: current,
         barMaxWidth: 26,
-        itemStyle: { color: PALETTE.teal, borderRadius: [3, 3, 0, 0] },
+        itemStyle: {
+          color: rampGradient({ vertical: true, from: PALETTE.brandBlue, to: PALETTE.brandGreen }),
+          borderRadius: [3, 3, 0, 0],
+        },
       },
       ...(hasPrior ? [{
         name: 'Prior year',
@@ -83,7 +86,10 @@ export function buildCategoryOption(tx) {
       type: 'bar',
       data: tx.categories.map((c) => c.value),
       barMaxWidth: 16,
-      itemStyle: { color: PALETTE.teal, borderRadius: [0, 3, 3, 0] },
+      itemStyle: {
+        color: rampGradient({ from: PALETTE.brandBlue, to: PALETTE.brandGreen }),
+        borderRadius: [0, 3, 3, 0],
+      },
     }],
   };
 }
@@ -99,7 +105,10 @@ export function buildSparklineOption(tx) {
       type: 'bar',
       data: tx.monthly,
       barMaxWidth: 8,
-      itemStyle: { color: PALETTE.teal, borderRadius: [2, 2, 0, 0] },
+      itemStyle: {
+        color: rampGradient({ vertical: true, from: PALETTE.brandBlue, to: PALETTE.brandGreen }),
+        borderRadius: [2, 2, 0, 0],
+      },
     }],
   };
 }

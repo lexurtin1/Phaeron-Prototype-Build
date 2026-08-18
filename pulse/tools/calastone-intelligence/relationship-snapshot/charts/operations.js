@@ -111,14 +111,14 @@ export function buildRaisedResolvedOption(tickets) {
         data: tickets.monthly.map((m) => m.raised),
         barMaxWidth: 14,
         barGap: '18%',
-        itemStyle: { color: PALETTE.amber, borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: PALETTE.brandBlue, borderRadius: [3, 3, 0, 0] },
       },
       {
         name: 'Resolved',
         type: 'bar',
         data: tickets.monthly.map((m) => m.resolved),
         barMaxWidth: 14,
-        itemStyle: { color: PALETTE.teal, borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: PALETTE.brandGreen, borderRadius: [3, 3, 0, 0] },
       },
     ],
   };

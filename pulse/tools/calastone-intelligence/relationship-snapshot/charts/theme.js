@@ -6,14 +6,26 @@
  * the default font stack are all replaced.
  *
  * Colour discipline (matches the Intelligence Module's token block):
- *   teal   — primary data series
- *   grey   — muted dashed comparison series
- *   blue   — neutral benchmark / informational only
- *   amber  — explicit attention state only
- *   red    — explicit high severity / breach / error only
+ *   brand ramp — data series, in ramp order. The Calastone mark is a black
+ *                wordmark over a blue → teal → green sweep, and these are that
+ *                sweep: blue #1D7FB8, teal #2D9A8E, green #35B57E, lime #6BBF59.
+ *   grey       — muted dashed comparison series
+ *   amber      — explicit attention state only
+ *   red        — explicit high severity / breach / error only
+ *
+ * Status colours are deliberately NOT on the ramp. A brand colour must never be
+ * readable as a state, or a green bar starts meaning "good" instead of "this
+ * many".
  */
 
 export const PALETTE = {
+  /* the brand ramp, blue → green */
+  brandBlue: '#1D7FB8',
+  brandTeal: '#2D9A8E',
+  brandGreen: '#35B57E',
+  brandLime: '#6BBF59',
+  brandDeep: '#1C4D6A',
+
   teal: '#2D9A8E',
   tealBright: '#2ECBB1',
   tealSoft: 'rgba(45,154,142,0.14)',
@@ -48,8 +60,33 @@ const FONT = "'Inter','Arial',-apple-system,BlinkMacSystemFont,sans-serif";
 
 export const THEME_NAME = 'calastone';
 
+/**
+ * An ECharts linear-gradient along the brand ramp.
+ *
+ * @param {{vertical?: boolean, from?: string, to?: string, alpha?: number}} [opts]
+ */
+export function rampGradient(opts = {}) {
+  const from = opts.from || PALETTE.brandBlue;
+  const to = opts.to || PALETTE.brandLime;
+  const vertical = Boolean(opts.vertical);
+  return {
+    type: 'linear',
+    x: 0, y: 0,
+    x2: vertical ? 0 : 1,
+    y2: vertical ? 1 : 0,
+    colorStops: [
+      { offset: 0, color: from },
+      { offset: 0.52, color: PALETTE.brandTeal },
+      { offset: 1, color: to },
+    ],
+  };
+}
+
 const THEME = {
-  color: [PALETTE.teal, PALETTE.blue, PALETTE.green, PALETTE.amber, PALETTE.grey],
+  color: [
+    PALETTE.brandTeal, PALETTE.brandBlue, PALETTE.brandGreen,
+    PALETTE.brandLime, PALETTE.brandDeep,
+  ],
   backgroundColor: 'transparent',
   textStyle: { fontFamily: FONT, color: PALETTE.muted, fontSize: 12 },
 

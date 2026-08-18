@@ -18,6 +18,20 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 .rs-root {
+  /* ── Calastone brand ramp ──
+     The wordmark is black; the signature is the blue → teal → green sweep that
+     runs under it. These five stops are that sweep, and they are the only
+     decorative colours in the feature. Status colours (amber, red) are NOT on
+     this ramp and never borrow from it — a brand colour must never be mistaken
+     for a state. */
+  --rs-blue:       #1D7FB8;
+  --rs-blue-deep:  #1C4D6A;
+  --rs-teal:       #2D9A8E;
+  --rs-green:      #35B57E;
+  --rs-lime:       #6BBF59;
+  --rs-ramp:       linear-gradient(90deg, var(--rs-blue) 0%, var(--rs-teal) 52%, var(--rs-lime) 100%);
+  --rs-ramp-soft:  linear-gradient(90deg, rgba(29,127,184,.10) 0%, rgba(45,154,142,.10) 52%, rgba(107,191,89,.10) 100%);
+
   --rs-gap: 24px;
   --rs-card-radius: var(--radius-lg, 11px);
   display: block;
@@ -317,7 +331,7 @@
   background: var(--c-surface);
   min-width: 0;
 }
-.rs-chart { width: 100%; min-width: 0; }
+.rs-chart { width: 100%; min-width: 0; height: var(--rs-chart-h, 260px); }
 .rs-chart-title {
   font-size: 12.5px; font-weight: 700; color: var(--c-navy); margin-bottom: 10px;
 }
@@ -527,7 +541,18 @@
    and background until the cards land in it. */
 .rs-rail-host:empty { display: none; }
 .rs-rail { padding: 20px 18px 22px; display: flex; flex-direction: column; gap: 12px; }
-.rs-rail-head { margin-bottom: 4px; }
+.rs-rail-head {
+  margin-bottom: 4px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.rs-rail-toggle {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: 0; cursor: pointer; padding: 2px 0;
+  font: inherit; font-size: 11.5px; font-weight: 600; color: var(--c-teal);
+}
+.rs-rail-toggle:hover { color: var(--c-teal-hover); }
+.rs-rail-toggle .rs-kpi-chevron { transform: rotate(45deg); transition: transform .18s ease; }
+.rs-rail-toggle[aria-expanded="true"] .rs-kpi-chevron { transform: rotate(-135deg); }
+.rs-rail-body { display: flex; flex-direction: column; gap: 12px; }
 .rs-rail-title { font-size: 12px; font-weight: 700; color: var(--c-navy);
   text-transform: uppercase; letter-spacing: .11em; }
 .rs-rail-sub { font-size: 11.5px; color: var(--c-text-faint); }
@@ -623,6 +648,235 @@
   margin-bottom: 12px; font-style: italic;
 }
 
+/* ══════════════ Brand ══════════════
+   The Calastone signature is the black wordmark over a blue → teal → green
+   sweep. It appears here as a rule, never as a fill behind text, so it can
+   never compete with a figure for attention. */
+
+.rs-header, .rs-section, .rs-rail {
+  position: relative;
+  overflow: hidden;                 /* keeps the rule inside the rounded corner */
+}
+.rs-header::before, .rs-section::before, .rs-rail::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: var(--rs-ramp);
+}
+/* The header carries the full-strength rule; the cards under it a quieter one,
+   so the eye still lands on the account name first. */
+.rs-section::before, .rs-rail::before { opacity: .45; }
+
+.rs-wheel-progress { stroke: var(--rs-teal); }
+.rs-account-name   { color: var(--c-ink); }   /* the wordmark is black */
+
+/* ══════════════ One-screen layout ══════════════
+   The dashboard is a dashboard: it is meant to be taken in at a glance, not
+   scrolled like a document. Above ~880px of column width the blocks stop being
+   a vertical list and tile a fixed-height grid instead.
+
+   Placement is by span, not by named area, so the focus orderings in config.js
+   still reorder the blocks — each of the five orderings tiles the 12 columns
+   exactly.
+
+     ┌───────────────────────────────────────────────┐
+     │ account-header                            12  │
+     │ kpi-rail                                  12  │
+     ├───────────┬───────────┬───────────────────────┤
+     │ billing 4 │ trans   4 │ relationship        4 │
+     ├───────────┴─────┬─────┴───────────────────────┤
+     │ operations    7 │ projects                  5 │
+     └─────────────────┴─────────────────────────────┘
+
+   The header is a single bar in this mode, not a card with four stacked rows:
+   identity, status, source chips and the simulated-data line all sit on one
+   line and wrap only if they must. Stacked, they cost the charts below them
+   about eighty pixels, which is the difference between a chart and a smear.
+
+   Long lists inside a tile (tickets, contacts, project items) scroll within
+   that tile. That is the one concession: the dashboard does not scroll — a
+   list does. */
+
+@container rs (min-width: 880px) {
+
+  .rs-root[data-fit="on"] {
+    /* 214px is the chrome above and below the thread: topbar, composer and the
+       thread's own padding. The floor is not negotiable — below about 790px the
+       tiles have more chrome than content and the charts stop being charts, so
+       on a short window the thread scrolls the last few dozen pixels rather
+       than the dashboard shrinking into illegibility. */
+    --rs-fit-h: clamp(790px, calc(100vh - 214px), 1000px);
+    display: flex; flex-direction: column; gap: 12px;
+    height: var(--rs-fit-h);
+  }
+  .rs-root[data-fit="on"] .rs-main {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .rs-root[data-fit="on"] .rs-resumed { margin-bottom: 0; font-size: 11px; }
+  .rs-root[data-fit="on"] .rs-blocks {
+    flex: 1 1 auto; min-height: 0;
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto minmax(0, 0.85fr) minmax(0, 1.15fr);
+  }
+
+  .rs-root[data-fit="on"] [data-block="account-header"],
+  .rs-root[data-fit="on"] [data-block="kpi-rail"]       { grid-column: span 12; }
+  .rs-root[data-fit="on"] [data-block="billing-revenue"],
+  .rs-root[data-fit="on"] [data-block="transactions"],
+  .rs-root[data-fit="on"] [data-block="relationship"]   { grid-column: span 4; }
+  .rs-root[data-fit="on"] [data-block="operations"]     { grid-column: span 7; }
+  .rs-root[data-fit="on"] [data-block="projects"]       { grid-column: span 5; }
+
+  /* ── cards become flex columns that cannot outgrow their cell ── */
+  .rs-root[data-fit="on"] .rs-header,
+  .rs-root[data-fit="on"] .rs-section {
+    min-height: 0; display: flex; flex-direction: column; padding: 11px 13px 12px;
+  }
+  /* Title and subtitle share one line — the subtitle is source attribution,
+     not a second heading, and stacking it cost a whole text line per tile. */
+  .rs-root[data-fit="on"] .rs-section-head {
+    margin-bottom: 8px; gap: 9px; align-items: baseline; flex-wrap: wrap;
+  }
+  .rs-root[data-fit="on"] .rs-section-head > div:first-child {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0;
+  }
+  .rs-root[data-fit="on"] .rs-section-title { font-size: 12.5px; }
+  .rs-root[data-fit="on"] .rs-section-sub { font-size: 10px; margin-top: 0; }
+  .rs-root[data-fit="on"] .rs-section-body {
+    flex: 1 1 auto; min-height: 0; gap: 8px; overflow: auto;
+  }
+
+  /* ── header ── */
+  .rs-root[data-fit="on"] .rs-header {
+    flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px 20px;
+    padding: 10px 13px 11px;
+  }
+  .rs-root[data-fit="on"] .rs-header-main { flex: 1 1 380px; gap: 14px; }
+  .rs-root[data-fit="on"] .rs-account-name { font-size: 19px; }
+  .rs-root[data-fit="on"] .rs-header-meta { margin-top: 2px; font-size: 11.5px; }
+  .rs-root[data-fit="on"] .rs-header-status { flex-direction: row; align-items: baseline; gap: 10px; }
+  .rs-root[data-fit="on"] .rs-header-sources { flex: 0 0 auto; margin-top: 0; }
+  .rs-root[data-fit="on"] .rs-simulated-note { flex: 1 1 300px; margin-top: 0; font-size: 10px; }
+
+  /* ── KPI rail ── */
+  .rs-root[data-fit="on"] .rs-kpi-track { gap: 8px; }
+  .rs-root[data-fit="on"] .rs-kpi-value { font-size: 19px; }
+  .rs-root[data-fit="on"] .rs-kpi-head { padding: 8px 11px 9px; }
+  .rs-root[data-fit="on"] .rs-kpi-label { font-size: 9.5px; padding-right: 14px; }
+  .rs-root[data-fit="on"] .rs-kpi-sub { font-size: 10.5px; }
+  /* The card's own "refreshed" line repeats the header's. */
+  .rs-root[data-fit="on"] .rs-kpi-meta { display: none; }
+  .rs-root[data-fit="on"] .rs-spark { height: 74px; }
+  .rs-root[data-fit="on"] .rs-spark-tall { height: 118px; }
+  .rs-root[data-fit="on"] .rs-kpi-panel-inner { padding: 12px; gap: 10px; }
+
+  /* ── charts fill whatever the cell leaves them ── */
+  .rs-root[data-fit="on"] .rs-chart-card {
+    flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
+    padding: 9px 9px 5px; overflow: hidden;
+  }
+  .rs-root[data-fit="on"] .rs-chart { flex: 1 1 auto; min-height: 56px; height: auto; }
+  .rs-root[data-fit="on"] .rs-chart-note { margin-top: 4px; font-size: 10px; }
+
+  /* ── summary strips ── */
+  .rs-root[data-fit="on"] [data-block="billing-revenue"] .rs-summary,
+  .rs-root[data-fit="on"] [data-block="transactions"] .rs-summary { display: none; }
+  .rs-root[data-fit="on"] .rs-summary {
+    flex: 0 0 auto; gap: 6px; padding: 6px 9px;
+    grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+  }
+  .rs-root[data-fit="on"] .rs-summary-value { font-size: 14px; margin-top: 0; }
+  .rs-root[data-fit="on"] .rs-cell-label { font-size: 9px; letter-spacing: .07em; }
+  .rs-root[data-fit="on"] .rs-cell-sub { font-size: 10.5px; }
+
+  /* ── evidence drawers stay, compressed to one line ── */
+  .rs-root[data-fit="on"] .rs-drawer { flex: 0 0 auto; }
+  .rs-root[data-fit="on"] .rs-drawer-toggle { padding: 4px 0; font-size: 11px; }
+  .rs-root[data-fit="on"] .rs-drawer-body { max-height: 190px; overflow: auto; }
+
+  /* ── relationship ── */
+  .rs-root[data-fit="on"] .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .rs-root[data-fit="on"] .rs-rel-team { gap: 7px; }
+  .rs-root[data-fit="on"] .rs-rel-person-lead { padding: 6px 0 2px; }
+
+  /* ── operations ── */
+  .rs-root[data-fit="on"] .rs-ops-kpis { flex: 0 0 auto; gap: 20px; }
+  .rs-root[data-fit="on"] .rs-ops-kpi {
+    display: flex; align-items: baseline; gap: 7px;
+  }
+  .rs-root[data-fit="on"] .rs-ops-value { font-size: 17px; }
+  .rs-root[data-fit="on"] .rs-ops-charts {
+    flex: 1 1 auto; min-height: 0;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  }
+  .rs-root[data-fit="on"] .rs-ops-table-wrap {
+    flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column;
+  }
+  .rs-root[data-fit="on"] .rs-ops-table-wrap .rs-table-scroll {
+    min-height: 0; max-height: 132px; overflow: auto;
+  }
+  .rs-root[data-fit="on"] .rs-table-head { margin-bottom: 4px; }
+
+  /* ── projects ── */
+  .rs-root[data-fit="on"] .rs-projects { gap: 8px; }
+  .rs-root[data-fit="on"] .rs-project-head { padding: 11px 13px; }
+  .rs-root[data-fit="on"] .rs-project-facts { gap: 8px 18px; }
+  .rs-root[data-fit="on"] .rs-timeline-card { flex: 0 0 auto; height: 124px; }
+  .rs-root[data-fit="on"] .rs-timeline-card .rs-chart { min-height: 0; }
+
+  /* ── source rail: one compact strip along the foot ── */
+  .rs-root[data-fit="on"] .rs-rail-host { flex: 0 0 auto; }
+  .rs-root[data-fit="on"] .rs-rail { padding: 9px 11px 10px; gap: 6px; }
+  .rs-root[data-fit="on"] .rs-rail-head { gap: 12px; margin-bottom: 0; }
+  .rs-root[data-fit="on"] .rs-rail-body { gap: 7px; }
+  .rs-root[data-fit="on"] .rs-rail-toggle { font-size: 11px; }
+  .rs-root[data-fit="on"] .rs-rail-sub,
+  .rs-root[data-fit="on"] .rs-rail-note { font-size: 10.5px; margin-top: 0; }
+  .rs-root[data-fit="on"] .rs-rail-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px;
+  }
+  .rs-root[data-fit="on"] .rs-src { padding: 7px 9px; }
+  .rs-root[data-fit="on"] .rs-src-head { gap: 6px; }
+  .rs-root[data-fit="on"] .rs-src-name { font-size: 12px; }
+  .rs-root[data-fit="on"] .rs-src .rs-pill { padding: 1px 6px; font-size: 9.5px; }
+  /* The card's own label repeats what the name and the facts already say; in a
+     foot strip that is the first thing to go. The link is a placeholder that
+     resolves to nothing, so it goes too. */
+  .rs-root[data-fit="on"] .rs-src-label,
+  .rs-root[data-fit="on"] .rs-src-link { display: none; }
+  .rs-root[data-fit="on"] .rs-src-facts {
+    display: flex; flex-wrap: wrap; gap: 1px 10px; margin-top: 4px;
+  }
+  .rs-root[data-fit="on"] .rs-src-facts > div {
+    display: inline-flex; align-items: baseline; gap: 4px; min-width: 0;
+  }
+  .rs-root[data-fit="on"] .rs-src-facts dt { font-size: 8.5px; letter-spacing: .06em; }
+  .rs-root[data-fit="on"] .rs-src-facts dd { font-size: 10.5px; margin-top: 0; }
+  .rs-root[data-fit="on"] .rs-src-note { margin-top: 5px; padding: 5px 8px; font-size: 10px; }
+
+  /* A tile that scrolls keeps a thin, visible scrollbar — a list that is cut
+     off must look cut off. */
+  .rs-root[data-fit="on"] .rs-section-body,
+  .rs-root[data-fit="on"] .rs-table-scroll,
+  .rs-root[data-fit="on"] .rs-drawer-body { scrollbar-width: thin; }
+}
+
+/* ══════════════ Clarification chips ══════════════
+   The chips name the account as well as the CTN. A user who asked about a
+   company they know by name has to be able to see which of these is theirs —
+   five bare three-digit codes told them nothing. */
+
+.rs-clarify-chip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  text-align: left; line-height: 1.35;
+}
+.rs-clarify-ctn {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--c-teal);
+  letter-spacing: .02em;
+}
+.rs-clarify-name { font-size: 12px; font-weight: 600; color: var(--c-navy); }
+.rs-clarify-body strong { font-weight: 700; color: var(--c-navy); }
+
 /* ══════════════ Responsive ══════════════
    These thresholds are on the viewport, but the dashboard now lives in a
    thread column that is narrower than the viewport — hence the container
@@ -638,7 +892,8 @@
   .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 
-.rs-root { container-type: inline-size; container-name: rs; }
+/* The size container is the shell, not the dashboard — see mountInMessage. */
+.rs-shell { display: block; width: 100%; min-width: 0; container-type: inline-size; container-name: rs; }
 
 @container rs (max-width: 1000px) {
   .rs-kpi-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }

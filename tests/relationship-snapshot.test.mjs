@@ -18,6 +18,7 @@ const FEATURE = '../pulse/tools/calastone-intelligence/relationship-snapshot';
 
 const { extractCtn, hasValidCtn, classifyLocally, gate, CTN_PATTERN } = await import(`${FEATURE}/intent.js`);
 const { getSnapshot, loadSnapshot, sortTickets } = await import(`${FEATURE}/data/mock-repo.js`);
+const { ACCOUNT_DIRECTORY, lookupAccount, namedEntity, accountForCtn } = await import(`${FEATURE}/data/directory.js`);
 const { RelationshipSnapshotSchema, WorkflowDecisionSchema, safeValidate } = await import(`${FEATURE}/schemas.js`);
 const { resolveOrder, ALLOWED_BLOCK_IDS, BLOCKS } = await import(`${FEATURE}/blocks/registry.js`);
 const { DEFAULT_BLOCK_ORDER, FOCUS_ORDERS, BLOCK_IDS } = await import(`${FEATURE}/config.js`);
@@ -181,6 +182,100 @@ test('a pending workflow is not resumed by a message with no CTN', () => {
 test('non-snapshot prompts are ignored by the gate', () => {
   const decision = classifyLocally('What stage is Digital TA at?');
   assert.equal(gate('What stage is Digital TA at?', decision).action, 'ignore');
+});
+
+/* ═══════════════════════ resolving a name to an account ═══════════════════════ */
+
+test('the directory is derived from the scenarios, not maintained beside them', () => {
+  assert.equal(ACCOUNT_DIRECTORY.length, 5);
+  for (const account of ACCOUNT_DIRECTORY) {
+    assert.equal(getSnapshot(account.ctn).account.name, account.name);
+  }
+});
+
+test('an account is found by its full name or its distinctive word', () => {
+  assert.equal(lookupAccount('relationship snapshot for Meridian')?.ctn, '303');
+  assert.equal(lookupAccount('Meridian Asset Partners overview')?.ctn, '303');
+  assert.equal(lookupAccount('how are things at thornbury?')?.ctn, '505');
+  assert.equal(lookupAccount('KESTREL FUND SERVICES')?.ctn, '101');
+});
+
+test('generic words in a name identify nobody', () => {
+  // "Partners", "Capital" and "Fund Services" are shared furniture. Matching on
+  // them would answer a question about one account with another one's figures.
+  for (const vague of ['show me capital', 'the partners account', 'fund services please']) {
+    assert.equal(lookupAccount(vague), null, vague);
+  }
+});
+
+test('an organisation outside the directory resolves to nothing at all', () => {
+  // Never to the nearest entry: a wrong account is worse than no account.
+  for (const name of ['blackrock', 'HSBC', 'Legal & General', 'Goldman']) {
+    assert.equal(lookupAccount(name), null, name);
+  }
+});
+
+test('a named account claims the prompt and runs without a clarification', () => {
+  const text = 'give me a relationship snapshot for Meridian';
+  const decision = classifyLocally(text);
+  assert.equal(decision.workflow, 'relationship_snapshot');
+
+  const outcome = gate(text, decision);
+  assert.equal(outcome.action, 'run');
+  assert.equal(outcome.ctn, '303');
+  assert.equal(outcome.matchedName, 'Meridian Asset Partners');
+  assert.equal(outcome.matchedAlias, 'meridian');
+});
+
+test('an explicit CTN outranks a name in the same message', () => {
+  const text = 'snapshot for Meridian, CTN 101';
+  const outcome = gate(text, classifyLocally(text));
+  assert.equal(outcome.ctn, '101');
+  assert.equal(outcome.matchedName, null);
+});
+
+test('an unrecognised organisation is quoted back, not resolved', () => {
+  const text = 'relationship snapshot for blackrock';
+  const outcome = gate(text, classifyLocally(text));
+  assert.equal(outcome.action, 'clarify');
+  assert.equal(outcome.pending.entity, 'blackrock');
+});
+
+test('the entity extractor does not mistake the request for a name', () => {
+  assert.equal(namedEntity('give me a relationship snapshot'), null);
+  assert.equal(namedEntity('Prepare a relationship overview'), null);
+  assert.equal(namedEntity('snapshot for CTN 303'), null);
+  assert.equal(namedEntity('relationship snapshot for HSBC'), 'HSBC');
+});
+
+test('a pending workflow resumes on a later message naming an account', () => {
+  const first = 'relationship snapshot for blackrock';
+  const pending = gate(first, classifyLocally(first)).pending;
+  const outcome = gate('Thornbury', classifyLocally('Thornbury'), pending);
+  assert.equal(outcome.action, 'run');
+  assert.equal(outcome.ctn, '505');
+  assert.equal(outcome.resumed, true);
+  assert.equal(outcome.originalPrompt, first);
+});
+
+test('every runnable outcome carries the account it will actually show', () => {
+  // The bug this guards: a dashboard rendered under a heading the user never
+  // asked for, with nothing on screen connecting the two.
+  for (const [text, expected] of [
+    ['snapshot for CTN 404', 'Aldergate Investment Group'],
+    ['relationship snapshot for Halden', 'Halden Capital Partners'],
+  ]) {
+    const outcome = gate(text, classifyLocally(text));
+    assert.equal(outcome.action, 'run');
+    assert.equal(outcome.account.name, expected, text);
+    assert.equal(accountForCtn(outcome.ctn).name, expected);
+  }
+});
+
+test('a generated CTN has no directory entry and says so', () => {
+  const outcome = gate('snapshot for CTN 777', classifyLocally('snapshot for CTN 777'));
+  assert.equal(outcome.action, 'run');
+  assert.equal(outcome.account, null);
 });
 
 /* ═══════════════════════ deterministic simulation data ═══════════════════════ */

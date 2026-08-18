@@ -25,9 +25,11 @@ import * as kpiRail from './components/kpi-rail.js';
 import * as projectTiles from './components/project-tiles.js';
 import { statusChip } from './components/account-header.js';
 import { clarificationCard, errorState } from './components/states.js';
+import { accountForCtn } from './data/directory.js';
 import { fromHTML } from './components/dom.js';
 import { animate, enter, stagger, pause, prefersReducedMotion, DUR } from './motion/motion.js';
 import { disposeAll, resizeAll } from './charts/mount.js';
+import { FIT_MIN_WIDTH } from './config.js';
 import { esc } from './format.js';
 
 /* ───────────────────────── conversation state ───────────────────────── */
@@ -59,13 +61,19 @@ let running = false;
 function mountInMessage(body) {
   body.replaceChildren();
 
-  const root = fromHTML(`
-    <div class="rs-root">
-      <div class="rs-main"></div>
-      <div class="rs-rail-host"></div>
+  // .rs-shell exists only to be the container the size queries resolve
+   // against: an element cannot query its own container, and .rs-root is the
+   // element the one-screen layout has to give a height to.
+  const shell = fromHTML(`
+    <div class="rs-shell">
+      <div class="rs-root">
+        <div class="rs-main"></div>
+        <div class="rs-rail-host"></div>
+      </div>
     </div>
   `);
-  body.appendChild(root);
+  body.appendChild(shell);
+  const root = shell.querySelector('.rs-root');
 
   return {
     root,
@@ -88,14 +96,63 @@ function mountInMessage(body) {
   };
 }
 
-/** Keep the newly assembled dashboard in view as it grows. */
-function keepInView(el) {
+/**
+ * Keep the dashboard in view.
+ *
+ * While it is assembling, following the bottom of the thread is right — the
+ * message is growing. Once it is finished the dashboard is a fixed-height
+ * panel meant to be read whole, so the thread scrolls its TOP edge to the top
+ * of the viewport instead; anchoring the bottom would push the account header
+ * off the screen, which is the one thing a one-screen layout must not do.
+ *
+ * @param {HTMLElement} el
+ * @param {{align?: 'bottom'|'top'}} [opts]
+ */
+function keepInView(el, opts = {}) {
   const thread = document.getElementById('chatThread') || el.closest('.chat-thread');
   if (!thread) return;
-  thread.scrollTo({
-    top: thread.scrollHeight,
-    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-  });
+  const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+
+  if (opts.align !== 'top') {
+    thread.scrollTo({ top: thread.scrollHeight, behavior });
+    return;
+  }
+
+  const msg = el.closest('.msg') || el;
+  const delta = msg.getBoundingClientRect().top - thread.getBoundingClientRect().top;
+  thread.scrollTo({ top: Math.max(0, thread.scrollTop + delta - 14), behavior });
+}
+
+/**
+ * The line above a dashboard saying which account it is for, and why.
+ *
+ * It exists because the heading alone is not an answer. A user who asked about
+ * one organisation and then supplied a CTN needs to see, in one sentence, that
+ * those are two different things — and a user whose name we resolved needs to
+ * see what we resolved it to before reading a single figure.
+ *
+ * @param {string} ctn
+ * @param {{resumed?: boolean, originalPrompt?: string, matchedName?: string|null, matchedAlias?: string|null}} meta
+ */
+function provenanceLine(ctn, meta) {
+  const account = accountForCtn(ctn);
+  const label = account ? `${esc(account.name)} · CTN ${esc(ctn)}` : `CTN ${esc(ctn)}`;
+
+  if (meta.resumed && meta.originalPrompt) {
+    return fromHTML(
+      `<p class="rs-resumed">Resumed from “${esc(meta.originalPrompt)}” — showing ${label}.</p>`,
+    );
+  }
+
+  // Only worth saying when the user typed something other than the full name.
+  const alias = meta.matchedAlias;
+  if (meta.matchedName && alias && alias.length < meta.matchedName.length) {
+    return fromHTML(
+      `<p class="rs-resumed">Matched “${esc(alias)}” to ${label}.</p>`,
+    );
+  }
+
+  return null;
 }
 
 /* ───────────────────────── assembly sequence ───────────────────────── */
@@ -154,7 +211,8 @@ async function runAssemblySequence(elements, rail) {
  *
  * @param {string} ctn
  * @param {import('./schemas.js').WorkflowDecision} decision
- * @param {{resumed?: boolean, originalPrompt?: string, body?: HTMLElement}} meta
+ * @param {{resumed?: boolean, originalPrompt?: string, matchedName?: string|null,
+ *   matchedAlias?: string|null, body?: HTMLElement}} meta
  *   `body` is the `.assistant-body` to render into. Omit it and the snapshot is
  *   appended to the thread as a new message — the path used by `run()` from the
  *   console and by the smoke tests.
@@ -173,11 +231,8 @@ async function run(ctn, decision, meta = {}) {
   disposeAll();
   const { root, main: host, rail, widen } = mountInMessage(body);
 
-  if (meta.resumed && meta.originalPrompt) {
-    host.appendChild(fromHTML(
-      `<p class="rs-resumed">Resumed from: “${esc(meta.originalPrompt)}”</p>`,
-    ));
-  }
+  const provenance = provenanceLine(ctn, meta);
+  if (provenance) host.appendChild(provenance);
 
   // 1. Assembly wheel — shown only while retrieval is genuinely in flight.
   const wheel = createAssemblyWheel();
@@ -210,6 +265,13 @@ async function run(ctn, decision, meta = {}) {
   widen();
   await pause(0.15);
 
+  // Does the column have room for the one-screen layout? The stylesheet is the
+  // authority — FIT_MIN_WIDTH is the same threshold its container query uses —
+  // but the blocks need the answer before they render, because a tile with
+  // 200px of height folds its long tables away and a full-width one does not.
+  const fitted = (root.parentElement?.clientWidth ?? 0) >= FIT_MIN_WIDTH;
+  if (fitted) root.dataset.fit = 'on';
+
   // 3. Render the allow-listed blocks in the resolved order.
   const order = resolveOrder(decision.blockOrder, { focus: decision.focus });
   const stage = document.createElement('div');
@@ -217,6 +279,7 @@ async function run(ctn, decision, meta = {}) {
   const { elements } = renderBlocks(order, snapshot, stage, {
     title: decision.title,
     period: decision.period,
+    fit: fitted,
   });
 
   // Hide until the sequence animates them in, so nothing flashes at full opacity.
@@ -231,7 +294,8 @@ async function run(ctn, decision, meta = {}) {
   await wheel.collapseInto(chip);
 
   // 5. Source rail last.
-  const railEl = sourceRail.render(snapshot);
+  // The evidence cards start folded in the one-screen layout only.
+  const railEl = sourceRail.render(snapshot, { collapsed: fitted });
   if (rail) {
     rail.appendChild(railEl);
     if (!prefersReducedMotion()) railEl.style.opacity = '1';
@@ -240,7 +304,7 @@ async function run(ctn, decision, meta = {}) {
   await runAssemblySequence(elements, railEl);
 
   root.setAttribute('data-focus', decision.focus || 'default');
-  keepInView(root);
+  keepInView(root, { align: 'top' });
   running = false;
   return snapshot;
 }
@@ -319,11 +383,14 @@ async function handleAsync(text, assistantNode) {
   }
 
   if (outcome.action === 'clarify') {
-    // No data retrieval has happened, and none will until a CTN arrives.
+    // No data retrieval has happened, and none will until an account is named.
     pendingWorkflow = outcome.pending;
     if (body) {
       body.replaceChildren();
-      body.appendChild(clarificationCard((ctn) => submitCtn(ctn)));
+      body.appendChild(clarificationCard(
+        (ctn) => submitCtn(ctn),
+        { entity: outcome.pending.entity },
+      ));
     }
     return;
   }
@@ -336,6 +403,8 @@ async function handleAsync(text, assistantNode) {
     body,
     resumed: outcome.resumed,
     originalPrompt: outcome.originalPrompt,
+    matchedName: outcome.matchedName,
+    matchedAlias: outcome.matchedAlias,
   });
 
   if (!snapshot && body) {
@@ -370,6 +439,7 @@ const api = {
       root.closest('.msg')?.remove();
     }
     document.getElementById('threadInner')?.classList.remove('has-wide');
+    document.querySelectorAll('.rs-root[data-fit]').forEach((r) => { delete r.dataset.fit; });
   },
 };
 

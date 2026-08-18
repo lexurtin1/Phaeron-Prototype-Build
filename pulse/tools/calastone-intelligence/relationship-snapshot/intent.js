@@ -14,11 +14,18 @@
  *  The CTN gate is deliberately NOT delegated to the model. It is a regex, it
  *  is exact, and it cannot be talked out of its answer. Claude is never asked
  *  to guess a CTN or to map an organisation name onto one.
+ *
+ *  A name IS resolved to a CTN, but by exact lookup over a fixed directory of
+ *  fictional accounts (data/directory.js) — still code, still deterministic,
+ *  and still never the model. A name the directory does not hold resolves to
+ *  nothing at all, and the user is told which name was not recognised rather
+ *  than being shown a dashboard headed with some other company.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 import { WorkflowDecisionSchema, safeValidate } from './schemas.js';
 import { DEFAULT_BLOCK_ORDER, FOCUS_VALUES, PERIOD_VALUES } from './config.js';
+import { lookupAccount, namedEntity, accountForCtn } from './data/directory.js';
 
 /** A valid CTN is exactly `CTN` followed by three digits. */
 export const CTN_PATTERN = /\bCTN\s*([0-9]{3})\b/i;
@@ -74,13 +81,17 @@ const PERIOD_HINTS = [
  * A deterministic classifier used when the server route is unavailable, and as
  * the reference implementation the model's output is compared against in tests.
  *
- * Two independent signals claim a prompt:
+ * Three independent signals claim a prompt:
  *
  *   1. A valid CTN anywhere in the message. `CTN nnn` is this feature's own
  *      identifier and nothing else in the module recognises it, so its presence
  *      is unambiguous however the sentence around it is phrased — "how are
  *      things going with CTN 303" needs no hint list to be understood.
- *   2. One of the phrasings below, for requests that name no entity yet. These
+ *   2. The name of an account in the simulation's directory. These names are
+ *      invented and belong to nothing else in the module, so "how are things at
+ *      Meridian" is as unambiguous as a CTN — and resolving it is what stops a
+ *      dashboard from appearing under a company the user did not ask about.
+ *   3. One of the phrasings below, for requests that name no entity yet. These
  *      lead to the clarification card, not to data.
  *
  * The hint list is deliberately narrow: it must not swallow prompts the host's
@@ -96,7 +107,9 @@ const PERIOD_HINTS = [
  * @returns {import('./schemas.js').WorkflowDecision}
  */
 export function classifyLocally(text) {
-  const isSnapshot = hasValidCtn(text) || SNAPSHOT_HINTS.some((re) => re.test(text));
+  const isSnapshot = hasValidCtn(text)
+    || lookupAccount(text) !== null
+    || SNAPSHOT_HINTS.some((re) => re.test(text));
 
   if (!isSnapshot) {
     return WorkflowDecisionSchema.parse({ workflow: 'other' });
@@ -179,6 +192,8 @@ export async function classifyWorkflow(text, opts = {}) {
  * @typedef {object} PendingWorkflow
  * @property {string} prompt   the original prompt, preserved verbatim
  * @property {import('./schemas.js').WorkflowDecision} decision
+ * @property {string|null} entity  the organisation the prompt named, if it named
+ *   one the directory does not hold. Quoted back to the user; never retrieved on.
  * @property {number} at
  */
 
@@ -187,40 +202,56 @@ export async function classifyWorkflow(text, opts = {}) {
  *
  * Returns one of:
  *   {action:'ignore'}                     not our workflow — the host chat handles it
- *   {action:'clarify', pending}           snapshot wanted, CTN missing. NO DATA FETCHED.
- *   {action:'run', ctn, decision}         snapshot wanted, CTN valid
+ *   {action:'clarify', pending}           snapshot wanted, account unidentified. NO DATA FETCHED.
+ *   {action:'run', ctn, decision, …}      snapshot wanted, account identified
+ *
+ * An account is identified two ways, in this order: an explicit `CTN nnn`, or a
+ * name held in the directory. The CTN wins when both are present — it is the
+ * exact identifier, and a message carrying one is answering a question about
+ * which account, not describing one.
  *
  * @param {string} text
  * @param {import('./schemas.js').WorkflowDecision} decision
- * @param {PendingWorkflow|null} pending a workflow awaiting a CTN from a prior turn
+ * @param {PendingWorkflow|null} pending a workflow awaiting an account from a prior turn
  */
 export function gate(text, decision, pending = null) {
   const ctn = extractCtn(text);
+  const named = ctn ? null : lookupAccount(text);
 
-  // A pending workflow is resolved by any later message carrying a valid CTN,
-  // even one as terse as "CTN 101".
-  if (pending && ctn) {
-    return {
-      action: 'run',
-      ctn,
+  const run = (id, matched, extra) => ({
+    action: 'run',
+    ctn: id,
+    account: accountForCtn(id),
+    matchedName: matched?.name ?? null,
+    matchedAlias: matched?.alias ?? null,
+    decision: extra?.decision ?? decision,
+    resumed: Boolean(extra?.resumed),
+    originalPrompt: extra?.originalPrompt,
+  });
+
+  // A pending workflow is resolved by any later message that identifies an
+  // account, whether by CTN — "CTN 101" — or by name.
+  if (pending && (ctn || named)) {
+    return run(ctn || named.ctn, named, {
       decision: pending.decision,
       resumed: true,
       originalPrompt: pending.prompt,
-    };
+    });
   }
 
   if (decision.workflow !== 'relationship_snapshot') {
     return { action: 'ignore' };
   }
 
-  if (!ctn) {
-    return {
-      action: 'clarify',
-      pending: { prompt: text, decision, at: Date.now() },
-    };
-  }
+  if (ctn) return run(ctn, null);
+  if (named) return run(named.ctn, named);
 
-  return { action: 'run', ctn, decision, resumed: false };
+  return {
+    action: 'clarify',
+    pending: { prompt: text, decision, entity: namedEntity(text), at: Date.now() },
+  };
 }
+
+export { lookupAccount, namedEntity, accountForCtn, ACCOUNT_DIRECTORY } from './data/directory.js';
 
 export { DEFAULT_BLOCK_ORDER, FOCUS_VALUES, PERIOD_VALUES };

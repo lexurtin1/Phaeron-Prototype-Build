@@ -113,7 +113,7 @@ export function renderBillingSection(snapshot, ctx = {}) {
 
   const chartCard = fromHTML(`
     <div class="rs-chart-card">
-      <div class="rs-chart" data-chart="billing" style="height:300px"></div>
+      <div class="rs-chart" data-chart="billing" style="--rs-chart-h:300px"></div>
     </div>`);
   host.appendChild(chartCard);
 
@@ -160,7 +160,7 @@ export function renderTransactionsSection(snapshot, ctx = {}) {
 
   const chartCard = fromHTML(`
     <div class="rs-chart-card">
-      <div class="rs-chart" data-chart="transactions" style="height:300px"></div>
+      <div class="rs-chart" data-chart="transactions" style="--rs-chart-h:300px"></div>
       <p class="rs-chart-note">Values are a count of transactions processed, not a monetary value.</p>
     </div>`);
   host.appendChild(chartCard);

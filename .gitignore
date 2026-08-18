@@ -1,5 +1,8 @@
 # API key — contains live Anthropic credentials. NEVER commit this.
-config.js
+# Anchored to the repo root on purpose: a bare "config.js" also matched
+# pulse/tools/calastone-intelligence/relationship-snapshot/config.js, which holds
+# no secrets and is required for that feature to load at all.
+/config.js
 system-globe/config.js
 
 # Local env overrides (keep secrets out of git)
