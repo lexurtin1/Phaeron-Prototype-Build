@@ -92,6 +92,10 @@ try {
   check('no snapshot nav item',
     await page.eval('return !document.querySelector(\'.nav-item[data-view="snapshot"]\');'));
 
+  // The load-failure banner must stay silent when the module actually loaded.
+  check('no module-failure banner over http',
+    await page.eval("return document.getElementById('moduleWarning').textContent.trim() === '';"));
+
   /* ─── 2. Full snapshot run: CTN 303 ─── */
   console.log('\n[CTN 303 — full dashboard]');
   await page.eval(ask('Give me a relationship snapshot for CTN 303'));

@@ -31,8 +31,8 @@ Try: *"Give me a relationship snapshot for CTN 303"*, or *"Prepare a relationshi
 the CTN clarification gate.
 
 ```sh
-npm test                     # 65 unit tests, no browser needed
-npm run test:smoke -- http://localhost:4173   # 37 browser checks + screenshots
+npm test                     # 67 unit tests, no browser needed
+npm run test:smoke -- http://localhost:4173   # 46 browser checks + screenshots
 ```
 
 The smoke suite needs no Playwright install — `tests/cdp.mjs` drives whatever Chromium or Edge is
@@ -229,3 +229,15 @@ that satisfies `RelationshipSnapshotSchema`, and no UI code needs to change. Spe
   3. `components/source-rail.js` — the `.rs-rail-note` paragraph, and the `(simulated)` subtitles in
      `blocks/chart-sections.js`, `components/operations-panel.js`, `components/project-tiles.js`
      and `components/relationship-card.js`
+
+---
+
+## If snapshot prompts fall through to the canned answers
+
+The page now says so itself: an amber banner appears under the topbar when
+`window.RelationshipSnapshot` failed to register, naming the cause and the URL to use.
+
+Almost always the cause is opening `index.html` from disk. Browsers refuse module scripts on a
+`file://` origin, so the module never runs — while the CSS, the sidebar and every canned answer keep
+working, which makes the page look entirely healthy. The check lives at the foot of `../index.html`
+and fires on `window.load`.
