@@ -3,10 +3,17 @@
     "api/claude.js": {
       "maxDuration": 300,
       "memory": 1024
+    },
+    "api/snapshot-intent.js": {
+      "maxDuration": 30,
+      "memory": 512
     }
   },
   "rewrites": [
-    { "source": "/", "destination": "/pulse/index.html" },
+    {
+      "source": "/",
+      "destination": "/pulse/index.html"
+    },
     {
       "source": "/((?!api/|config\\.js|Order).*)",
       "destination": "/pulse/$1"

@@ -27,7 +27,10 @@
 //  repository, which this route does not touch.
 // ══════════════════════════════════════════════════════════════════════════
 
-const UPSTREAM_TIMEOUT_MS = Number(process.env.SNAPSHOT_INTENT_TIMEOUT_MS || 20_000);
+// Well inside the 30s function ceiling in vercel.json, so a slow upstream comes
+// back as this route's own JSON — and the client falls back to its local
+// classifier — rather than as a bare platform 504.
+const UPSTREAM_TIMEOUT_MS = Number(process.env.SNAPSHOT_INTENT_TIMEOUT_MS || 12_000);
 const MAX_PROMPT_CHARS = 2000;
 const MAX_FIELD_CHARS = 120;
 

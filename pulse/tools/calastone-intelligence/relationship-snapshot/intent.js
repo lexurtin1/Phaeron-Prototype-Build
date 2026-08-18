@@ -131,6 +131,25 @@ export function classifyLocally(text) {
 
 /* ───────────────────── server classification ───────────────────── */
 
+/** How long the browser waits for a classification before going it alone. */
+export const CLASSIFY_TIMEOUT_MS = 9000;
+
+/** AbortSignal.any, with a fallback for browsers that predate it. */
+function anySignal(signals) {
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.any === 'function') {
+    return AbortSignal.any(signals);
+  }
+  const controller = new AbortController();
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort();
+      break;
+    }
+    signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  return controller.signal;
+}
+
 /**
  * Ask the server route to classify the prompt.
  *
@@ -151,6 +170,17 @@ export function classifyLocally(text) {
 export async function classifyWorkflow(text, opts = {}) {
   const endpoint = opts.endpoint || '/api/snapshot-intent';
 
+  // Nothing on screen can appear until this returns, so it gets a deadline of
+  // its own — shorter than the server's, which is shorter than the platform's.
+  // A cold function or a slow upstream costs a few seconds of a less specific
+  // dashboard, never a dashboard that never arrives.
+  const budget = Number.isFinite(opts.timeoutMs) ? opts.timeoutMs : CLASSIFY_TIMEOUT_MS;
+  const clock = new AbortController();
+  const expired = setTimeout(() => clock.abort(), budget);
+  const signal = opts.signal
+    ? anySignal([opts.signal, clock.signal])
+    : clock.signal;
+
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -158,7 +188,7 @@ export async function classifyWorkflow(text, opts = {}) {
       body: JSON.stringify(opts.account
         ? { prompt: text, account: opts.account }
         : { prompt: text }),
-      signal: opts.signal,
+      signal,
     });
 
     if (!res.ok) {
@@ -191,8 +221,10 @@ export async function classifyWorkflow(text, opts = {}) {
     return {
       decision: classifyLocally(text),
       source: 'local',
-      error: err?.name === 'AbortError' ? 'aborted' : String(err?.message || err),
+      error: err?.name === 'AbortError' ? `no answer within ${budget}ms` : String(err?.message || err),
     };
+  } finally {
+    clearTimeout(expired);
   }
 }
 
