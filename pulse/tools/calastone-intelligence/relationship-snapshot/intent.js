@@ -87,12 +87,16 @@ const PERIOD_HINTS = [
  *      identifier and nothing else in the module recognises it, so its presence
  *      is unambiguous however the sentence around it is phrased — "how are
  *      things going with CTN 303" needs no hint list to be understood.
- *   2. The name of an account in the simulation's directory. These names are
- *      invented and belong to nothing else in the module, so "how are things at
- *      Meridian" is as unambiguous as a CTN — and resolving it is what stops a
- *      dashboard from appearing under a company the user did not ask about.
- *   3. One of the phrasings below, for requests that name no entity yet. These
- *      lead to the clarification card, not to data.
+ *   2. One of the phrasings below — a snapshot, overview, summary, review or
+ *      picture. On its own this leads to the clarification card, not to data;
+ *      combined with an account name it runs that account.
+ *
+ *  An account name on its own is NOT one of the signals, and that is deliberate.
+ *  The accounts are real firms, and the host's own canned answers are about the
+ *  same firms — "How are we charging BlackRock?" and "Relationship status with
+ *  Legal & General" are questions this feature has no business taking. The name
+ *  decides WHICH account once a request has been recognised as a snapshot; it
+ *  never decides that a request is one.
  *
  * The hint list is deliberately narrow: it must not swallow prompts the host's
  * own answers cover (e.g. "Relationship status with Legal & General").
@@ -107,9 +111,7 @@ const PERIOD_HINTS = [
  * @returns {import('./schemas.js').WorkflowDecision}
  */
 export function classifyLocally(text) {
-  const isSnapshot = hasValidCtn(text)
-    || lookupAccount(text) !== null
-    || SNAPSHOT_HINTS.some((re) => re.test(text));
+  const isSnapshot = hasValidCtn(text) || SNAPSHOT_HINTS.some((re) => re.test(text));
 
   if (!isSnapshot) {
     return WorkflowDecisionSchema.parse({ workflow: 'other' });
@@ -136,8 +138,14 @@ export function classifyLocally(text) {
  * error, or a malformed response. A degraded classifier is far better than a
  * dead feature, and the CTN gate and all figures are unaffected either way.
  *
+ * The account, when one has been identified, goes with the prompt. It is what
+ * lets the model shape the view for THIS account — the title it returns names
+ * the firm, and the focus it picks is a decision about that account's request
+ * rather than about a sentence in the abstract. It is told the answer; it is
+ * never asked to work it out.
+ *
  * @param {string} text
- * @param {{signal?: AbortSignal, endpoint?: string}} [opts]
+ * @param {{signal?: AbortSignal, endpoint?: string, account?: object|null}} [opts]
  * @returns {Promise<{decision: import('./schemas.js').WorkflowDecision, source: 'server'|'local', error?: string}>}
  */
 export async function classifyWorkflow(text, opts = {}) {
@@ -147,7 +155,9 @@ export async function classifyWorkflow(text, opts = {}) {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ prompt: text }),
+      body: JSON.stringify(opts.account
+        ? { prompt: text, account: opts.account }
+        : { prompt: text }),
       signal: opts.signal,
     });
 
@@ -232,8 +242,17 @@ export function gate(text, decision, pending = null) {
   // A pending workflow is resolved by any later message that identifies an
   // account, whether by CTN — "CTN 101" — or by name.
   if (pending && (ctn || named)) {
+    // The pending decision says what the user wanted to SEE — focus, period,
+    // block order — and that still holds. Its title does not: it was written
+    // about an organisation we could not show, and carrying it over would put
+    // "snapshot for Barclays" above a dashboard headed abrdn, which is the
+    // exact confusion this gate exists to prevent.
+    const decision = pending.entity
+      ? { ...pending.decision, title: null }
+      : pending.decision;
+
     return run(ctn || named.ctn, named, {
-      decision: pending.decision,
+      decision,
       resumed: true,
       originalPrompt: pending.prompt,
     });

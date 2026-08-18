@@ -10,9 +10,15 @@ thread: the dashboard assembles inside the assistant message that would otherwis
 and the thread column widens from 760px to 1560px to hold it. Ordinary messages keep their 760px
 measure, centred inside the wider column, so nothing already on screen moves.
 
-**It is one screen, not a page.** Above 880px of column width the seven blocks tile a fixed-height
-grid sized to the chat viewport, and the dashboard is read whole rather than scrolled. Below that
-they stack into the ordinary list.
+**It is one screen, not a page, at any window size.** The account header and the KPI rail are always
+visible; the five detail blocks below them are expandable cards, one open at a time. A closed card
+is a strip carrying its own headline figures, so nothing is hidden — and the open card gets every
+pixel the strips leave, which is what makes its charts worth looking at.
+
+> **The account names are real firms; nothing behind them is.** A sales audience recognises the
+> accounts it works with, and "Kestrel Fund Services" told them nothing. Every figure is generated
+> by `data/mock-repo.js`, and the relationship managers, account teams and client contacts remain
+> entirely fictional.
 
 > **Everything on screen is simulated.** No Salesforce, billing, transaction or Jira system is
 > contacted. All names, organisations and figures are invented.
@@ -31,12 +37,13 @@ looks fine and silently has no snapshot feature: Chrome refuses module scripts f
 origin (`blocked by CORS policy`), so `window.RelationshipSnapshot` never registers and every
 prompt falls through to the host's canned answers.
 
-Try: *"Give me a relationship snapshot for CTN 303"*, *"how are things at Meridian?"*, or
-*"relationship snapshot for BlackRock"* to see what happens when the account does not exist.
+Try: *"Give me a relationship snapshot for CTN 303"*, *"how is billing looking for HSBC this
+year?"*, or *"relationship snapshot for Barclays"* to see what happens when the account is not one
+of the five.
 
 ```sh
-npm test                     # 78 unit tests, no browser needed
-npm run test:smoke -- http://localhost:4173   # 58 browser checks + screenshots
+npm test                     # 82 unit tests, no browser needed
+npm run test:smoke -- http://localhost:4173   # 66 browser checks + screenshots
 ```
 
 The smoke suite needs no Playwright install — `tests/cdp.mjs` drives whatever Chromium or Edge is
@@ -81,8 +88,8 @@ prevent it, and both are code:
 | The message says | Resolved by | What appears |
 |---|---|---|
 | `CTN 303` | the regex | the CTN 303 dashboard |
-| "Meridian", "Thornbury Mutual" | exact lookup in `data/directory.js` | that account's dashboard, above the line *Matched "meridian" to Meridian Asset Partners · CTN 303* |
-| "BlackRock", "HSBC" | nothing — the directory has no entry | *There is no account named BlackRock in this simulation*, and the five accounts listed **by name** |
+| "HSBC", "lgim", "abrdn" | exact lookup in `data/directory.js` | that account's dashboard, above the line *Matched "hsbc" to HSBC Asset Management · CTN 101* |
+| "Barclays", "Vanguard" | nothing — the directory has no entry | *There is no account named Barclays in this simulation*, and the five accounts listed **by name** |
 | nothing | — | the same card, without the first sentence |
 
 The directory is built from the scenario fixtures, so it cannot drift from what the repository can
@@ -101,27 +108,44 @@ cannot claim a prompt the local classifier passed on, and it cannot veto one it 
 
 That makes the local hint list the **ceiling** on recognition, not the floor:
 
-| Prompt | `classifyLocally` | Model (if asked) | What happens |
-|---|---|---|---|
-| `how are things going with CTN 303` | snapshot (CTN present) | snapshot | dashboard |
-| `what's the picture at Meridian?` | snapshot (directory name) | snapshot | dashboard |
-| `Prepare a relationship overview` | snapshot (hint) | snapshot | clarification card |
-| `How are we charging BlackRock?` | other | snapshot | falls through — and correctly so, the host answers this one |
+Three things claim a turn, all of them synchronous:
 
-The last row is why the ceiling exists: with no synchronous signal, claiming ambiguous prompts
-speculatively would steal answers the host already gives well. The three signals are all things
-nothing else in the module recognises — its own identifier, its own account names, and phrasings
-narrow enough not to overlap the canned answers.
+1. **A CTN.** `CTN nnn` is this feature's own identifier and nothing else recognises it.
+2. **Snapshot phrasing** — snapshot, overview, summary, review, picture. On its own this leads to
+   the clarification card, not to data.
+3. **An account name the host has no prepared answer about.** The accounts are real firms and the
+   host answers its own questions about the same firms, so the host publishes
+   `window.cannedKey(prompt)` and this feature stays off anything it returns a key for.
+
+| Prompt | Claimed? | Why |
+|---|---|---|
+| `how are things going with CTN 303` | yes | CTN present |
+| `relationship snapshot for Barclays` | yes | snapshot phrasing → clarification card |
+| `how is billing looking for HSBC this year?` | yes | names an account, host has no answer for it |
+| `How are we charging BlackRock?` | no | `cannedKey` returns `blackrock` — the host answers this one |
+| `Relationship status with Legal & General` | no | `cannedKey` returns `lng` |
+
+Where a host does not publish `cannedKey`, a name alone is not taken: there is no way to know what
+would be trampled.
 
 ### What Claude can and cannot do
+
+Claude is told which account the request resolved to — name, CTN, tier, segment and region, all
+worked out by application code — so that its decisions are about *this account's* request rather
+than about a sentence in the abstract. It is never asked to work the account out.
 
 | Claude decides | Claude cannot touch |
 |---|---|
 | Is this a `relationship_snapshot`? | Any figure — revenue, transactions, ticket ages, project status |
-| Display focus (5 fixed values) | HTML, CSS, chart options, tables, arbitrary widgets |
+| Display focus (5 fixed values) — **which card the dashboard opens on** | HTML, CSS, chart options, tables, arbitrary widgets |
 | Reporting period (4 fixed values) | The CTN — it is never asked to guess or map one |
 | Ordering of allow-listed blocks | Which blocks exist |
-| A ≤90-char plain-text title | Recommendations, next steps, assessments, rankings |
+| A ≤90-char plain-text title, naming the account | Recommendations, next steps, assessments, rankings |
+
+So *"how is billing looking for HSBC this year?"* returns `focus: billing`, `period: ytd` and the
+title *"Billing overview for HSBC Asset Management, year to date"* — the deck opens on the billing
+card, orders the strips behind it, and prints that title under the account name. Same account, a
+different question, a different view.
 
 Enforced in three places, each of which alone would be sufficient:
 `api/snapshot-intent.js → normalizeDecision()` (server allow-list),
@@ -157,9 +181,9 @@ charts/
 
 components/
   account-header.js  kpi-rail.js  relationship-card.js
-  operations-panel.js  project-tiles.js  source-rail.js
+  operations-panel.js  project-tiles.js
   states.js        empty / delayed / unavailable / error / clarification
-  dom.js           small DOM helpers
+  dom.js           small DOM helpers, incl. section() — the expandable card
 
 motion/
   motion.js        Motion wrapper: reduced-motion enforcement + FLIP helper
@@ -175,13 +199,17 @@ severity — are deliberately **not** on that ramp, so a brand colour can never 
 
 ### Scenarios
 
-| CTN | Account | Demonstrates |
-|---|---|---|
-| 101 | Kestrel Fund Services | Stable account, all sources live |
-| 202 | Halden Capital Partners | Billing/transaction trend variation |
-| 303 | Meridian Asset Partners | Heavy operational ticket activity |
-| 404 | Aldergate Investment Group | Four concurrent delivery projects (+ timeline) |
-| 505 | Thornbury Mutual | Billing **delayed**, transactions **unavailable** |
+| CTN | Account | Also answers to | Demonstrates |
+|---|---|---|---|
+| 101 | HSBC Asset Management | hsbc | Stable account, all sources live |
+| 202 | Schroders | — | Billing/transaction trend variation |
+| 303 | BlackRock | black rock | Heavy operational ticket activity |
+| 404 | Legal & General Investment Management | legal & general, lgim, l&g | Four concurrent delivery projects (+ timeline) |
+| 505 | abrdn | aberdeen | Billing **delayed**, transactions **unavailable** |
+
+Aliases are declared on the scenario, not derived: several of these firms are known by an
+abbreviation no algorithm would produce from the registered name, and "Legal & General Investment
+Management" must not be reachable as "general".
 
 Any other three-digit CTN produces a deterministic generated profile.
 
@@ -227,6 +255,8 @@ Five additive edits to `../index.html`, listed here so they are easy to find or 
    ```js
    if(window.RelationshipSnapshot && window.RelationshipSnapshot.tryHandle(text, node)) return;
    ```
+6. `resolve()` split into `cannedKey()` + `resolve()`, with `window.cannedKey` exposed. Same
+   answers, same order; it just makes the host's "do I already answer this?" test askable.
 
 Plus one suggestion chip (`data-q="Give me a relationship snapshot for CTN 303"`) so the feature is
 discoverable without a nav item, and one behavioural fix: the view switcher previously hardcoded two
@@ -237,39 +267,41 @@ Market Research module or its Claude integration is touched.
 
 ### The one-screen layout
 
-Above 880px of column width — `FIT_MIN_WIDTH` in `config.js`, matching the `@container rs` threshold
-in `snapshot.css` — `.rs-blocks` stops being a vertical list and becomes a fixed-height grid:
-
 ```
 ┌───────────────────────────────────────────────┐
-│ account-header                            12  │   one bar, not four rows
-│ kpi-rail                                  12  │
-├───────────┬───────────┬───────────────────────┤
-│ billing 4 │ trans   4 │ relationship        4 │   0.85fr
-├───────────┴─────┬─────┴───────────────────────┤
-│ operations    7 │ projects                  5 │   1.15fr
-└─────────────────┴─────────────────────────────┘
-  sources: one folded strip
+│ account header                                │  always
+│ KPI rail                                      │  always
+├───────────────────────────────────────────────┤
+│ ▸ Relationship        Rowan Whitfield · 3     │  strip
+│ ▾ Billing revenue     £1,223,731  +6.7%       │  ┐
+│                                               │  │ open, fills
+│                                               │  ┘
+│ ▸ Transactions        336,799  +6.3%          │  strip
+│ ▸ Operations          3 open · 0 high         │  strip
+│ ▸ Projects            1 in progress           │  strip
+└───────────────────────────────────────────────┘
 ```
 
-Blocks are placed by `grid-column: span N`, never by named area, so the five focus orderings in
-`config.js` still reorder them — each of the five happens to tile the twelve columns exactly.
+The dashboard's height is the chat thread's height, measured rather than estimated — `fitToThread`
+in `index.js` reads the thread and writes `--rs-fit-h`, because a stylesheet `calc(100vh - 214px)`
+that is eight pixels optimistic is the difference between one screen and a scrollbar. It re-measures
+when the window changes shape, and stands aside when the thread is not a scroll viewport at all.
 
 Four things make the content fit rather than merely clip:
 
-- **The tile is the boundary.** Every card is a flex column with `min-height: 0`; long lists (contacts,
-  project tiles) scroll inside their own tile. The dashboard does not scroll — a list does.
-- **Long tables fold.** The ticket table and the evidence cards render inside a disclosure, closed in
-  this layout and open in the list layout. `renderBlocks` passes `ctx.fit` so a block knows which one
-  it is in.
-- **Charts follow their box.** `charts/mount.js` observes each chart element and, under ~152px, drops
-  the in-chart title, tightens the legend and halves the gridlines — see `applyDensity`. This lives
-  in the mount layer so `buildOption()` stays pure and testable, and so the density survives a window
-  resize.
-- **Nothing is said twice.** The billing and transaction summary strips repeat their own KPI cards
-  word for word, and each KPI card's "refreshed" line repeats the header's; both are hidden here.
+- **One card open at a time.** Not a style choice: two open cards would not fit, and the deck's
+  promise is that it always does. Which one starts open is Claude's `focus`.
+- **A closed card is not an empty label.** Each carries the headline figures it would lead with
+  open, so the deck reads as a dashboard whether or not anything is expanded.
+- **Charts mount on first open.** ECharts cannot measure a `display:none` box, so a closed card's
+  charts do not exist yet; `mountBlock` creates them the first time it opens, and a ResizeObserver
+  keeps them the size of the box they are in.
+- **Nothing is said twice.** The billing and transaction summary strips repeat the card's own
+  headline figures, and each KPI card's "refreshed" line repeats the header's; both are hidden.
 
-Below 880px none of this applies and the original stacked list renders unchanged.
+**The source rail was removed.** The account header already carries a chip per source with its
+state, and each section's evidence drawer already carries the refresh time, record count and
+evidence reference. A third copy cost a fifth of the height and told nobody anything new.
 
 ### Why the widened column rather than a breakout
 

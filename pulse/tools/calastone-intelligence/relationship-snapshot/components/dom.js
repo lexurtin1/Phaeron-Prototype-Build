@@ -32,18 +32,53 @@ export function el(tag, className, html) {
   return node;
 }
 
-/** A section wrapper with a consistent heading treatment. */
-export function section(id, title, { subtitle = '', actions = '' } = {}) {
+/**
+ * A section wrapper with a consistent heading treatment.
+ *
+ * Sections are expandable cards. Closed, a card is a single strip carrying its
+ * title and its headline figures; open, it shows everything and takes whatever
+ * height the deck has left. That is what lets a seven-block dashboard hold to
+ * one screen at any window size — see the deck in index.js.
+ *
+ * `summary` is trusted HTML built by the calling component, which is
+ * responsible for escaping the values inside it, exactly as the components do
+ * for the rest of their markup.
+ *
+ * @param {string} id                 block id, also the data-block attribute
+ * @param {string} title
+ * @param {{subtitle?: string, actions?: string, summary?: string,
+ *   collapsible?: boolean, open?: boolean}} [opts]
+ */
+export function section(id, title, opts = {}) {
+  const { subtitle = '', actions = '', summary = '' } = opts;
+  const collapsible = opts.collapsible !== false;
+  const open = opts.open !== false;
+  const bodyId = `rs-body-${esc(id)}`;
+
+  const heading = `
+    <span class="rs-section-heading">
+      <span class="rs-section-title">${esc(title)}</span>
+      ${subtitle ? `<span class="rs-section-sub">${esc(subtitle)}</span>` : ''}
+    </span>
+    ${summary ? `<span class="rs-section-summary">${summary}</span>` : ''}`;
+
+  const head = collapsible
+    ? `<h2 class="rs-section-head">
+         <button type="button" class="rs-section-toggle" aria-expanded="${open}"
+                 aria-controls="${bodyId}">
+           ${heading}
+           <span class="rs-kpi-chevron" aria-hidden="true"></span>
+         </button>
+       </h2>`
+    : `<header class="rs-section-head">
+         ${heading}
+         ${actions ? `<div class="rs-section-actions">${actions}</div>` : ''}
+       </header>`;
+
   return fromHTML(`
-    <section class="rs-section" data-block="${esc(id)}">
-      <header class="rs-section-head">
-        <div>
-          <h2 class="rs-section-title">${esc(title)}</h2>
-          ${subtitle ? `<p class="rs-section-sub">${esc(subtitle)}</p>` : ''}
-        </div>
-        ${actions ? `<div class="rs-section-actions">${actions}</div>` : ''}
-      </header>
-      <div class="rs-section-body"></div>
+    <section class="rs-section" data-block="${esc(id)}" data-open="${open}">
+      ${head}
+      <div class="rs-section-body" id="${bodyId}"${open ? '' : ' hidden'}></div>
     </section>
   `);
 }

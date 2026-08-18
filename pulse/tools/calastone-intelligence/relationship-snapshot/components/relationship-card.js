@@ -13,10 +13,17 @@ import { unavailableBlock } from './states.js';
 /**
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
  */
-export function render(snapshot) {
+export function render(snapshot, opts = {}) {
   const r = snapshot.relationship;
+  const summary = r.available
+    ? `<span class="rs-sum-fig">${esc(r.manager?.name || '—')}</span>`
+      + ` <span class="rs-sum-delta rs-tone-flat">${esc(String(r.contacts?.length ?? 0))} client contacts</span>`
+    : '<span class="rs-sum-none">Salesforce unavailable</span>';
+
   const sec = section('relationship', 'Relationship and ownership', {
     subtitle: 'Salesforce (simulated)',
+    summary,
+    open: opts.open === true,
   });
   const host = body(sec);
 

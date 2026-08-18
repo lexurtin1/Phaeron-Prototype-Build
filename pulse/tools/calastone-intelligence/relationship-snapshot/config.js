@@ -108,12 +108,28 @@ export const TICKET_SEVERITIES = Object.freeze(['critical', 'high', 'medium', 'l
 export const TICKET_STATUSES = Object.freeze(['open', 'in_progress', 'awaiting_client', 'resolved']);
 
 /**
- * Column width at or above which the dashboard tiles into one screen rather
- * than stacking into a list. It has to match the `@container rs (min-width: …)`
- * threshold in snapshot.css: the stylesheet decides the layout, and this is how
- * the blocks find out which one they are being rendered into.
+ * The blocks that live in the expandable card deck. The account header and the
+ * KPI rail are not among them: they are always on screen, because between them
+ * they answer which account this is and how it is doing.
  */
-export const FIT_MIN_WIDTH = 880;
+export const DECK_BLOCKS = Object.freeze([
+  'relationship', 'billing-revenue', 'transactions', 'operations', 'projects',
+]);
+
+/**
+ * Which card a display focus opens.
+ *
+ * This is where Claude's one display decision becomes visible: the focus it
+ * returns for a prompt decides which card the dashboard opens on. It can only
+ * ever name a block that already exists — see FOCUS_VALUES and the registry.
+ */
+export const FOCUS_BLOCKS = Object.freeze({
+  relationship: 'relationship',
+  billing: 'billing-revenue',
+  transactions: 'transactions',
+  operations: 'operations',
+  delivery: 'projects',
+});
 
 /** Mock currency for billing. Stated explicitly wherever a figure is shown. */
 export const CURRENCY = 'GBP';

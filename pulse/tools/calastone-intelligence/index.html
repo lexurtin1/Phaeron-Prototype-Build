@@ -1354,15 +1354,25 @@ function renderSources(sources){
 }
 
 /* ───────────── answer resolution ───────────── */
-function resolve(q){
+/* Which prepared answer, if any, covers this question. Split out of resolve()
+   so other features can ask the same question: Relationship Snapshot uses it to
+   stay off prompts this module already answers well. Exposed on window because
+   it is a classic script and the feature is a module. */
+function cannedKey(q){
   const t = q.toLowerCase();
-  if(/digital ta/.test(t)) return ANS.digitalTA;
-  if(/blackrock/.test(t)) return ANS.blackrock;
-  if(/legal and general|legal & general|l&g|l & g/.test(t)) return ANS.lng;
-  if(/thailand/.test(t)) return ANS.thailand;
-  if(/goldman|isin/.test(t)) return ANS.isin;
-  if(/pipeline|etf/.test(t)) return ANS.pipeline;
-  return ANS.generic(q);
+  if(/digital ta/.test(t)) return 'digitalTA';
+  if(/blackrock/.test(t)) return 'blackrock';
+  if(/legal and general|legal & general|l&g|l & g/.test(t)) return 'lng';
+  if(/thailand/.test(t)) return 'thailand';
+  if(/goldman|isin/.test(t)) return 'isin';
+  if(/pipeline|etf/.test(t)) return 'pipeline';
+  return null;
+}
+window.cannedKey = cannedKey;
+
+function resolve(q){
+  const key = cannedKey(q);
+  return key ? ANS[key] : ANS.generic(q);
 }
 
 const ANS = {

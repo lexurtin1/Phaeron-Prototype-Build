@@ -22,9 +22,22 @@ function statusTone(status) {
 /**
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
  */
-export function render(snapshot) {
+export function render(snapshot, opts = {}) {
   const projects = snapshot.projects;
-  const sec = section('projects', 'Projects in progress', { subtitle: 'Jira (simulated)' });
+  const jiraState = snapshot.sources.find((s) => s.id === 'jira')?.state;
+  const blocked = projects.filter((p) => p.status === 'blocked').length;
+  const summary = jiraState === 'unavailable'
+    ? '<span class="rs-sum-none">Jira unavailable</span>'
+    : `<span class="rs-sum-fig">${esc(formatCount(projects.length))} in progress</span>`
+      + (blocked
+        ? ` <span class="rs-sum-delta rs-tone-down">${esc(formatCount(blocked))} blocked</span>`
+        : '');
+
+  const sec = section('projects', 'Projects in progress', {
+    subtitle: 'Jira (simulated)',
+    summary,
+    open: opts.open === true,
+  });
   const host = body(sec);
 
   const jira = snapshot.sources.find((s) => s.id === 'jira');

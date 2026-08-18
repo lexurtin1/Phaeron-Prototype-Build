@@ -170,7 +170,7 @@ async function connect(wsUrl, proc, port) {
           style.textContent = \`
             html,body{height:auto!important;overflow:visible!important}
             .app,.body-row,.main,.view,.chat-cols,.chat-left,
-            .chat-thread,.thread-inner,.rs-root,.rs-main,.rs-rail-host{
+            .chat-thread,.thread-inner,.rs-root,.rs-main,.rs-deck{
               height:auto!important;max-height:none!important;
               overflow:visible!important;min-height:0!important;
             }

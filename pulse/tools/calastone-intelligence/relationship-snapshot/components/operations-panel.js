@@ -21,7 +21,17 @@ const COLLAPSED_ROWS = 6;
  */
 export function render(snapshot, opts = {}) {
   const t = snapshot.tickets;
-  const sec = section('operations', 'Operations', { subtitle: 'Jira (simulated)' });
+  const summary = t.available
+    ? `<span class="rs-sum-fig">${esc(formatCount(t.open))} open</span>`
+      + ` <span class="rs-sum-delta ${t.highSeverity > 0 ? 'rs-tone-attention' : 'rs-tone-flat'}">`
+      + `${esc(formatCount(t.highSeverity))} high severity</span>`
+    : '<span class="rs-sum-none">Jira unavailable</span>';
+
+  const sec = section('operations', 'Operations', {
+    subtitle: 'Jira (simulated)',
+    summary,
+    open: opts.open === true,
+  });
   const host = body(sec);
 
   if (!t.available) {

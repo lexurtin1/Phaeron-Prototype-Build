@@ -109,14 +109,14 @@ try {
   await page.screenshot(path.join(SHOTS, '01-assembly-wheel.png'));
 
   check('dashboard assembled',
-    await page.eval(waitForAccount('Meridian Asset Partners', 15000)));
+    await page.eval(waitForAccount('BlackRock', 15000)));
   check('wheel collapsed away',
     await page.eval(waitFor('!document.querySelector(".rs-wheel")', 8000)));
   check('header status chip visible',
     await page.eval(waitFor('document.querySelector("#rs-source-chip.is-visible")', 6000)));
 
   const account = await page.eval(`return ${LAST_ACCOUNT};`);
-  check('correct account rendered', account === 'Meridian Asset Partners', account);
+  check('correct account rendered', account === 'BlackRock', account);
 
   check('dashboard rendered inside a chat message',
     await page.eval('return !!document.querySelector("#threadInner .msg.assistant .assistant-body .rs-root");'));
@@ -132,16 +132,27 @@ try {
   const kpiCount = await page.eval('return document.querySelectorAll(".rs-kpi").length;');
   check('five KPI cards', kpiCount === 5, `got ${kpiCount}`);
 
-  const canvases = await page.eval('return document.querySelectorAll(".rs-main canvas").length;');
-  check('charts rendered to canvas', canvases >= 4, `${canvases} canvases`);
+  // Only the open card renders its detail; the closed ones are strips. Charts
+  // mount on first open, which the deck section below exercises.
+  const openBody = await page.eval(`
+    const open = document.querySelector('.rs-deck > .rs-section[data-open="true"]');
+    const b = open?.querySelector('.rs-section-body');
+    return { block: open?.dataset.block, visible: !!b && !b.hidden, children: b?.children.length || 0 };`);
+  check('the open card shows its detail',
+    openBody.visible && openBody.children > 0, `${openBody.block}: ${openBody.children} children`);
 
   const sevTitle = await page.eval(`
     return [...document.querySelectorAll('.rs-main .rs-chart-title')]
       .some(h => h.textContent.trim() === 'Open tickets by severity');`);
   check('severity chart titled exactly (accessible HTML heading)', sevTitle);
 
-  const railCards = await page.eval('return document.querySelectorAll(".rs-src").length;');
-  check('source rail shows four sources', railCards === 4, `got ${railCards}`);
+  // The rail was removed: the header already carries a chip per source, and
+  // the per-section evidence drawers carry the refresh time and record counts.
+  check('no source rail in the dashboard',
+    await page.eval('return !document.querySelector(".rs-rail");'));
+  const headerSources = await page.eval(
+    'return document.querySelectorAll(".rs-header-sources .rs-src-chip").length;');
+  check('the header names all four sources', headerSources === 4, `got ${headerSources}`);
 
   const noAdvice = await page.eval(`
     const t = document.querySelector('.rs-root').innerText.toLowerCase();
@@ -152,28 +163,54 @@ try {
   await page.eval(settle);
   await page.screenshot(path.join(SHOTS, '02-dashboard-303.png'), { fullPage: true, expandScrollers: true });
 
-  /* ─── 2b. One screen ─── */
+  /* ─── 2b. One screen, as a deck of expandable cards ─── */
   console.log('\n[One screen]');
-  const fit = await page.eval(`
+  const deck = await page.eval(`
     const root = document.querySelector('.rs-root');
     const thread = document.getElementById('chatThread');
+    const cards = [...root.querySelectorAll('.rs-deck > .rs-section')];
     return {
       mode: root.dataset.fit || 'list',
       rootH: Math.round(root.getBoundingClientRect().height),
       threadH: thread.clientHeight,
       overflowX: thread.scrollWidth - thread.clientWidth,
-      railFolded: document.querySelector('.rs-rail-body')?.hidden === true,
-      rows: [...root.querySelectorAll('.rs-blocks > [data-block]')]
-        .map(e => Math.round(e.getBoundingClientRect().top)),
+      cards: cards.map(c => c.dataset.block),
+      open: cards.filter(c => c.dataset.open === 'true').map(c => c.dataset.block),
+      summaries: cards.map(c => (c.querySelector('.rs-section-summary')?.textContent || '').trim()),
+      strip: Math.round(cards.find(c => c.dataset.open === 'false').getBoundingClientRect().height),
     };`);
-  check('dashboard tiles into the one-screen layout', fit.mode === 'on', fit.mode);
+  check('dashboard uses the one-screen layout', deck.mode === 'on', deck.mode);
   check('dashboard fits the thread viewport without scrolling',
-    fit.rootH <= fit.threadH + 2, `${fit.rootH}px in ${fit.threadH}px`);
-  check('no horizontal scroll from the tiled layout', fit.overflowX === 0, `${fit.overflowX}px`);
-  check('evidence rail starts folded in the one-screen layout', fit.railFolded);
-  // Four grid rows: the header, the KPI rail, and two rows of tiles.
-  check('blocks tile into four rows', new Set(fit.rows).size === 4,
-    `${new Set(fit.rows).size} rows`);
+    deck.rootH <= deck.threadH + 2, `${deck.rootH}px in ${deck.threadH}px`);
+  check('no horizontal scroll', deck.overflowX === 0, `${deck.overflowX}px`);
+  check('five cards in the deck', deck.cards.length === 5, deck.cards.join(', '));
+  check('exactly one card open', deck.open.length === 1, deck.open.join(', '));
+  // A closed card is not an empty label: it carries its own headline figures.
+  check('every card carries a summary on its strip',
+    deck.summaries.every(t => t.length > 0), deck.summaries.join(' | '));
+  check('a closed card is a strip, not a panel', deck.strip < 70, `${deck.strip}px`);
+
+  /* opening another card closes the first */
+  const exclusive = await page.eval(`
+    const cards = [...document.querySelectorAll('.rs-deck > .rs-section')];
+    const shut = cards.find(c => c.dataset.open === 'false');
+    shut.querySelector('.rs-section-toggle').click();
+    await new Promise(r => setTimeout(r, 700));
+    const open = cards.filter(c => c.dataset.open === 'true');
+    const root = document.querySelector('.rs-root');
+    const thread = document.getElementById('chatThread');
+    return {
+      opened: shut.dataset.block,
+      openCount: open.length,
+      openIs: open[0]?.dataset.block,
+      stillFits: root.getBoundingClientRect().height <= thread.clientHeight + 2,
+      mounted: shut.querySelectorAll('canvas').length,
+    };`);
+  check('opening a card opens it', exclusive.openIs === exclusive.opened, exclusive.openIs);
+  check('opening a card closes the other', exclusive.openCount === 1, `${exclusive.openCount} open`);
+  check('still one screen after expanding', exclusive.stillFits);
+  check('a card mounts its charts when first opened', exclusive.mounted >= 1,
+    `${exclusive.mounted} canvases`);
 
   /* ─── 3. KPI expansion exclusivity ─── */
   console.log('\n[KPI expansion]');
@@ -210,7 +247,7 @@ try {
   const chipText = await page.eval(`return document.querySelector('.rs-clarify-chip')
     ?.textContent?.replace(/\\s+/g, ' ').trim();`);
   check('clarification chips name the account, not just the code',
-    chipText === 'CTN 101 Kestrel Fund Services', chipText);
+    chipText === 'CTN 101 HSBC Asset Management', chipText);
 
   check('no dashboard rendered before CTN',
     await page.eval('return !document.querySelector(".rs-main .rs-header");'));
@@ -226,9 +263,9 @@ try {
   console.log('\n[Pending workflow resumes]');
   await page.eval(ask('CTN 101'));
   check('pending workflow ran on CTN',
-    await page.eval(waitForAccount('Kestrel Fund Services', 15000)));
+    await page.eval(waitForAccount('HSBC Asset Management', 15000)));
   const resumedAccount = await page.eval(`return ${LAST_ACCOUNT};`);
-  check('resumed with correct account', resumedAccount === 'Kestrel Fund Services', resumedAccount);
+  check('resumed with correct account', resumedAccount === 'HSBC Asset Management', resumedAccount);
   check('resumed-from line names the original prompt',
     await page.eval(`return document.querySelector('.rs-resumed')?.textContent
       ?.includes('Prepare a relationship overview') === true;`));
@@ -237,7 +274,7 @@ try {
   /* ─── 5b. An organisation the simulation does not hold ─── */
   console.log('\n[Unrecognised organisation]');
   await page.eval(resetToChat);
-  await page.eval(ask('relationship snapshot for blackrock'));
+  await page.eval(ask('relationship snapshot for Barclays'));
   check('clarification shown for an organisation we do not hold',
     await page.eval(waitFor('document.querySelector(".rs-clarify")', 10000)));
   const unknownText = await page.eval(`return document.querySelector('.rs-clarify-body')
@@ -245,22 +282,24 @@ try {
   // The whole point of the card: a user must never be shown a dashboard headed
   // with a different company without being told which name was not recognised.
   check('the card names the organisation it does not have',
-    unknownText?.includes('blackrock') === true, unknownText);
+    unknownText?.includes('Barclays') === true, unknownText);
   check('nothing retrieved for an unrecognised organisation',
     await page.eval('return !document.querySelector(".rs-main .rs-header");'));
 
   /* ─── 5c. An account named rather than numbered ─── */
   console.log('\n[Account named, not numbered]');
   await page.eval(resetToChat);
-  await page.eval(ask('give me a relationship snapshot for Meridian'));
+  // No snapshot wording at all: this is claimed purely because it names an
+  // account the host has no prepared answer about.
+  await page.eval(ask('how is billing looking for HSBC this year?'));
   check('a name in the directory resolves to its CTN',
-    await page.eval(waitForAccount('Meridian Asset Partners', 15000)));
+    await page.eval(waitForAccount('HSBC Asset Management', 15000)));
   check('no clarification asked for a name we do hold',
     await page.eval('return !document.querySelector(".rs-clarify");'));
   const matchLine = await page.eval(`return document.querySelector('.rs-resumed')
     ?.textContent?.replace(/\\s+/g, ' ').trim();`);
   check('the match is stated above the dashboard',
-    matchLine?.includes('meridian') === true && matchLine?.includes('CTN 303') === true,
+    matchLine?.includes('hsbc') === true && matchLine?.includes('CTN 101') === true,
     matchLine);
 
   /* ─── 6. Degraded sources: CTN 505 ─── */
@@ -268,10 +307,10 @@ try {
   await page.eval(resetToChat);
   await page.eval(ask('Give me a relationship snapshot for CTN 505'));
   check('505 dashboard assembled',
-    await page.eval(waitForAccount('Thornbury Mutual', 15000)));
+    await page.eval(waitForAccount('abrdn', 15000)));
 
   const states = await page.eval(
-    'return [...document.querySelectorAll(".rs-src")].map(e => e.dataset.source + ":" + e.dataset.state);');
+    'return [...document.querySelectorAll(".rs-header-sources .rs-src-chip")].map(e => e.textContent.trim().toLowerCase() + ":" + e.dataset.state);');
   check('billing delayed + transactions unavailable',
     states.includes('billing:delayed') && states.includes('transactions:unavailable'),
     states.join(', '));
@@ -301,15 +340,18 @@ try {
   await page.eval(resetToChat);
   await page.eval(ask('Give me a relationship snapshot for CTN 202'));
   check('202 dashboard assembled for the responsive pass',
-    await page.eval(waitForAccount('Halden Capital Partners', 15000)));
+    await page.eval(waitForAccount('Schroders', 15000)));
   await page.setViewport(760, 900);
   await page.eval('await new Promise(r=>setTimeout(r,600)); return 1;');
-  const railStacked = await page.eval(`
+  const narrow = await page.eval(`
     const root = document.querySelector('.rs-root');
-    const rail = root.querySelector('.rs-rail-host');
-    const main = root.querySelector('.rs-main');
-    return rail.getBoundingClientRect().top >= main.getBoundingClientRect().bottom - 2;`);
-  check('source rail stacks below the dashboard at 760px', railStacked);
+    const thread = document.getElementById('chatThread');
+    return {
+      cards: root.querySelectorAll('.rs-deck > .rs-section').length,
+      fits: root.getBoundingClientRect().height <= thread.clientHeight + 2,
+    };`);
+  check('the deck survives a 760px viewport', narrow.cards === 5, `${narrow.cards} cards`);
+  check('still one screen at 760px', narrow.fits);
   const noHScroll = await page.eval(
     'return document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2;');
   check('no horizontal page overflow at 760px', noHScroll);
@@ -328,7 +370,7 @@ try {
   await page.goto(URL, { waitMs: 1200 });
   await page.eval(ask('Give me a relationship snapshot for CTN 404'));
   check('dashboard assembles under reduced motion',
-    await page.eval(waitForAccount('Aldergate Investment Group', 15000)));
+    await page.eval(waitForAccount('Legal & General Investment Management', 15000)));
   const allVisible = await page.eval(`
     const blocks = [...document.querySelectorAll('.rs-main [data-block]')];
     return blocks.length > 0 && blocks.every(b => parseFloat(getComputedStyle(b).opacity) > 0.95);`);

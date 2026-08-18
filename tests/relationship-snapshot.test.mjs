@@ -193,11 +193,20 @@ test('the directory is derived from the scenarios, not maintained beside them', 
   }
 });
 
-test('an account is found by its full name or its distinctive word', () => {
-  assert.equal(lookupAccount('relationship snapshot for Meridian')?.ctn, '303');
-  assert.equal(lookupAccount('Meridian Asset Partners overview')?.ctn, '303');
-  assert.equal(lookupAccount('how are things at thornbury?')?.ctn, '505');
-  assert.equal(lookupAccount('KESTREL FUND SERVICES')?.ctn, '101');
+test('an account is found by its name or one of its declared aliases', () => {
+  assert.equal(lookupAccount('relationship snapshot for BlackRock')?.ctn, '303');
+  assert.equal(lookupAccount('how are things at HSBC?')?.ctn, '101');
+  assert.equal(lookupAccount('HSBC ASSET MANAGEMENT')?.ctn, '101');
+  assert.equal(lookupAccount('snapshot for abrdn')?.ctn, '505');
+  // Firms are known by abbreviations no algorithm would derive from the name.
+  assert.equal(lookupAccount('LGIM overview')?.ctn, '404');
+  assert.equal(lookupAccount('legal and general')?.ctn, '404');
+});
+
+test('an alias never leaks into an ordinary word', () => {
+  // "Legal & General Investment Management" must not be reachable as "general".
+  assert.equal(lookupAccount('who is the general manager'), null);
+  assert.equal(lookupAccount('the legal position'), null);
 });
 
 test('generic words in a name identify nobody', () => {
@@ -210,35 +219,45 @@ test('generic words in a name identify nobody', () => {
 
 test('an organisation outside the directory resolves to nothing at all', () => {
   // Never to the nearest entry: a wrong account is worse than no account.
-  for (const name of ['blackrock', 'HSBC', 'Legal & General', 'Goldman']) {
+  for (const name of ['Barclays', 'Fidelity International', 'Goldman', 'Vanguard']) {
     assert.equal(lookupAccount(name), null, name);
   }
 });
 
+test('an account name alone does not claim a prompt', () => {
+  // The accounts are real firms and the host answers its own questions about
+  // the same firms. The name says WHICH account once a request has been
+  // recognised as a snapshot; it never decides that a request is one.
+  for (const text of ['How are we charging BlackRock?', 'HSBC', 'abrdn renewal date']) {
+    assert.equal(classifyLocally(text).workflow, 'other', text);
+    assert.equal(gate(text, classifyLocally(text)).action, 'ignore', text);
+  }
+});
+
 test('a named account claims the prompt and runs without a clarification', () => {
-  const text = 'give me a relationship snapshot for Meridian';
+  const text = 'give me a relationship snapshot for HSBC';
   const decision = classifyLocally(text);
   assert.equal(decision.workflow, 'relationship_snapshot');
 
   const outcome = gate(text, decision);
   assert.equal(outcome.action, 'run');
-  assert.equal(outcome.ctn, '303');
-  assert.equal(outcome.matchedName, 'Meridian Asset Partners');
-  assert.equal(outcome.matchedAlias, 'meridian');
+  assert.equal(outcome.ctn, '101');
+  assert.equal(outcome.matchedName, 'HSBC Asset Management');
+  assert.equal(outcome.matchedAlias, 'hsbc');
 });
 
 test('an explicit CTN outranks a name in the same message', () => {
-  const text = 'snapshot for Meridian, CTN 101';
+  const text = 'snapshot for BlackRock, CTN 101';
   const outcome = gate(text, classifyLocally(text));
   assert.equal(outcome.ctn, '101');
   assert.equal(outcome.matchedName, null);
 });
 
 test('an unrecognised organisation is quoted back, not resolved', () => {
-  const text = 'relationship snapshot for blackrock';
+  const text = 'relationship snapshot for Barclays';
   const outcome = gate(text, classifyLocally(text));
   assert.equal(outcome.action, 'clarify');
-  assert.equal(outcome.pending.entity, 'blackrock');
+  assert.equal(outcome.pending.entity, 'Barclays');
 });
 
 test('the entity extractor does not mistake the request for a name', () => {
@@ -249,21 +268,42 @@ test('the entity extractor does not mistake the request for a name', () => {
 });
 
 test('a pending workflow resumes on a later message naming an account', () => {
-  const first = 'relationship snapshot for blackrock';
+  const first = 'relationship snapshot for Barclays';
   const pending = gate(first, classifyLocally(first)).pending;
-  const outcome = gate('Thornbury', classifyLocally('Thornbury'), pending);
+  const outcome = gate('abrdn', classifyLocally('abrdn'), pending);
   assert.equal(outcome.action, 'run');
   assert.equal(outcome.ctn, '505');
   assert.equal(outcome.resumed, true);
   assert.equal(outcome.originalPrompt, first);
 });
 
+test('a resumed run drops a title written about a firm we could not show', () => {
+  const first = 'relationship snapshot for Barclays';
+  const pending = gate(first, classifyLocally(first)).pending;
+  pending.decision = { ...pending.decision, focus: 'billing', title: 'Billing overview for Barclays' };
+
+  const outcome = gate('CTN 505', classifyLocally('CTN 505'), pending);
+  assert.equal(outcome.ctn, '505');
+  // What the user wanted to see survives; what it was called does not.
+  assert.equal(outcome.decision.focus, 'billing');
+  assert.equal(outcome.decision.title, null);
+});
+
+test('a resumed run keeps a title that named no firm', () => {
+  const first = 'Prepare a relationship overview';
+  const pending = gate(first, classifyLocally(first)).pending;
+  pending.decision = { ...pending.decision, title: 'Relationship overview' };
+
+  const outcome = gate('CTN 101', classifyLocally('CTN 101'), pending);
+  assert.equal(outcome.decision.title, 'Relationship overview');
+});
+
 test('every runnable outcome carries the account it will actually show', () => {
   // The bug this guards: a dashboard rendered under a heading the user never
   // asked for, with nothing on screen connecting the two.
   for (const [text, expected] of [
-    ['snapshot for CTN 404', 'Aldergate Investment Group'],
-    ['relationship snapshot for Halden', 'Halden Capital Partners'],
+    ['snapshot for CTN 404', 'Legal & General Investment Management'],
+    ['relationship snapshot for Schroders', 'Schroders'],
   ]) {
     const outcome = gate(text, classifyLocally(text));
     assert.equal(outcome.action, 'run');
@@ -301,11 +341,11 @@ test('every snapshot is flagged as simulated', () => {
 
 test('named scenarios match their documented shape', () => {
   const stable = getSnapshot('101');
-  assert.equal(stable.account.name, 'Kestrel Fund Services');
+  assert.equal(stable.account.name, 'HSBC Asset Management');
   assert.ok(stable.sources.every((s) => s.state === 'live'), 'CTN 101 is fully live');
 
   const heavyOps = getSnapshot('303');
-  assert.equal(heavyOps.account.name, 'Meridian Asset Partners');
+  assert.equal(heavyOps.account.name, 'BlackRock');
   assert.ok(heavyOps.tickets.open > getSnapshot('101').tickets.open,
     'CTN 303 has more operational activity than CTN 101');
 

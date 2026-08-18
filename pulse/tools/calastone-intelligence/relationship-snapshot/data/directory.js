@@ -41,12 +41,20 @@ export function normalise(text) {
 }
 
 /**
- * The aliases a name may be recognised by: the full name, and each of its
- * non-generic words. "Meridian Asset Partners" is findable as "meridian",
+ * The aliases a name may be recognised by.
+ *
+ * A scenario may declare its own — several of these firms are known by an
+ * abbreviation that no algorithm would derive from the registered name, and
+ * "Legal & General Investment Management" must not be reachable as "general".
+ * Where none are declared, the full name and each of its non-generic words are
+ * used, so a fictional "Meridian Asset Partners" is findable as "meridian" but
  * never as "asset" or "partners".
  */
-function aliasesFor(name) {
+function aliasesFor(name, declared) {
   const full = normalise(name);
+  if (Array.isArray(declared) && declared.length) {
+    return Object.freeze([...new Set([full, ...declared.map(normalise)])].filter(Boolean));
+  }
   const distinctive = full.split(' ').filter((w) => w.length > 3 && !GENERIC_TOKENS.has(w));
   return Object.freeze([full, ...distinctive.filter((w) => w !== full)]);
 }
@@ -65,7 +73,7 @@ export const ACCOUNT_DIRECTORY = Object.freeze(
       tier: profile.tier,
       segment: profile.segment,
       region: profile.region,
-      aliases: aliasesFor(profile.accountName),
+      aliases: aliasesFor(profile.accountName, profile.aliases),
     }))
     .sort((a, b) => a.ctn.localeCompare(b.ctn)),
 );

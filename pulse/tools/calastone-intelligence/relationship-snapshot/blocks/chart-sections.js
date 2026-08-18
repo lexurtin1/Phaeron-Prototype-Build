@@ -35,6 +35,20 @@ function summary(items) {
     </div>`;
 }
 
+/**
+ * The headline figures a closed card shows on its strip.
+ *
+ * A card that says only "Billing revenue" when closed is a filing cabinet. The
+ * strip carries the same two figures the card leads with when open, so the deck
+ * reads as a dashboard whether or not anything is expanded.
+ */
+function headline(value, v) {
+  if (value == null) return '<span class="rs-sum-none">No figures available</span>';
+  return `<span class="rs-sum-fig">${esc(value)}</span>`
+    + (v == null ? ''
+      : ` <span class="rs-sum-delta rs-tone-${esc(varianceDirection(v))}">${esc(formatVariance(v))}</span>`);
+}
+
 function evidenceDrawer(src, tableHtml) {
   const node = fromHTML(`
     <div class="rs-drawer">
@@ -87,8 +101,12 @@ function monthlyTable(months, columns) {
 export function renderBillingSection(snapshot, ctx = {}) {
   const b = snapshot.billing;
   const src = snapshot.sources.find((s) => s.id === 'billing');
+  const v = b.available ? variance(b.ytd, b.priorYtd) : null;
+
   const sec = section('billing-revenue', 'Billing revenue', {
     subtitle: `${snapshot.period.label} · Billing (simulated)`,
+    summary: headline(b.available ? formatCurrency(b.ytd) : null, v),
+    open: ctx.open === true,
   });
   const host = body(sec);
 
@@ -98,8 +116,6 @@ export function renderBillingSection(snapshot, ctx = {}) {
   }
 
   if (src?.state === 'delayed') host.appendChild(delayedNotice('Billing', src.note));
-
-  const v = variance(b.ytd, b.priorYtd);
   host.appendChild(fromHTML(summary([
     { label: `YTD total (${b.currency})`, value: esc(formatCurrency(b.ytd)) },
     {
@@ -134,8 +150,12 @@ export function renderBillingSection(snapshot, ctx = {}) {
 export function renderTransactionsSection(snapshot, ctx = {}) {
   const t = snapshot.transactions;
   const src = snapshot.sources.find((s) => s.id === 'transactions');
+  const v = t.available ? variance(t.ytd, t.priorYtd) : null;
+
   const sec = section('transactions', 'Transactions', {
     subtitle: `${snapshot.period.label} · Transactions (simulated)`,
+    summary: headline(t.available ? formatCount(t.ytd) : null, v),
+    open: ctx.open === true,
   });
   const host = body(sec);
 
@@ -145,8 +165,6 @@ export function renderTransactionsSection(snapshot, ctx = {}) {
   }
 
   if (src?.state === 'delayed') host.appendChild(delayedNotice('Transactions', src.note));
-
-  const v = variance(t.ytd, t.priorYtd);
   host.appendChild(fromHTML(summary([
     { label: `YTD total (${t.unit})`, value: esc(formatCount(t.ytd)) },
     {

@@ -18,18 +18,17 @@
 import { classifyWorkflow, classifyLocally, gate, extractCtn } from './intent.js';
 import { loadSnapshot } from './data/mock-repo.js';
 import { RelationshipSnapshotSchema, safeValidate } from './schemas.js';
-import { resolveOrder, renderBlocks } from './blocks/registry.js';
+import { resolveOrder, renderBlocks, mountBlock } from './blocks/registry.js';
 import { createAssemblyWheel } from './motion/wheel.js';
-import * as sourceRail from './components/source-rail.js';
 import * as kpiRail from './components/kpi-rail.js';
 import * as projectTiles from './components/project-tiles.js';
 import { statusChip } from './components/account-header.js';
 import { clarificationCard, errorState } from './components/states.js';
-import { accountForCtn } from './data/directory.js';
+import { accountForCtn, lookupAccount } from './data/directory.js';
 import { fromHTML } from './components/dom.js';
 import { animate, enter, stagger, pause, prefersReducedMotion, DUR } from './motion/motion.js';
 import { disposeAll, resizeAll } from './charts/mount.js';
-import { FIT_MIN_WIDTH } from './config.js';
+import { DECK_BLOCKS, FOCUS_BLOCKS } from './config.js';
 import { esc } from './format.js';
 
 /* ───────────────────────── conversation state ───────────────────────── */
@@ -56,7 +55,7 @@ let running = false;
  * and return the containers to render into, plus the widen step.
  *
  * @param {HTMLElement} body the message's `.assistant-body`
- * @returns {{root: HTMLElement, main: HTMLElement, rail: HTMLElement, widen: () => void}}
+ * @returns {{root: HTMLElement, main: HTMLElement, widen: () => void}}
  */
 function mountInMessage(body) {
   body.replaceChildren();
@@ -68,7 +67,6 @@ function mountInMessage(body) {
     <div class="rs-shell">
       <div class="rs-root">
         <div class="rs-main"></div>
-        <div class="rs-rail-host"></div>
       </div>
     </div>
   `);
@@ -78,7 +76,6 @@ function mountInMessage(body) {
   return {
     root,
     main: root.querySelector('.rs-main'),
-    rail: root.querySelector('.rs-rail-host'),
 
     /**
      * Widen the thread column for the dashboard.
@@ -155,13 +152,127 @@ function provenanceLine(ctn, meta) {
   return null;
 }
 
+/**
+ * Size the dashboard to the thread it is in.
+ *
+ * The stylesheet can only estimate — `calc(100vh - 214px)` guesses the topbar,
+ * the composer and the thread's padding — and an estimate that is eight pixels
+ * optimistic is the difference between one screen and a scrollbar. Here we can
+ * simply measure the element the dashboard has to fit inside.
+ *
+ * @param {HTMLElement} root the .rs-root
+ */
+function fitToThread(root) {
+  const thread = document.getElementById('chatThread') || root.closest('.chat-thread');
+  if (!thread || !thread.clientHeight) return;
+
+  // Only measure a thread that is actually a scroll viewport. When it is not —
+  // a host that lets the page scroll instead, or a full-page screenshot pass
+  // that unclips it — its height is the height of its content, which would
+  // hand the dashboard a nonsense figure. The stylesheet's estimate stands.
+  const overflow = getComputedStyle(thread).overflowY;
+  if (overflow !== 'auto' && overflow !== 'scroll') return;
+
+  // 28px covers the gap above the message and the thread's own bottom padding.
+  const available = Math.max(420, Math.min(1000, thread.clientHeight - 28));
+  root.style.setProperty('--rs-fit-h', `${Math.round(available)}px`);
+}
+
+let fitBound = false;
+
+/** Re-measure every live dashboard when the window changes shape. */
+function bindFitToThread() {
+  if (fitBound || typeof window === 'undefined') return;
+  fitBound = true;
+  let frame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      for (const root of document.querySelectorAll('.rs-root[data-fit="on"]')) {
+        fitToThread(/** @type {HTMLElement} */ (root));
+      }
+      resizeAll();
+    });
+  });
+}
+
+/* ───────────────────────── the card deck ─────────────────────────
+ *
+ * The account header and the KPI rail are always on screen: between them they
+ * answer "which account, and how is it doing" without a click. Everything
+ * below is a deck of expandable cards, one open at a time.
+ *
+ * That is what holds the dashboard to a single screen. A closed card is a
+ * strip carrying its own headline figures, so nothing is hidden — the detail
+ * behind it is one click away, and the open card gets all the height that
+ * remains, which is what makes its charts worth looking at.
+ */
+
+/**
+ * Move the detail blocks into a deck and make them exclusive.
+ *
+ * @param {HTMLElement} stage the .rs-blocks container
+ * @param {Element[]} elements rendered blocks, in display order
+ * @returns {HTMLElement|null}
+ */
+function buildDeck(stage, elements) {
+  const cards = elements.filter((el) => DECK_BLOCKS.includes(el.dataset?.block));
+  if (!cards.length) return null;
+
+  const deck = document.createElement('div');
+  deck.className = 'rs-deck';
+  stage.insertBefore(deck, cards[0]);
+  for (const card of cards) deck.appendChild(card);
+
+  deck.addEventListener('click', (event) => {
+    const toggle = event.target.closest?.('.rs-section-toggle');
+    if (!toggle || !deck.contains(toggle)) return;
+    const card = toggle.closest('.rs-section');
+    setOpenCard(deck, card, card.dataset.open !== 'true');
+  });
+
+  return deck;
+}
+
+/** @param {Element} card @param {boolean} open */
+function setCardState(card, open) {
+  card.dataset.open = String(open);
+  card.querySelector('.rs-section-toggle')?.setAttribute('aria-expanded', String(open));
+  const cardBody = card.querySelector('.rs-section-body');
+  if (cardBody) cardBody.hidden = !open;
+}
+
+/**
+ * Open one card and close the rest. Exclusivity is not a style choice: two open
+ * cards would not fit, and the deck's promise is that it always does.
+ */
+function setOpenCard(deck, card, open) {
+  for (const other of deck.querySelectorAll(':scope > .rs-section')) {
+    setCardState(other, other === card && open);
+  }
+  if (!open) return;
+
+  // Charts in a closed card were never mounted — ECharts cannot measure a box
+  // that is display:none, so it mounts the first time the card is opened.
+  requestAnimationFrame(() => {
+    mountBlock(card);
+    resizeAll();
+  });
+}
+
+/** The card that starts open: the one Claude's focus points at, else the first. */
+function initialOpenBlock(order, focus) {
+  const wanted = focus && FOCUS_BLOCKS[focus];
+  if (wanted && order.includes(wanted)) return wanted;
+  return order.find((id) => DECK_BLOCKS.includes(id)) || null;
+}
+
 /* ───────────────────────── assembly sequence ───────────────────────── */
 
 /**
- * The dashboard reveal, in the order the brief specifies:
- * header → KPI cards → charts left to right → operations/projects → sources.
+ * The dashboard reveal: header → KPI cards → the card deck.
  */
-async function runAssemblySequence(elements, rail) {
+async function runAssemblySequence(elements) {
   const byBlock = (name) => elements.find((e) => e.dataset?.block === name);
 
   const header = byBlock('account-header');
@@ -194,12 +305,6 @@ async function runAssemblySequence(elements, rail) {
   const projects = byBlock('projects');
   if (projects) projectTiles.animateIn(projects);
 
-  // Source/evidence chips appear last.
-  if (rail) {
-    await pause(0.1);
-    sourceRail.animateIn(rail);
-  }
-
   resizeAll();
 }
 
@@ -229,7 +334,7 @@ async function run(ctn, decision, meta = {}) {
   }
 
   disposeAll();
-  const { root, main: host, rail, widen } = mountInMessage(body);
+  const { root, main: host, widen } = mountInMessage(body);
 
   const provenance = provenanceLine(ctn, meta);
   if (provenance) host.appendChild(provenance);
@@ -265,21 +370,20 @@ async function run(ctn, decision, meta = {}) {
   widen();
   await pause(0.15);
 
-  // Does the column have room for the one-screen layout? The stylesheet is the
-  // authority — FIT_MIN_WIDTH is the same threshold its container query uses —
-  // but the blocks need the answer before they render, because a tile with
-  // 200px of height folds its long tables away and a full-width one does not.
-  const fitted = (root.parentElement?.clientWidth ?? 0) >= FIT_MIN_WIDTH;
-  if (fitted) root.dataset.fit = 'on';
+  // The deck holds one screen at any width, so there is no threshold to test.
+  root.dataset.fit = 'on';
+  fitToThread(root);
+  bindFitToThread();
 
   // 3. Render the allow-listed blocks in the resolved order.
   const order = resolveOrder(decision.blockOrder, { focus: decision.focus });
   const stage = document.createElement('div');
   stage.className = 'rs-blocks';
+  const openBlock = initialOpenBlock(order, decision.focus);
   const { elements } = renderBlocks(order, snapshot, stage, {
     title: decision.title,
     period: decision.period,
-    fit: fitted,
+    openBlock,
   });
 
   // Hide until the sequence animates them in, so nothing flashes at full opacity.
@@ -288,20 +392,13 @@ async function run(ctn, decision, meta = {}) {
   }
 
   host.appendChild(stage);
+  buildDeck(stage, elements);
 
   // 4. The wheel becomes the header status chip rather than simply vanishing.
   const chip = statusChip(stage);
   await wheel.collapseInto(chip);
 
-  // 5. Source rail last.
-  // The evidence cards start folded in the one-screen layout only.
-  const railEl = sourceRail.render(snapshot, { collapsed: fitted });
-  if (rail) {
-    rail.appendChild(railEl);
-    if (!prefersReducedMotion()) railEl.style.opacity = '1';
-  }
-
-  await runAssemblySequence(elements, railEl);
+  await runAssemblySequence(elements);
 
   root.setAttribute('data-focus', decision.focus || 'default');
   keepInView(root, { align: 'top' });
@@ -340,21 +437,55 @@ function tryHandle(text, assistantNode) {
   // Synchronous decision first: does this look like ours at all? A pending
   // workflow plus a CTN always claims the turn.
   const local = classifyLocally(text);
+
+  // A workflow waiting for an account is answered by a CTN or by a name — "CTN
+  // 101" and "HSBC" are both complete answers to the question it asked.
+  const answersPending = pendingWorkflow
+    && (extractCtn(text) || lookupAccount(text));
+
+  // An account name on its own is enough EXCEPT where the host already has a
+  // prepared answer about that firm. "How are we charging BlackRock?" is the
+  // module's own question and it answers it well; "how is billing looking for
+  // HSBC this year?" is nobody's, and it is exactly what this feature is for.
+  //
+  // The host publishes the test (window.cannedKey). Where it does not — some
+  // other page embedding this feature — a name alone is not taken, because
+  // there is no way to know what would be trampled.
+  const hostAnswersThis = typeof window.cannedKey !== 'function'
+    || Boolean(window.cannedKey(text));
+  const namesAnAccount = Boolean(lookupAccount(text));
+
   const claimsTurn = local.workflow === 'relationship_snapshot'
-    || (pendingWorkflow && extractCtn(text));
+    || (namesAnAccount && !hostAnswersThis)
+    || answersPending;
 
   if (!claimsTurn) return false;
 
   // Own the turn, then refine the decision with the server classifier.
-  handleAsync(text, assistantNode);
+  handleAsync(text, assistantNode, { byName: Boolean(namesAnAccount && !hostAnswersThis) });
   return true;
 }
 
-async function handleAsync(text, assistantNode) {
+/**
+ * @param {string} text
+ * @param {HTMLElement} [assistantNode]
+ * @param {{byName?: boolean}} [claim] why the turn was claimed. A prompt taken
+ *   because it names an account is a snapshot request even though the phrasing
+ *   alone would not have said so — without this the fallback classifier would
+ *   answer "other" and the message would be dropped on the floor.
+ */
+async function handleAsync(text, assistantNode, claim = {}) {
   const body = assistantNode?.querySelector?.('.assistant-body');
 
   const local = classifyLocally(text);
-  const { decision: remote, source, error } = await classifyWorkflow(text);
+
+  // Identify the account before classifying, so the model can shape the view
+  // for it. Identification is a regex and a table lookup — it retrieves
+  // nothing, and the gate below still decides whether anything may be fetched.
+  const identified = extractCtn(text) || lookupAccount(text)?.ctn || null;
+  const account = accountForCtn(identified);
+
+  const { decision: remote, source, error } = await classifyWorkflow(text, { account });
   if (error && source === 'local') {
     console.info('[relationship-snapshot] using local classifier:', error);
   }
@@ -366,7 +497,7 @@ async function handleAsync(text, assistantNode) {
   // CTN gate below is never influenced by either classifier.
   const decision = {
     ...remote,
-    workflow: (local.workflow === 'relationship_snapshot' || pendingWorkflow)
+    workflow: (local.workflow === 'relationship_snapshot' || pendingWorkflow || claim.byName)
       ? 'relationship_snapshot'
       : remote.workflow,
     focus: remote.focus ?? local.focus,

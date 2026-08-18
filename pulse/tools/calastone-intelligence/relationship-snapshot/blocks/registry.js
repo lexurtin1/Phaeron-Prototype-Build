@@ -24,11 +24,11 @@ import { renderBillingSection, renderTransactionsSection } from './chart-section
 export const BLOCKS = Object.freeze({
   'account-header': (snapshot, ctx) => accountHeader.render(snapshot, { title: ctx?.title }),
   'kpi-rail': (snapshot) => kpiRail.render(snapshot),
-  relationship: (snapshot) => relationshipCard.render(snapshot),
+  relationship: (snapshot, ctx) => relationshipCard.render(snapshot, { open: ctx?.open }),
   'billing-revenue': (snapshot, ctx) => renderBillingSection(snapshot, ctx),
   transactions: (snapshot, ctx) => renderTransactionsSection(snapshot, ctx),
-  operations: (snapshot, ctx) => operationsPanel.render(snapshot, { fit: ctx?.fit }),
-  projects: (snapshot) => projectTiles.render(snapshot),
+  operations: (snapshot, ctx) => operationsPanel.render(snapshot, { fit: true, open: ctx?.open }),
+  projects: (snapshot, ctx) => projectTiles.render(snapshot, { open: ctx?.open }),
 });
 
 /** Ids that are actually renderable — the registry is the source of truth. */
@@ -78,7 +78,7 @@ export function resolveOrder(requested, opts = {}) {
  * @param {string[]} order
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
  * @param {HTMLElement} host
- * @param {{title?: string|null, period?: string, fit?: boolean}} [ctx]
+ * @param {{title?: string|null, period?: string, openBlock?: string}} [ctx]
  * @returns {{elements: Element[], dropped: string[]}}
  */
 export function renderBlocks(order, snapshot, host, ctx = {}) {
@@ -91,7 +91,7 @@ export function renderBlocks(order, snapshot, host, ctx = {}) {
       dropped.push(id);
       continue;
     }
-    const node = build(snapshot, ctx);
+    const node = build(snapshot, { ...ctx, open: id === ctx.openBlock });
     if (!node) continue;
     host.appendChild(node);
     elements.push(node);
@@ -102,13 +102,24 @@ export function renderBlocks(order, snapshot, host, ctx = {}) {
   }
 
   // Blocks that need their charts mounted after being placed in the document.
+  // A closed card is display:none, so ECharts would initialise at zero size and
+  // log about it; those mount on first open instead.
   for (const node of elements) {
-    if (typeof node.__mount === 'function') {
-      requestAnimationFrame(() => node.__mount());
-    }
+    if (node.dataset?.open === 'false') continue;
+    requestAnimationFrame(() => mountBlock(node));
   }
 
   return { elements, dropped };
+}
+
+/**
+ * Mount a block's charts, once. Safe to call on every open.
+ * @param {Element & {__mount?: () => void, __mounted?: boolean}} node
+ */
+export function mountBlock(node) {
+  if (!node || node.__mounted || typeof node.__mount !== 'function') return;
+  node.__mounted = true;
+  node.__mount();
 }
 
 export { BLOCK_IDS, DEFAULT_BLOCK_ORDER, FOCUS_ORDERS };

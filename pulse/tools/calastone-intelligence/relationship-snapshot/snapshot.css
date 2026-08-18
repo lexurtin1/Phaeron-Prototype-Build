@@ -526,76 +526,6 @@
 .rs-project-panel { border-top: 1px solid var(--c-border-soft); }
 .rs-project-panel-inner { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 
-/* ══════════════ Source rail ══════════════ */
-
-/* Inline in the thread the rail is not a rail — it is the last section of the
-   dashboard, so the evidence stays with the figures it backs rather than in a
-   column the reader has to scroll separately. */
-.rs-rail-host {
-  margin-top: var(--rs-gap);
-  border-top: 1px solid var(--c-border);
-  border-radius: 0 0 var(--rs-card-radius) var(--rs-card-radius);
-  background: var(--c-surface-2);
-}
-/* The host exists from the moment the wheel starts; it must not draw its rule
-   and background until the cards land in it. */
-.rs-rail-host:empty { display: none; }
-.rs-rail { padding: 20px 18px 22px; display: flex; flex-direction: column; gap: 12px; }
-.rs-rail-head {
-  margin-bottom: 4px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-}
-.rs-rail-toggle {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
-  background: none; border: 0; cursor: pointer; padding: 2px 0;
-  font: inherit; font-size: 11.5px; font-weight: 600; color: var(--c-teal);
-}
-.rs-rail-toggle:hover { color: var(--c-teal-hover); }
-.rs-rail-toggle .rs-kpi-chevron { transform: rotate(45deg); transition: transform .18s ease; }
-.rs-rail-toggle[aria-expanded="true"] .rs-kpi-chevron { transform: rotate(-135deg); }
-.rs-rail-body { display: flex; flex-direction: column; gap: 12px; }
-.rs-rail-title { font-size: 12px; font-weight: 700; color: var(--c-navy);
-  text-transform: uppercase; letter-spacing: .11em; }
-.rs-rail-sub { font-size: 11.5px; color: var(--c-text-faint); }
-.rs-rail-list {
-  display: grid; gap: 11px;
-  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
-}
-.rs-rail-note { font-size: 11px; color: var(--c-text-faint); line-height: 1.55; margin-top: 6px; }
-
-.rs-src {
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: var(--radius-md, 7px); padding: 13px 14px;
-  transition: box-shadow .18s ease, border-color .18s ease;
-}
-.rs-src:hover { box-shadow: var(--shadow-sm); }
-.rs-src[data-state="delayed"] { border-color: rgba(245,158,11,0.38); }
-.rs-src[data-state="unavailable"] { border-color: rgba(239,68,68,0.38); }
-.rs-src[data-state="checking"] {
-  background: linear-gradient(90deg, var(--c-surface) 25%, var(--c-tint) 50%, var(--c-surface) 75%);
-  background-size: 200% 100%; animation: rs-sweep 1.5s ease-in-out infinite;
-}
-@keyframes rs-sweep { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
-
-.rs-src-head { display: flex; align-items: center; gap: 8px; }
-.rs-src-name { flex: 1; font-size: 13px; font-weight: 700; color: var(--c-navy); }
-.rs-src-label { font-size: 11.5px; color: var(--c-text-faint); margin: 3px 0 10px; }
-.rs-src-facts { display: flex; flex-direction: column; gap: 7px; }
-.rs-src-facts dt {
-  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .09em; color: var(--c-text-faint);
-}
-.rs-src-facts dd { font-size: 12px; color: var(--c-text); font-weight: 500; margin-top: 1px; }
-.rs-src-note {
-  margin-top: 10px; padding: 9px 11px; border-radius: var(--radius-sm, 4px);
-  font-size: 11.5px; line-height: 1.5;
-}
-.rs-src[data-state="delayed"] .rs-src-note { background: var(--c-amber-bg); color: #8A5604; }
-.rs-src[data-state="unavailable"] .rs-src-note { background: var(--c-red-bg); color: #A32C2C; }
-.rs-src-link {
-  display: inline-block; margin-top: 11px; font-size: 11.5px; font-weight: 600;
-  color: var(--c-text-faint); text-decoration: none; cursor: not-allowed;
-}
-
 /* ══════════════ States ══════════════ */
 
 .rs-state {
@@ -653,213 +583,191 @@
    sweep. It appears here as a rule, never as a fill behind text, so it can
    never compete with a figure for attention. */
 
-.rs-header, .rs-section, .rs-rail {
+.rs-header, .rs-section {
   position: relative;
   overflow: hidden;                 /* keeps the rule inside the rounded corner */
 }
-.rs-header::before, .rs-section::before, .rs-rail::before {
+.rs-header::before, .rs-section::before {
   content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
   background: var(--rs-ramp);
 }
 /* The header carries the full-strength rule; the cards under it a quieter one,
    so the eye still lands on the account name first. */
-.rs-section::before, .rs-rail::before { opacity: .45; }
+.rs-section::before { opacity: .45; }
 
 .rs-wheel-progress { stroke: var(--rs-teal); }
 .rs-account-name   { color: var(--c-ink); }   /* the wordmark is black */
 
 /* ══════════════ One-screen layout ══════════════
    The dashboard is a dashboard: it is meant to be taken in at a glance, not
-   scrolled like a document. Above ~880px of column width the blocks stop being
-   a vertical list and tile a fixed-height grid instead.
+   scrolled like a document. Its height is the chat viewport, and it never
+   exceeds it at any window size.
 
-   Placement is by span, not by named area, so the focus orderings in config.js
-   still reorder the blocks — each of the five orderings tiles the 12 columns
-   exactly.
+   What makes that possible is the deck. The account header and the KPI rail
+   are always on screen; the five detail blocks below them are expandable
+   cards, one open at a time. A closed card is a strip carrying its own
+   headline figures — nothing is hidden, the detail behind it is one click
+   away — and the open card takes every pixel the strips leave, which is what
+   makes its charts worth looking at.
 
      ┌───────────────────────────────────────────────┐
-     │ account-header                            12  │
-     │ kpi-rail                                  12  │
-     ├───────────┬───────────┬───────────────────────┤
-     │ billing 4 │ trans   4 │ relationship        4 │
-     ├───────────┴─────┬─────┴───────────────────────┤
-     │ operations    7 │ projects                  5 │
-     └─────────────────┴─────────────────────────────┘
+     │ account header                                │  always
+     │ KPI rail                                      │  always
+     ├───────────────────────────────────────────────┤
+     │ ▸ Relationship        Amara Osei · 3 contacts │  strip
+     │ ▾ Billing revenue     £2,613,316  +10.6%      │  ┐
+     │                                               │  │ open, fills
+     │                                               │  ┘
+     │ ▸ Transactions        785,694  +5.7%          │  strip
+     │ ▸ Operations          14 open · 3 high        │  strip
+     │ ▸ Projects            2 in progress           │  strip
+     └───────────────────────────────────────────────┘
 
-   The header is a single bar in this mode, not a card with four stacked rows:
-   identity, status, source chips and the simulated-data line all sit on one
-   line and wrap only if they must. Stacked, they cost the charts below them
-   about eighty pixels, which is the difference between a chart and a smear.
+   Which card starts open is Claude's one display decision — see FOCUS_BLOCKS
+   in config.js. */
 
-   Long lists inside a tile (tickets, contacts, project items) scroll within
-   that tile. That is the one concession: the dashboard does not scroll — a
-   list does. */
-
-@container rs (min-width: 880px) {
-
-  .rs-root[data-fit="on"] {
-    /* 214px is the chrome above and below the thread: topbar, composer and the
-       thread's own padding. The floor is not negotiable — below about 790px the
-       tiles have more chrome than content and the charts stop being charts, so
-       on a short window the thread scrolls the last few dozen pixels rather
-       than the dashboard shrinking into illegibility. */
-    --rs-fit-h: clamp(790px, calc(100vh - 214px), 1000px);
-    display: flex; flex-direction: column; gap: 12px;
-    height: var(--rs-fit-h);
-  }
-  .rs-root[data-fit="on"] .rs-main {
-    flex: 1 1 auto; min-height: 0;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .rs-root[data-fit="on"] .rs-resumed { margin-bottom: 0; font-size: 11px; }
-  .rs-root[data-fit="on"] .rs-blocks {
-    flex: 1 1 auto; min-height: 0;
-    display: grid; gap: 12px;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: auto auto minmax(0, 0.85fr) minmax(0, 1.15fr);
-  }
-
-  .rs-root[data-fit="on"] [data-block="account-header"],
-  .rs-root[data-fit="on"] [data-block="kpi-rail"]       { grid-column: span 12; }
-  .rs-root[data-fit="on"] [data-block="billing-revenue"],
-  .rs-root[data-fit="on"] [data-block="transactions"],
-  .rs-root[data-fit="on"] [data-block="relationship"]   { grid-column: span 4; }
-  .rs-root[data-fit="on"] [data-block="operations"]     { grid-column: span 7; }
-  .rs-root[data-fit="on"] [data-block="projects"]       { grid-column: span 5; }
-
-  /* ── cards become flex columns that cannot outgrow their cell ── */
-  .rs-root[data-fit="on"] .rs-header,
-  .rs-root[data-fit="on"] .rs-section {
-    min-height: 0; display: flex; flex-direction: column; padding: 11px 13px 12px;
-  }
-  /* Title and subtitle share one line — the subtitle is source attribution,
-     not a second heading, and stacking it cost a whole text line per tile. */
-  .rs-root[data-fit="on"] .rs-section-head {
-    margin-bottom: 8px; gap: 9px; align-items: baseline; flex-wrap: wrap;
-  }
-  .rs-root[data-fit="on"] .rs-section-head > div:first-child {
-    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0;
-  }
-  .rs-root[data-fit="on"] .rs-section-title { font-size: 12.5px; }
-  .rs-root[data-fit="on"] .rs-section-sub { font-size: 10px; margin-top: 0; }
-  .rs-root[data-fit="on"] .rs-section-body {
-    flex: 1 1 auto; min-height: 0; gap: 8px; overflow: auto;
-  }
-
-  /* ── header ── */
-  .rs-root[data-fit="on"] .rs-header {
-    flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px 20px;
-    padding: 10px 13px 11px;
-  }
-  .rs-root[data-fit="on"] .rs-header-main { flex: 1 1 380px; gap: 14px; }
-  .rs-root[data-fit="on"] .rs-account-name { font-size: 19px; }
-  .rs-root[data-fit="on"] .rs-header-meta { margin-top: 2px; font-size: 11.5px; }
-  .rs-root[data-fit="on"] .rs-header-status { flex-direction: row; align-items: baseline; gap: 10px; }
-  .rs-root[data-fit="on"] .rs-header-sources { flex: 0 0 auto; margin-top: 0; }
-  .rs-root[data-fit="on"] .rs-simulated-note { flex: 1 1 300px; margin-top: 0; font-size: 10px; }
-
-  /* ── KPI rail ── */
-  .rs-root[data-fit="on"] .rs-kpi-track { gap: 8px; }
-  .rs-root[data-fit="on"] .rs-kpi-value { font-size: 19px; }
-  .rs-root[data-fit="on"] .rs-kpi-head { padding: 8px 11px 9px; }
-  .rs-root[data-fit="on"] .rs-kpi-label { font-size: 9.5px; padding-right: 14px; }
-  .rs-root[data-fit="on"] .rs-kpi-sub { font-size: 10.5px; }
-  /* The card's own "refreshed" line repeats the header's. */
-  .rs-root[data-fit="on"] .rs-kpi-meta { display: none; }
-  .rs-root[data-fit="on"] .rs-spark { height: 74px; }
-  .rs-root[data-fit="on"] .rs-spark-tall { height: 118px; }
-  .rs-root[data-fit="on"] .rs-kpi-panel-inner { padding: 12px; gap: 10px; }
-
-  /* ── charts fill whatever the cell leaves them ── */
-  .rs-root[data-fit="on"] .rs-chart-card {
-    flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
-    padding: 9px 9px 5px; overflow: hidden;
-  }
-  .rs-root[data-fit="on"] .rs-chart { flex: 1 1 auto; min-height: 56px; height: auto; }
-  .rs-root[data-fit="on"] .rs-chart-note { margin-top: 4px; font-size: 10px; }
-
-  /* ── summary strips ── */
-  .rs-root[data-fit="on"] [data-block="billing-revenue"] .rs-summary,
-  .rs-root[data-fit="on"] [data-block="transactions"] .rs-summary { display: none; }
-  .rs-root[data-fit="on"] .rs-summary {
-    flex: 0 0 auto; gap: 6px; padding: 6px 9px;
-    grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
-  }
-  .rs-root[data-fit="on"] .rs-summary-value { font-size: 14px; margin-top: 0; }
-  .rs-root[data-fit="on"] .rs-cell-label { font-size: 9px; letter-spacing: .07em; }
-  .rs-root[data-fit="on"] .rs-cell-sub { font-size: 10.5px; }
-
-  /* ── evidence drawers stay, compressed to one line ── */
-  .rs-root[data-fit="on"] .rs-drawer { flex: 0 0 auto; }
-  .rs-root[data-fit="on"] .rs-drawer-toggle { padding: 4px 0; font-size: 11px; }
-  .rs-root[data-fit="on"] .rs-drawer-body { max-height: 190px; overflow: auto; }
-
-  /* ── relationship ── */
-  .rs-root[data-fit="on"] .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .rs-root[data-fit="on"] .rs-rel-team { gap: 7px; }
-  .rs-root[data-fit="on"] .rs-rel-person-lead { padding: 6px 0 2px; }
-
-  /* ── operations ── */
-  .rs-root[data-fit="on"] .rs-ops-kpis { flex: 0 0 auto; gap: 20px; }
-  .rs-root[data-fit="on"] .rs-ops-kpi {
-    display: flex; align-items: baseline; gap: 7px;
-  }
-  .rs-root[data-fit="on"] .rs-ops-value { font-size: 17px; }
-  .rs-root[data-fit="on"] .rs-ops-charts {
-    flex: 1 1 auto; min-height: 0;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  }
-  .rs-root[data-fit="on"] .rs-ops-table-wrap {
-    flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column;
-  }
-  .rs-root[data-fit="on"] .rs-ops-table-wrap .rs-table-scroll {
-    min-height: 0; max-height: 132px; overflow: auto;
-  }
-  .rs-root[data-fit="on"] .rs-table-head { margin-bottom: 4px; }
-
-  /* ── projects ── */
-  .rs-root[data-fit="on"] .rs-projects { gap: 8px; }
-  .rs-root[data-fit="on"] .rs-project-head { padding: 11px 13px; }
-  .rs-root[data-fit="on"] .rs-project-facts { gap: 8px 18px; }
-  .rs-root[data-fit="on"] .rs-timeline-card { flex: 0 0 auto; height: 124px; }
-  .rs-root[data-fit="on"] .rs-timeline-card .rs-chart { min-height: 0; }
-
-  /* ── source rail: one compact strip along the foot ── */
-  .rs-root[data-fit="on"] .rs-rail-host { flex: 0 0 auto; }
-  .rs-root[data-fit="on"] .rs-rail { padding: 9px 11px 10px; gap: 6px; }
-  .rs-root[data-fit="on"] .rs-rail-head { gap: 12px; margin-bottom: 0; }
-  .rs-root[data-fit="on"] .rs-rail-body { gap: 7px; }
-  .rs-root[data-fit="on"] .rs-rail-toggle { font-size: 11px; }
-  .rs-root[data-fit="on"] .rs-rail-sub,
-  .rs-root[data-fit="on"] .rs-rail-note { font-size: 10.5px; margin-top: 0; }
-  .rs-root[data-fit="on"] .rs-rail-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px;
-  }
-  .rs-root[data-fit="on"] .rs-src { padding: 7px 9px; }
-  .rs-root[data-fit="on"] .rs-src-head { gap: 6px; }
-  .rs-root[data-fit="on"] .rs-src-name { font-size: 12px; }
-  .rs-root[data-fit="on"] .rs-src .rs-pill { padding: 1px 6px; font-size: 9.5px; }
-  /* The card's own label repeats what the name and the facts already say; in a
-     foot strip that is the first thing to go. The link is a placeholder that
-     resolves to nothing, so it goes too. */
-  .rs-root[data-fit="on"] .rs-src-label,
-  .rs-root[data-fit="on"] .rs-src-link { display: none; }
-  .rs-root[data-fit="on"] .rs-src-facts {
-    display: flex; flex-wrap: wrap; gap: 1px 10px; margin-top: 4px;
-  }
-  .rs-root[data-fit="on"] .rs-src-facts > div {
-    display: inline-flex; align-items: baseline; gap: 4px; min-width: 0;
-  }
-  .rs-root[data-fit="on"] .rs-src-facts dt { font-size: 8.5px; letter-spacing: .06em; }
-  .rs-root[data-fit="on"] .rs-src-facts dd { font-size: 10.5px; margin-top: 0; }
-  .rs-root[data-fit="on"] .rs-src-note { margin-top: 5px; padding: 5px 8px; font-size: 10px; }
-
-  /* A tile that scrolls keeps a thin, visible scrollbar — a list that is cut
-     off must look cut off. */
-  .rs-root[data-fit="on"] .rs-section-body,
-  .rs-root[data-fit="on"] .rs-table-scroll,
-  .rs-root[data-fit="on"] .rs-drawer-body { scrollbar-width: thin; }
+.rs-root[data-fit="on"] {
+  /* A starting estimate only — 214px is the topbar, the composer and the
+     thread's padding. index.js measures the thread and overwrites this the
+     moment the dashboard mounts, and again whenever the window changes shape.
+     The floor is what a header, a KPI rail, five strips and one small open
+     card need. */
+  --rs-fit-h: clamp(460px, calc(100vh - 214px), 1000px);
+  display: flex;
+  flex-direction: column;
+  height: var(--rs-fit-h);
 }
+.rs-root[data-fit="on"] .rs-main {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.rs-root[data-fit="on"] .rs-blocks {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.rs-root[data-fit="on"] [data-block="account-header"],
+.rs-root[data-fit="on"] [data-block="kpi-rail"] { flex: 0 0 auto; }
+.rs-root[data-fit="on"] .rs-resumed { margin-bottom: 0; font-size: 11px; }
+
+/* ── the deck ── */
+
+.rs-deck {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.rs-deck > .rs-section {
+  flex: 0 0 auto; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 11px 14px 12px;
+}
+/* The open card takes what the strips leave, but never less than a chart is
+   worth. If even that will not fit, the deck scrolls — a compact deck with a
+   scrollbar is a far better failure than a crushed chart. */
+.rs-deck > .rs-section[data-open="true"] { flex: 1 1 auto; min-height: 148px; }
+.rs-deck { overflow: auto; }
+.rs-deck > .rs-section[data-open="true"] > .rs-section-body {
+  flex: 1 1 auto; min-height: 0; overflow: auto; margin-top: 12px; gap: 10px;
+}
+
+/* ── the card head, which is the whole card when closed ── */
+
+.rs-section-head { margin: 0; font-size: inherit; font-weight: inherit; }
+.rs-section-toggle {
+  width: 100%; display: flex; align-items: baseline; gap: 14px;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: inherit; color: inherit; text-align: left;
+}
+.rs-section-heading {
+  display: flex; align-items: baseline; gap: 9px; min-width: 0; flex-wrap: wrap;
+}
+.rs-section-summary {
+  margin-left: auto; display: flex; align-items: baseline; gap: 10px;
+  white-space: nowrap;
+}
+.rs-sum-fig {
+  font-size: 15px; font-weight: 700; color: var(--c-navy);
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
+.rs-sum-delta { font-size: 11.5px; font-weight: 600; color: var(--c-text-muted); }
+.rs-sum-none { font-size: 12px; font-weight: 600; color: var(--c-text-faint); }
+
+.rs-section-toggle .rs-kpi-chevron {
+  position: static; flex: 0 0 auto; align-self: center; margin: 0 2px 0 4px;
+  border-color: var(--c-text-muted);
+}
+.rs-section[data-open="true"] > .rs-section-head .rs-kpi-chevron {
+  transform: rotate(-135deg);
+}
+.rs-section-toggle:hover .rs-section-title { color: var(--c-teal-hover); }
+.rs-section-toggle:focus-visible {
+  outline: 2px solid var(--c-teal); outline-offset: 3px; border-radius: 3px;
+}
+
+/* ── inside an open card ── */
+
+.rs-deck .rs-section-title { font-size: 13.5px; }
+.rs-deck .rs-section-sub { font-size: 10.5px; margin-top: 0; }
+.rs-deck .rs-chart-card {
+  flex: 1 1 auto; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; padding: 10px 10px 6px;
+}
+/* No floor: a floor taller than the card it sits in does not make the chart
+   bigger, it makes the bottom of it disappear. The chart is exactly the size of
+   its box, and charts/mount.js thins its chrome when that box is short. */
+.rs-deck .rs-chart { flex: 1 1 auto; min-height: 0; height: auto; }
+.rs-deck .rs-drawer { flex: 0 0 auto; }
+.rs-deck .rs-drawer-body { max-height: 240px; overflow: auto; }
+/* Three ticket figures on one line. Stacked they cost the charts under them a
+   whole text line for nothing. */
+.rs-deck .rs-ops-kpis { flex: 0 0 auto; gap: 24px; }
+.rs-deck .rs-ops-kpi { display: flex; align-items: baseline; gap: 8px; }
+.rs-deck .rs-ops-value { font-size: 18px; }
+.rs-deck .rs-ops-charts { flex: 1 1 auto; min-height: 0; }
+.rs-deck .rs-ops-table-wrap { flex: 0 0 auto; }
+
+/* The billing and transaction summary strips repeat, word for word, the
+   headline figures now printed on the card's own strip. */
+.rs-deck [data-block="billing-revenue"] .rs-summary,
+.rs-deck [data-block="transactions"] .rs-summary { display: none; }
+
+/* ── the header bar ──
+   One row rather than a card with four stacked rows: identity, status, source
+   chips and the simulated-data line sit on one line and wrap only if they
+   must. Stacked, they cost the deck about eighty pixels. */
+
+.rs-root[data-fit="on"] .rs-header {
+  flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px 20px;
+  padding: 10px 14px 11px;
+}
+.rs-root[data-fit="on"] .rs-header-main { flex: 1 1 380px; gap: 14px; }
+.rs-root[data-fit="on"] .rs-account-name { font-size: 19px; }
+.rs-root[data-fit="on"] .rs-header-meta { margin-top: 2px; font-size: 11.5px; }
+.rs-root[data-fit="on"] .rs-header-title { font-size: 12px; margin-top: 3px; }
+.rs-root[data-fit="on"] .rs-header-status {
+  flex-direction: row; align-items: baseline; gap: 10px;
+}
+.rs-root[data-fit="on"] .rs-header-sources { flex: 0 0 auto; margin-top: 0; }
+.rs-root[data-fit="on"] .rs-simulated-note {
+  flex: 1 1 300px; margin-top: 0; font-size: 10px;
+}
+
+/* ── the KPI rail ── */
+
+/* The KPI rail stays one row here whatever the column width. Stepping down to
+   three across doubles its height, and the height it takes is the height the
+   open card does not get. */
+.rs-root[data-fit="on"] .rs-kpi-track {
+  gap: 8px; grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.rs-root[data-fit="on"] .rs-kpi-value { font-size: 20px; }
+.rs-root[data-fit="on"] .rs-kpi-head { padding: 9px 12px 10px; }
+.rs-root[data-fit="on"] .rs-kpi-label { font-size: 9.5px; padding-right: 14px; }
+.rs-root[data-fit="on"] .rs-kpi-sub { font-size: 10.5px; }
+/* The card's own "refreshed" line repeats the header's. */
+.rs-root[data-fit="on"] .rs-kpi-meta { display: none; }
+.rs-root[data-fit="on"] .rs-spark { height: 74px; }
+.rs-root[data-fit="on"] .rs-spark-tall { height: 118px; }
+.rs-root[data-fit="on"] .rs-kpi-panel-inner { padding: 12px; gap: 10px; }
 
 /* ══════════════ Clarification chips ══════════════
    The chips name the account as well as the CTN. A user who asked about a
