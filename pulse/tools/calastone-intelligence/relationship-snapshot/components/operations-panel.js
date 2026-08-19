@@ -1,167 +1,82 @@
 /**
- * Operations panel — ticket KPIs, severity ring, raised/resolved by month, and
- * an expandable factual ticket table.
+ * Operational activity — the card that has to make a spike visible.
  *
- * The table sorts open-first, then severity, then age (see sortTickets in the
- * repository). That ordering is a factual convention, not a prioritisation
- * recommendation — nothing here tells anyone what to do about a ticket.
+ * Three figures on the head (open, high severity, oldest), a severity strip,
+ * and raised-against-resolved by month underneath. The monthly pair is the
+ * point: a count of open tickets tells you where things stand, but only the
+ * shape of raised versus resolved tells you whether a month went wrong.
+ *
+ * Nothing here interprets the shape. The card states what was raised and what
+ * was resolved; whether that is a problem is the reader's call, not ours.
  */
 
-import { esc, formatCount, formatDate, formatAge, formatRelative, humanise } from '../format.js';
-import { fromHTML, section, body, drawer } from './dom.js';
+import { esc, formatCount, formatAge, humanise } from '../format.js';
+import { fromHTML, section, body } from './dom.js';
 import { unavailableBlock, emptyState } from './states.js';
-import { mountSeverity, mountRaisedResolved, SEVERITY_TITLE } from '../charts/operations.js';
-
-const COLLAPSED_ROWS = 6;
+import { mountRaisedResolved } from '../charts/operations.js';
 
 /**
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
- * @param {{fit?: boolean}} [opts] fit: the tile has one screen-row of height,
- *   so the ticket table folds away rather than squeezing the charts to nothing.
  */
-export function render(snapshot, opts = {}) {
+export function render(snapshot) {
   const t = snapshot.tickets;
+  const src = snapshot.sources.find((s) => s.id === 'jira');
+
   const summary = t.available
     ? `<span class="rs-sum-fig">${esc(formatCount(t.open))} open</span>`
       + ` <span class="rs-sum-delta ${t.highSeverity > 0 ? 'rs-tone-attention' : 'rs-tone-flat'}">`
       + `${esc(formatCount(t.highSeverity))} high severity</span>`
     : '<span class="rs-sum-none">Jira unavailable</span>';
 
-  const sec = section('operations', 'Operations', {
+  const sec = section('operations', 'Operational activity', {
     subtitle: 'Jira (simulated)',
     summary,
-    open: opts.open === true,
   });
   const host = body(sec);
 
   if (!t.available) {
-    const src = snapshot.sources.find((s) => s.id === 'jira');
     host.appendChild(unavailableBlock('Jira', src?.note));
     return sec;
   }
 
-  host.appendChild(fromHTML(`
-    <div class="rs-ops-kpis">
-      <div class="rs-ops-kpi">
-        <div class="rs-cell-label">Open tickets</div>
-        <div class="rs-ops-value">${esc(formatCount(t.open))}</div>
-      </div>
-      <div class="rs-ops-kpi">
-        <div class="rs-cell-label">High severity</div>
-        <div class="rs-ops-value ${t.highSeverity > 0 ? 'rs-tone-attention' : ''}">${esc(formatCount(t.highSeverity))}</div>
-      </div>
-      <div class="rs-ops-kpi">
-        <div class="rs-cell-label">Oldest open ticket</div>
-        <div class="rs-ops-value">${t.open > 0 ? esc(formatAge(t.oldestOpenDays)) : '—'}</div>
-      </div>
-    </div>
-  `));
+  host.appendChild(severityStrip(t));
 
-  const charts = fromHTML(`
-    <div class="rs-ops-charts">
-      <div class="rs-chart-card">
-        <h3 class="rs-chart-title">${esc(SEVERITY_TITLE)}</h3>
-        <div class="rs-chart" data-chart="severity" style="--rs-chart-h:240px"></div>
-      </div>
-      <div class="rs-chart-card">
-        <h3 class="rs-chart-title">Tickets raised and resolved by month</h3>
-        <div class="rs-chart" data-chart="raised-resolved" style="--rs-chart-h:260px"></div>
-      </div>
-    </div>
-  `);
-  host.appendChild(charts);
+  if (!t.monthly.length) {
+    host.appendChild(emptyState('No monthly ticket history is recorded for this period.'));
+    return sec;
+  }
 
-  const table = ticketTable(t);
-  host.appendChild(opts.fit
-    ? drawer(`Ticket detail · ${t.items.length} tickets`, table, { open: false })
-    : table);
+  const chartCard = fromHTML(`
+    <div class="rs-chart-card">
+      <div class="rs-chart" data-chart="raised-resolved"></div>
+    </div>`);
+  host.appendChild(chartCard);
 
-  sec.__mount = () => {
-    const sev = charts.querySelector('[data-chart="severity"]');
-    if (t.bySeverity.length) {
-      mountSeverity(sev, t);
-    } else {
-      sev.closest('.rs-chart-card').replaceChildren(
-        emptyState('No open account-linked operational tickets in the selected period.'),
-      );
-    }
-    mountRaisedResolved(charts.querySelector('[data-chart="raised-resolved"]'), t);
-  };
+  sec.__mount = () => mountRaisedResolved(chartCard.querySelector('[data-chart="raised-resolved"]'), t);
 
   return sec;
 }
 
-function ticketTable(t) {
-  if (!t.items.length) {
-    const wrap = fromHTML('<div class="rs-ops-table-wrap"></div>');
-    wrap.appendChild(emptyState('No open account-linked operational tickets in the selected period.'));
-    return wrap;
-  }
+/**
+ * Open tickets by severity, as counts rather than a ring.
+ *
+ * A doughnut of four slices in a card this size is a smudge; four labelled
+ * numbers are readable at any width, and severity is a state, so the colours
+ * are the fixed severity colours rather than anything from the brand ramp.
+ */
+function severityStrip(t) {
+  const oldest = t.open > 0 ? formatAge(t.oldestOpenDays) : '—';
 
-  const wrap = fromHTML(`
-    <div class="rs-ops-table-wrap">
-      <div class="rs-table-head">
-        <h3 class="rs-chart-title">Ticket detail</h3>
-        <span class="rs-table-count">${t.items.length} tickets · open first, then severity, then age</span>
+  return fromHTML(`
+    <div class="rs-sev-strip">
+      ${t.bySeverity.map((s) => `
+        <div class="rs-sev-cell" data-severity="${esc(s.severity)}">
+          <span class="rs-sev rs-sev-${esc(s.severity)}">${esc(humanise(s.severity))}</span>
+          <span class="rs-sev-count">${esc(formatCount(s.value))}</span>
+        </div>`).join('')}
+      <div class="rs-sev-cell rs-sev-oldest">
+        <span class="rs-cell-label">Oldest open</span>
+        <span class="rs-sev-count">${esc(oldest)}</span>
       </div>
-      <div class="rs-table-scroll">
-        <table class="rs-table">
-          <thead>
-            <tr>
-              <th scope="col">Ticket ID</th>
-              <th scope="col">Title</th>
-              <th scope="col">Severity</th>
-              <th scope="col">Status</th>
-              <th scope="col">Owner</th>
-              <th scope="col">Opened</th>
-              <th scope="col" class="rs-num">Age</th>
-              <th scope="col">Latest update</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      ${t.items.length > COLLAPSED_ROWS
-        ? `<button type="button" class="rs-table-toggle" aria-expanded="false">
-             Show all ${t.items.length} tickets
-           </button>`
-        : ''}
-    </div>
-  `);
-
-  const tbody = wrap.querySelector('tbody');
-  const rows = t.items.map((i) => `
-    <tr data-resolved="${i.status === 'resolved'}">
-      <th scope="row" class="rs-mono">${esc(i.id)}</th>
-      <td>${esc(i.title)}</td>
-      <td><span class="rs-sev rs-sev-${esc(i.severity)}">${esc(humanise(i.severity))}</span></td>
-      <td>${esc(humanise(i.status))}</td>
-      <td>${esc(i.owner)}</td>
-      <td>${esc(formatDate(i.openedAt))}</td>
-      <td class="rs-num">${esc(formatAge(i.ageDays))}</td>
-      <td>${esc(formatRelative(i.lastUpdate))}</td>
-    </tr>`);
-
-  tbody.innerHTML = rows.join('');
-  applyCollapse(wrap, t.items.length, false);
-
-  const toggle = wrap.querySelector('.rs-table-toggle');
-  toggle?.addEventListener('click', () => {
-    const expanded = toggle.getAttribute('aria-expanded') === 'true';
-    applyCollapse(wrap, t.items.length, !expanded);
-    toggle.setAttribute('aria-expanded', String(!expanded));
-    toggle.textContent = expanded
-      ? `Show all ${t.items.length} tickets`
-      : 'Show fewer tickets';
-  });
-
-  return wrap;
-}
-
-function applyCollapse(wrap, total, expanded) {
-  if (total <= COLLAPSED_ROWS) return;
-  const rows = wrap.querySelectorAll('tbody tr');
-  rows.forEach((row, i) => {
-    row.hidden = !expanded && i >= COLLAPSED_ROWS;
-  });
+    </div>`);
 }

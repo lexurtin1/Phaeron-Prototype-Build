@@ -105,6 +105,9 @@ function buildBilling(profile, rng, available) {
     priorMonthly: available ? prior : [],
     ytd: available ? monthly.reduce((a, b) => a + b, 0) : null,
     priorYtd: available ? prior.reduce((a, b) => a + b, 0) : null,
+    // The whole of last year, which is what the progress ring tracks towards.
+    // priorYtd is the same months as this year; priorFullYear is the finish line.
+    priorFullYear: available ? priorFull.reduce((a, b) => a + b, 0) : null,
   };
 }
 

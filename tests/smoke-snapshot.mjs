@@ -3,7 +3,7 @@
  *
  * Drives the real Intelligence Module page in headless Chromium and checks the
  * behaviours that only exist in a DOM: the assembly wheel, dashboard assembly,
- * KPI expansion exclusivity, the CTN clarification flow, degraded sources,
+ * the static KPI rail, the CTN clarification flow, degraded sources,
  * reduced motion, and that the existing canned-answer path still works.
  *
  * Usage:
@@ -127,24 +127,24 @@ try {
 
   const blocks = await page.eval(
     'return [...document.querySelectorAll(".rs-main [data-block]")].map(e => e.dataset.block);');
-  check('all seven blocks rendered', blocks.length === 7, blocks.join(', '));
+  check('the template renders in its fixed order',
+    blocks.join(',') === 'account-header,kpi-rail,operations,relationship,transactions,billing-revenue,projects',
+    blocks.join(', '));
 
   const kpiCount = await page.eval('return document.querySelectorAll(".rs-kpi").length;');
   check('five KPI cards', kpiCount === 5, `got ${kpiCount}`);
 
-  // Only the open card renders its detail; the closed ones are strips. Charts
-  // mount on first open, which the deck section below exercises.
-  const openBody = await page.eval(`
-    const open = document.querySelector('.rs-deck > .rs-section[data-open="true"]');
-    const b = open?.querySelector('.rs-section-body');
-    return { block: open?.dataset.block, visible: !!b && !b.hidden, children: b?.children.length || 0 };`);
-  check('the open card shows its detail',
-    openBody.visible && openBody.children > 0, `${openBody.block}: ${openBody.children} children`);
-
-  const sevTitle = await page.eval(`
-    return [...document.querySelectorAll('.rs-main .rs-chart-title')]
-      .some(h => h.textContent.trim() === 'Open tickets by severity');`);
-  check('severity chart titled exactly (accessible HTML heading)', sevTitle);
+  // Nothing on the dashboard is behind a toggle, so every card body is showing.
+  const bodies = await page.eval(`
+    return [...document.querySelectorAll('.rs-main .rs-section')].map(sec => ({
+      block: sec.dataset.block,
+      shown: !sec.querySelector('.rs-section-body')?.hidden,
+      children: sec.querySelector('.rs-section-body')?.children.length || 0,
+    }));`);
+  check('every card shows its body', bodies.every(b => b.shown && b.children > 0),
+    bodies.map(b => `${b.block}:${b.children}`).join(', '));
+  check('no card can be collapsed',
+    await page.eval('return document.querySelectorAll(".rs-section-toggle").length === 0;'));
 
   // The rail was removed: the header already carries a chip per source, and
   // the per-section evidence drawers carry the refresh time and record counts.
@@ -163,72 +163,112 @@ try {
   await page.eval(settle);
   await page.screenshot(path.join(SHOTS, '02-dashboard-303.png'), { fullPage: true, expandScrollers: true });
 
-  /* ─── 2b. One screen, as a deck of expandable cards ─── */
-  console.log('\n[One screen]');
-  const deck = await page.eval(`
+  /* ─── 2b. One screen, fixed cards ─── */
+  console.log('\n[The template]');
+  const grid = await page.eval(`
     const root = document.querySelector('.rs-root');
     const thread = document.getElementById('chatThread');
-    const cards = [...root.querySelectorAll('.rs-deck > .rs-section')];
+    const box = (sel) => {
+      const el = root.querySelector(sel);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+    };
     return {
       mode: root.dataset.fit || 'list',
       rootH: Math.round(root.getBoundingClientRect().height),
       threadH: thread.clientHeight,
       overflowX: thread.scrollWidth - thread.clientWidth,
-      cards: cards.map(c => c.dataset.block),
-      open: cards.filter(c => c.dataset.open === 'true').map(c => c.dataset.block),
-      summaries: cards.map(c => (c.querySelector('.rs-section-summary')?.textContent || '').trim()),
-      strip: Math.round(cards.find(c => c.dataset.open === 'false').getBoundingClientRect().height),
+      header: box('[data-block="account-header"]'),
+      kpi: box('[data-block="kpi-rail"]'),
+      tx: box('[data-block="transactions"]'),
+      billing: box('[data-block="billing-revenue"]'),
+      projects: box('[data-block="projects"]'),
+      projectCards: root.querySelectorAll('.rs-project').length,
+      charts: [...root.querySelectorAll('.rs-chart')]
+        .map(c => Math.round(c.getBoundingClientRect().height)),
+      clipped: [...root.querySelectorAll('.rs-section-body, .rs-projects')]
+        .filter(b => b.scrollHeight > b.clientHeight + 1)
+        .map(b => b.closest('.rs-section').dataset.block),
+      ring: box('.rs-progress-ring'),
+      trendType: root.querySelector('[data-chart="transactions"]') ? 'chart' : 'none',
     };`);
-  check('dashboard uses the one-screen layout', deck.mode === 'on', deck.mode);
-  check('dashboard fits the thread viewport without scrolling',
-    deck.rootH <= deck.threadH + 2, `${deck.rootH}px in ${deck.threadH}px`);
-  check('no horizontal scroll', deck.overflowX === 0, `${deck.overflowX}px`);
-  check('five cards in the deck', deck.cards.length === 5, deck.cards.join(', '));
-  check('exactly one card open', deck.open.length === 1, deck.open.join(', '));
-  // A closed card is not an empty label: it carries its own headline figures.
-  check('every card carries a summary on its strip',
-    deck.summaries.every(t => t.length > 0), deck.summaries.join(' | '));
-  check('a closed card is a strip, not a panel', deck.strip < 70, `${deck.strip}px`);
 
-  /* opening another card closes the first */
-  const exclusive = await page.eval(`
-    const cards = [...document.querySelectorAll('.rs-deck > .rs-section')];
-    const shut = cards.find(c => c.dataset.open === 'false');
-    shut.querySelector('.rs-section-toggle').click();
-    await new Promise(r => setTimeout(r, 700));
-    const open = cards.filter(c => c.dataset.open === 'true');
-    const root = document.querySelector('.rs-root');
-    const thread = document.getElementById('chatThread');
+  check('the dashboard is sized to the thread', grid.mode === 'on', grid.mode);
+  // The thread height is a floor, not a ceiling. What must hold is that no
+  // chart has been thinned to fit and nothing has been clipped out of sight —
+  // COMPACT_HEIGHT in charts/mount.js is 152px, below which a plot drops its
+  // title, its axis name and half its gridlines.
+  check('no chart is thinned to fit', grid.charts.every(h => h >= 152),
+    grid.charts.join(', '));
+  check('nothing is clipped out of a card', grid.clipped.length === 0,
+    grid.clipped.join(', '));
+  check('the overrun past the thread stays modest', grid.rootH - grid.threadH <= 320,
+    `${grid.rootH}px in ${grid.threadH}px`);
+  check('no horizontal scroll', grid.overflowX === 0, `${grid.overflowX}px`);
+
+  // Row order: company, key figures, the paired measures, the projects.
+  check('company name is the top row', grid.header.y < grid.kpi.y);
+  check('key figures sit below it', grid.kpi.y < grid.tx.y);
+  check('projects are the bottom row', grid.projects.y > grid.tx.y);
+
+  // The paired row: same row, equal width, side by side.
+  check('transaction volume and billing share a row',
+    Math.abs(grid.tx.y - grid.billing.y) <= 2, `${grid.tx.y} vs ${grid.billing.y}`);
+  check('the pair is equal width', Math.abs(grid.tx.w - grid.billing.w) <= 2,
+    `${grid.tx.w} vs ${grid.billing.w}`);
+  check('transaction volume is on the left', grid.tx.x < grid.billing.x);
+  check('the pair is equal height', Math.abs(grid.tx.h - grid.billing.h) <= 2,
+    `${grid.tx.h} vs ${grid.billing.h}`);
+
+  check('transaction volume is a trend chart', grid.trendType === 'chart');
+  check('billing revenue is a progress ring', grid.ring !== null && grid.ring.h > 60,
+    JSON.stringify(grid.ring));
+  check('projects render as side-by-side cards', grid.projectCards >= 1,
+    `${grid.projectCards} cards`);
+
+  const projectRow = await page.eval(`
+    const cards = [...document.querySelectorAll('.rs-project')];
+    if (cards.length < 2) return { sideBySide: true, n: cards.length };
+    const tops = cards.map(c => Math.round(c.getBoundingClientRect().top));
+    return { sideBySide: Math.max(...tops) - Math.min(...tops) <= 2, n: cards.length };`);
+  check('project cards are on one row', projectRow.sideBySide, `${projectRow.n} cards`);
+
+  /* ─── 3. The rail states its figures outright ─── */
+  console.log('\n[KPI rail]');
+  const rail = await page.eval(`
+    const r = document.querySelector('.rs-kpi-rail');
     return {
-      opened: shut.dataset.block,
-      openCount: open.length,
-      openIs: open[0]?.dataset.block,
-      stillFits: root.getBoundingClientRect().height <= thread.clientHeight + 2,
-      mounted: shut.querySelectorAll('canvas').length,
+      panels: r.querySelectorAll('.rs-kpi-panel').length,
+      chevrons: r.querySelectorAll('.rs-kpi-chevron').length,
+      toggles: r.querySelectorAll('[aria-expanded], button').length,
+      figures: [...r.querySelectorAll('.rs-kpi')].map(k => ({
+        id: k.dataset.kpi,
+        value: (k.querySelector('.rs-kpi-value')?.textContent || '').trim(),
+        sub: (k.querySelector('.rs-kpi-sub')?.textContent || '').trim(),
+      })),
+      heights: [...r.querySelectorAll('.rs-kpi')]
+        .map(k => Math.round(k.getBoundingClientRect().height)),
     };`);
-  check('opening a card opens it', exclusive.openIs === exclusive.opened, exclusive.openIs);
-  check('opening a card closes the other', exclusive.openCount === 1, `${exclusive.openCount} open`);
-  check('still one screen after expanding', exclusive.stillFits);
-  check('a card mounts its charts when first opened', exclusive.mounted >= 1,
-    `${exclusive.mounted} canvases`);
 
-  /* ─── 3. KPI expansion exclusivity ─── */
-  console.log('\n[KPI expansion]');
-  await page.eval('document.querySelector(\'.rs-kpi[data-kpi="billing"] .rs-kpi-head\').click(); return 1;');
-  await page.eval(waitFor('document.querySelector(\'.rs-kpi[data-kpi="billing"][data-expanded="true"]\')', 4000));
-  check('billing KPI expanded',
-    await page.eval('return document.querySelector(\'.rs-kpi[data-kpi="billing"]\').dataset.expanded === "true";'));
-
-  await page.eval('document.querySelector(\'.rs-kpi[data-kpi="tickets"] .rs-kpi-head\').click(); return 1;');
-  await page.eval(waitFor('document.querySelector(\'.rs-kpi[data-kpi="tickets"][data-expanded="true"]\')', 4000));
-  const openCount = await page.eval('return document.querySelectorAll(\'.rs-kpi[data-expanded="true"]\').length;');
-  check('only one KPI expanded at a time', openCount === 1, `${openCount} open`);
+  check('no KPI is behind a toggle',
+    rail.panels === 0 && rail.chevrons === 0 && rail.toggles === 0,
+    `${rail.panels} panels, ${rail.chevrons} chevrons, ${rail.toggles} toggles`);
+  check('every KPI states its figure',
+    rail.figures.length === 5 && rail.figures.every(k => k.value.length > 0),
+    rail.figures.map(k => `${k.id}:${k.value || '(blank)'}`).join(', '));
+  check('every KPI says what the figure is',
+    rail.figures.every(k => k.sub.length > 0),
+    rail.figures.map(k => `${k.id}:${k.sub || '(blank)'}`).join(', '));
+  check('the tiles are one height',
+    Math.max(...rail.heights) - Math.min(...rail.heights) <= 1,
+    rail.heights.join(', '));
 
   // The run ends scrolled to the foot of the dashboard; frame the rail itself.
   await page.eval(`document.querySelector('.rs-kpi-track')
     .scrollIntoView({ block: 'center' }); return 1;`);
   await page.eval(settle);
-  await page.screenshot(path.join(SHOTS, '03-kpi-expanded.png'));
+  await page.screenshot(path.join(SHOTS, '03-kpi-rail.png'));
 
   /* ─── 4. Missing CTN → clarification, no data fetched ─── */
   console.log('\n[Missing CTN gate]');
@@ -318,8 +358,13 @@ try {
     await page.eval('return !!document.querySelector(".rs-state-severe");'));
   check('delayed notice rendered',
     await page.eval('return !!document.querySelector(".rs-state-attention");'));
-  check('dashboard still renders other blocks',
+  // A degraded source changes what a card says, never which cards there are.
+  check('the template is unchanged by a degraded source',
     await page.eval('return document.querySelectorAll(".rs-main [data-block]").length === 7;'));
+  check('the billing card falls back to the figure alone when there is no ring',
+    await page.eval(`
+      const billing = document.querySelector('[data-block="billing-revenue"]');
+      return !!billing.querySelector('.rs-progress-ring, .rs-progress-empty');`));
 
   await page.eval(settle);
   await page.screenshot(path.join(SHOTS, '05-degraded-505.png'), { fullPage: true, expandScrollers: true });
@@ -345,13 +390,15 @@ try {
   await page.eval('await new Promise(r=>setTimeout(r,600)); return 1;');
   const narrow = await page.eval(`
     const root = document.querySelector('.rs-root');
-    const thread = document.getElementById('chatThread');
+    const tx = root.querySelector('[data-block="transactions"]').getBoundingClientRect();
+    const billing = root.querySelector('[data-block="billing-revenue"]').getBoundingClientRect();
     return {
-      cards: root.querySelectorAll('.rs-deck > .rs-section').length,
-      fits: root.getBoundingClientRect().height <= thread.clientHeight + 2,
+      blocks: root.querySelectorAll('.rs-main [data-block]').length,
+      stacked: billing.top > tx.top + 10,
     };`);
-  check('the deck survives a 760px viewport', narrow.cards === 5, `${narrow.cards} cards`);
-  check('still one screen at 760px', narrow.fits);
+  check('the template survives a 760px viewport', narrow.blocks === 7, `${narrow.blocks} blocks`);
+  // Too narrow for a pair: the two measures stack rather than crush.
+  check('the paired row stacks at 760px', narrow.stacked);
   const noHScroll = await page.eval(
     'return document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2;');
   check('no horizontal page overflow at 760px', noHScroll);

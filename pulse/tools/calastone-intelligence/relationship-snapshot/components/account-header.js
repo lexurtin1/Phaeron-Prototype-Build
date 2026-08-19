@@ -43,8 +43,10 @@ export function render(snapshot, opts = {}) {
             <span>${esc(account.tier)} · ${esc(account.segment)}</span>
             <span class="rs-dot-sep" aria-hidden="true"></span>
             <span>${esc(account.region)}</span>
+            ${opts.title ? `
+              <span class="rs-dot-sep" aria-hidden="true"></span>
+              <span class="rs-header-title">${esc(opts.title)}</span>` : ''}
           </div>
-          ${opts.title ? `<p class="rs-header-title">${esc(opts.title)}</p>` : ''}
         </div>
 
         <div class="rs-header-status">

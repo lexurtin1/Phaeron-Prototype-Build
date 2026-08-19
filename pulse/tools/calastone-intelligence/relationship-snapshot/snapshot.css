@@ -219,31 +219,34 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
-  align-items: start;
+  /* Stretch, not start: the five tiles carry sub-lines of different lengths and
+     a ragged row of cards reads as five unrelated things. */
+  align-items: stretch;
 }
 .rs-kpi {
+  display: flex; flex-direction: column;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--rs-card-radius);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
 }
-.rs-kpi:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.rs-kpi[data-expanded="true"] {
-  grid-column: 1 / -1;
-  border-color: var(--c-teal);
-  box-shadow: var(--shadow-md);
-}
+/* No hover state. The tiles are figures, not controls, and a card that lifts
+   under the cursor invites a click that does nothing.
+
+   Tone rides on the card edge rather than the number: an amber figure reads as
+   a judgement about the figure, an amber edge reads as a card to look at. */
+.rs-kpi[data-tone="attention"] { border-color: rgba(217,151,5,0.38); }
+.rs-kpi[data-tone="severe"],
 .rs-kpi[data-unavailable="true"] { border-color: rgba(239,68,68,0.30); }
 
 .rs-kpi-head {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  width: 100%; text-align: left; padding: 15px 16px 14px; position: relative;
+  flex: 1 1 auto; width: 100%; text-align: left; padding: 15px 16px 14px;
 }
 .rs-kpi-label {
   font-size: 11px; font-weight: 600; color: var(--c-text-muted);
-  letter-spacing: .02em; line-height: 1.35; padding-right: 18px;
+  letter-spacing: .02em; line-height: 1.35;
 }
 .rs-kpi-value {
   font-size: 23px; font-weight: 800; color: var(--c-navy);
@@ -260,28 +263,6 @@
 .rs-delta-down { color: var(--c-down); }
 .rs-delta-flat, .rs-delta-none { color: var(--c-text-faint); font-weight: 500; }
 
-.rs-kpi-chevron {
-  position: absolute; top: 15px; right: 14px;
-  width: 7px; height: 7px; border-right: 1.6px solid var(--c-text-faint);
-  border-bottom: 1.6px solid var(--c-text-faint);
-  transform: rotate(45deg); transition: transform .2s ease;
-}
-[data-expanded="true"] > .rs-kpi-head > .rs-kpi-chevron,
-[data-expanded="true"] > .rs-project-head > .rs-kpi-chevron {
-  transform: rotate(-135deg);
-}
-
-.rs-kpi-panel { border-top: 1px solid var(--c-border-soft); }
-.rs-kpi-panel-inner {
-  padding: 16px; display: flex; flex-direction: column; gap: 16px;
-}
-.rs-panel-sub {
-  font-size: 12px; font-weight: 700; color: var(--c-navy);
-  letter-spacing: .01em;
-}
-.rs-spark { height: 90px; width: 100%; }
-.rs-spark-tall { height: 190px; }
-
 /* ══════════════ Sections ══════════════ */
 
 .rs-section {
@@ -291,10 +272,6 @@
   box-shadow: var(--shadow-sm);
   padding: 22px 24px 24px;
 }
-.rs-section-head {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 16px; margin-bottom: 18px;
-}
 .rs-section-title {
   font-size: 16px; font-weight: 700; color: var(--c-navy); letter-spacing: -0.01em;
 }
@@ -303,17 +280,8 @@
 }
 .rs-section-body { display: flex; flex-direction: column; gap: 18px; }
 
-/* ══════════════ Summary strips ══════════════ */
+/* ══════════════ Key/value cells ══════════════ */
 
-.rs-summary {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px; padding: 14px 16px;
-  background: var(--c-surface-2); border-radius: var(--radius-md, 7px);
-}
-.rs-summary-value {
-  font-size: 19px; font-weight: 700; color: var(--c-navy);
-  letter-spacing: -0.01em; font-variant-numeric: tabular-nums; margin-top: 3px;
-}
 .rs-cell-label {
   font-size: 10px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .1em; color: var(--c-text-faint);
@@ -339,192 +307,6 @@
 .rs-chart-error {
   font-size: 12.5px; color: #C23434; padding: 20px; text-align: center;
 }
-
-/* ══════════════ Relationship card ══════════════ */
-
-.rs-rel-grid {
-  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: 30px;
-}
-.rs-rel-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.rs-rel-heading {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .11em; color: var(--c-text-faint); margin-top: 4px;
-}
-.rs-rel-person { display: flex; align-items: center; gap: 11px; }
-.rs-rel-person-lead { padding: 12px 0 4px; }
-.rs-rel-team { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.rs-rel-name { font-size: 14px; font-weight: 700; color: var(--c-navy); }
-.rs-rel-name-sm { font-size: 13px; font-weight: 600; }
-.rs-rel-role { font-size: 12.5px; color: var(--c-text); margin-top: 1px; }
-.rs-rel-sub { font-size: 11.5px; color: var(--c-text-faint); margin-top: 1px; }
-
-.rs-avatar {
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%; flex: 0 0 auto;
-  background: var(--c-tint-2); color: var(--c-teal-hover);
-  font-weight: 700; font-size: 12px; letter-spacing: .02em;
-  border: 1.5px solid rgba(45,154,142,0.22);
-}
-
-.rs-rel-table { border-collapse: collapse; width: 100%; font-size: 13px; }
-.rs-rel-table th, .rs-rel-table td {
-  text-align: left; padding: 9px 10px 9px 0; vertical-align: top;
-  border-bottom: 1px solid var(--c-border-soft);
-}
-.rs-rel-table thead th {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .1em; color: var(--c-text-faint); padding-bottom: 7px;
-}
-.rs-rel-table tbody tr:last-child th, .rs-rel-table tbody tr:last-child td { border-bottom: none; }
-
-.rs-rel-facts { display: flex; gap: 26px; flex-wrap: wrap; margin-top: 6px; }
-.rs-rel-fact { min-width: 140px; }
-
-/* ══════════════ Operations ══════════════ */
-
-.rs-ops-kpis { display: flex; gap: 30px; flex-wrap: wrap; }
-.rs-ops-value {
-  font-size: 22px; font-weight: 800; color: var(--c-navy);
-  letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 3px;
-}
-.rs-ops-charts {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px;
-}
-
-.rs-sev {
-  display: inline-block; font-size: 10.5px; font-weight: 700;
-  padding: 2px 7px; border-radius: var(--radius-sm, 4px); white-space: nowrap;
-}
-.rs-sev-critical { background: var(--c-red-bg); color: #C23434; }
-.rs-sev-high     { background: #FEEEE0; color: #B4530A; }
-.rs-sev-medium   { background: var(--c-amber-bg); color: #A96A05; }
-.rs-sev-low      { background: #E4EFF6; color: #2F6E96; }
-
-/* ══════════════ Tables ══════════════ */
-
-.rs-table-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
-}
-.rs-table-count { font-size: 11px; color: var(--c-text-faint); }
-.rs-table-scroll { overflow-x: auto; }
-.rs-table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
-.rs-table thead th {
-  text-align: left; font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .09em; color: var(--c-text-faint);
-  padding: 8px 12px 8px 0; border-bottom: 1px solid var(--c-border);
-  white-space: nowrap;
-}
-.rs-table tbody th, .rs-table tbody td {
-  text-align: left; font-weight: 400; color: var(--c-text);
-  padding: 9px 12px 9px 0; border-bottom: 1px solid var(--c-border-soft);
-  vertical-align: top;
-}
-.rs-table tbody tr[data-resolved="true"] { color: var(--c-text-faint); }
-.rs-table tbody tr[data-resolved="true"] th,
-.rs-table tbody tr[data-resolved="true"] td { color: var(--c-text-faint); }
-.rs-table .rs-num { text-align: right; font-variant-numeric: tabular-nums; padding-right: 14px; }
-.rs-table-compact tbody th, .rs-table-compact tbody td { padding: 7px 12px 7px 0; }
-
-.rs-mini-table-wrap { overflow-x: auto; }
-.rs-mini-table { border-collapse: collapse; width: 100%; font-size: 12px; }
-.rs-mini-table th, .rs-mini-table td {
-  text-align: left; padding: 6px 10px 6px 0;
-  border-bottom: 1px solid var(--c-border-soft); font-weight: 400;
-}
-.rs-mini-table thead th {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .08em; color: var(--c-text-faint);
-}
-.rs-mini-table .rs-num { text-align: right; font-variant-numeric: tabular-nums; }
-
-.rs-table-toggle, .rs-drawer-toggle {
-  position: relative; display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 600; color: var(--c-teal-hover);
-  padding: 9px 14px; margin-top: 10px;
-  background: var(--c-surface-2); border: 1px solid var(--c-border);
-  border-radius: var(--radius-md, 7px); transition: background .15s, border-color .15s;
-}
-.rs-table-toggle:hover, .rs-drawer-toggle:hover {
-  background: var(--c-tint); border-color: var(--c-teal);
-}
-.rs-drawer-toggle { width: 100%; justify-content: space-between; }
-.rs-drawer-toggle .rs-kpi-chevron { position: static; transform: rotate(45deg); }
-.rs-drawer-toggle[aria-expanded="true"] .rs-kpi-chevron { transform: rotate(-135deg); }
-.rs-drawer-body {
-  padding: 16px 2px 4px; display: flex; flex-direction: column; gap: 16px;
-}
-
-.rs-mini-list, .rs-mini-projects { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.rs-mini-list li {
-  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; font-size: 12.5px;
-}
-.rs-mini-list-title { flex: 1; min-width: 160px; color: var(--c-text); }
-.rs-mini-list-meta { font-size: 11px; color: var(--c-text-faint); }
-.rs-mini-projects li {
-  padding: 10px 12px; background: var(--c-surface-2);
-  border-radius: var(--radius-md, 7px); border: 1px solid var(--c-border-soft);
-}
-.rs-mini-project-head {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; margin-bottom: 4px;
-}
-
-/* ══════════════ Evidence ══════════════ */
-
-.rs-evidence {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px 18px; padding: 13px 15px;
-  background: var(--c-surface-2); border-radius: var(--radius-md, 7px);
-  border: 1px solid var(--c-border-soft);
-}
-.rs-evidence dt {
-  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .1em; color: var(--c-text-faint); margin-bottom: 3px;
-}
-.rs-evidence dd { font-size: 12px; color: var(--c-text); font-weight: 500; }
-
-/* ══════════════ Projects ══════════════ */
-
-.rs-projects { display: flex; flex-direction: column; gap: 12px; }
-.rs-project {
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: var(--rs-card-radius); overflow: hidden;
-  transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
-}
-.rs-project:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-.rs-project[data-expanded="true"] { border-color: var(--c-teal); box-shadow: var(--shadow-md); }
-.rs-project[data-status="blocked"] { border-left: 3px solid var(--c-red); }
-
-.rs-project-head {
-  display: block; width: 100%; text-align: left; padding: 16px 18px; position: relative;
-}
-.rs-project-title-row {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-right: 20px;
-}
-.rs-project-name { font-size: 14.5px; font-weight: 700; color: var(--c-navy); }
-.rs-project-meta {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  font-size: 11.5px; color: var(--c-text-faint); margin-top: 5px;
-}
-.rs-project-facts {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px 18px; margin-top: 13px;
-}
-.rs-project-facts dt {
-  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .1em; color: var(--c-text-faint); margin-bottom: 2px;
-}
-.rs-project-facts dd { font-size: 12.5px; color: var(--c-text); font-weight: 500; }
-.rs-project-blocker {
-  display: flex; align-items: flex-start; gap: 8px; margin-top: 12px;
-  padding: 9px 12px; background: var(--c-red-bg); border-radius: var(--radius-md, 7px);
-  font-size: 12px; color: #A32C2C; line-height: 1.5;
-}
-.rs-project-blocker .rs-status-dot { background: var(--c-red); margin-top: 5px; }
-.rs-project-panel { border-top: 1px solid var(--c-border-soft); }
-.rs-project-panel-inner { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 
 /* ══════════════ States ══════════════ */
 
@@ -598,90 +380,115 @@
 .rs-wheel-progress { stroke: var(--rs-teal); }
 .rs-account-name   { color: var(--c-ink); }   /* the wordmark is black */
 
-/* ══════════════ One-screen layout ══════════════
-   The dashboard is a dashboard: it is meant to be taken in at a glance, not
-   scrolled like a document. Its height is the chat viewport, and it never
-   exceeds it at any window size.
-
-   What makes that possible is the deck. The account header and the KPI rail
-   are always on screen; the five detail blocks below them are expandable
-   cards, one open at a time. A closed card is a strip carrying its own
-   headline figures — nothing is hidden, the detail behind it is one click
-   away — and the open card takes every pixel the strips leave, which is what
-   makes its charts worth looking at.
+/* ══════════════ The template ══════════════
+   A fixed dashboard, four rows deep, sized to the chat viewport. Every account
+   renders the same cards in the same places; only the data inside them differs.
+   Nothing collapses, nothing reorders, nothing is behind a toggle.
 
      ┌───────────────────────────────────────────────┐
-     │ account header                                │  always
-     │ KPI rail                                      │  always
-     ├───────────────────────────────────────────────┤
-     │ ▸ Relationship        Amara Osei · 3 contacts │  strip
-     │ ▾ Billing revenue     £2,613,316  +10.6%      │  ┐
-     │                                               │  │ open, fills
-     │                                               │  ┘
-     │ ▸ Transactions        785,694  +5.7%          │  strip
-     │ ▸ Operations          14 open · 3 high        │  strip
-     │ ▸ Projects            2 in progress           │  strip
-     └───────────────────────────────────────────────┘
+     │ company                                       │  auto
+     │ key figures                                   │  auto
+     ├─────────────────────────┬─────────────────────┤
+     │ operational activity  7 │ relationship      5 │  0.85fr
+     ├──────────────────────┬──┴──────────────────────┤
+     │ transaction volume  6│ billing revenue YTD   6 │  1fr, equal width
+     │ (trend)              │ (progress against LY)   │  1.15fr
+     ├──────────────────────┴──────────────────────────┤
+     │ projects in progress — cards, side by side      │  0.95fr
+     └─────────────────────────────────────────────────┘
 
-   Which card starts open is Claude's one display decision — see FOCUS_BLOCKS
-   in config.js. */
+   Operational activity sits directly beneath the headline figures. A spike in
+   tickets is the thing here most likely to need acting on, and the foot of a
+   dashboard is where that goes unnoticed.
+
+   The thread height is a floor, not a ceiling. The two chart rows carry a
+   minimum sized so every plot clears COMPACT_HEIGHT in charts/mount.js (152px),
+   below which the chart drops its title, its axis name and half its gridlines
+   to fit. A chart that has thinned itself to survive the box is worse than a
+   dashboard the reader scrolls the last hundred pixels of. */
 
 .rs-root[data-fit="on"] {
   /* A starting estimate only — 214px is the topbar, the composer and the
      thread's padding. index.js measures the thread and overwrites this the
-     moment the dashboard mounts, and again whenever the window changes shape.
-     The floor is what a header, a KPI rail, five strips and one small open
-     card need. */
-  --rs-fit-h: clamp(460px, calc(100vh - 214px), 1000px);
+     moment the dashboard mounts, and again whenever the window changes shape. */
+  --rs-fit-h: clamp(520px, calc(100vh - 214px), 1000px);
   display: flex;
   flex-direction: column;
-  height: var(--rs-fit-h);
+  /* min-height, not height: the dashboard takes the thread when the thread is
+     big enough and grows past it when the charts would otherwise be crushed. */
+  min-height: var(--rs-fit-h);
 }
 .rs-root[data-fit="on"] .rs-main {
   flex: 1 1 auto; min-height: 0;
   display: flex; flex-direction: column; gap: 8px;
 }
-.rs-root[data-fit="on"] .rs-blocks {
-  flex: 1 1 auto; min-height: 0;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.rs-root[data-fit="on"] [data-block="account-header"],
-.rs-root[data-fit="on"] [data-block="kpi-rail"] { flex: 0 0 auto; }
 .rs-root[data-fit="on"] .rs-resumed { margin-bottom: 0; font-size: 11px; }
 
-/* ── the deck ── */
+.rs-root[data-fit="on"] .rs-blocks {
+  flex: 1 1 auto; min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  /* Weighted by what each row has to fit: the two measures carry axis labels
+     and a ring, the project strip carries up to four cards, and operations
+     reads fine short. Tuned against the busiest account in the fixtures.
 
-.rs-deck {
+     The floors are what stops a short viewport from thinning the charts: a card
+     head, an evidence line and a plot tall enough to keep its own axis. Spare
+     height above the floors still shares out by the weights.
+
+     The weights are deliberately proportional to the floors. An `fr` row cannot
+     reach its own floor without dragging its siblings up by their weights too,
+     so mismatched pairs overshoot: 0.95/1.1/1.05 against these floors inflated
+     the dashboard by an extra 130px of nothing. Change a floor, rescale the
+     weight with it. */
+  grid-template-rows:
+    auto
+    auto
+    minmax(265px, 0.95fr)
+    minmax(287px, 1.03fr)
+    minmax(185px, 0.66fr);
+  gap: 12px;
+}
+
+.rs-root[data-fit="on"] [data-block="account-header"],
+.rs-root[data-fit="on"] [data-block="kpi-rail"],
+.rs-root[data-fit="on"] [data-block="projects"] { grid-column: 1 / -1; }
+.rs-root[data-fit="on"] [data-block="operations"] { grid-column: span 7; }
+.rs-root[data-fit="on"] [data-block="relationship"] { grid-column: span 5; }
+.rs-root[data-fit="on"] [data-block="transactions"] { grid-column: span 6; }
+.rs-root[data-fit="on"] [data-block="billing-revenue"] { grid-column: span 6; }
+
+/* ── cards ── */
+
+.rs-root[data-fit="on"] .rs-section {
+  min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 12px 14px 13px;
+}
+.rs-root[data-fit="on"] .rs-section-body {
   flex: 1 1 auto; min-height: 0;
   display: flex; flex-direction: column; gap: 8px;
-}
-.rs-deck > .rs-section {
-  flex: 0 0 auto; min-height: 0;
-  display: flex; flex-direction: column;
-  padding: 11px 14px 12px;
-}
-/* The open card takes what the strips leave, but never less than a chart is
-   worth. If even that will not fit, the deck scrolls — a compact deck with a
-   scrollbar is a far better failure than a crushed chart. */
-.rs-deck > .rs-section[data-open="true"] { flex: 1 1 auto; min-height: 148px; }
-.rs-deck { overflow: auto; }
-.rs-deck > .rs-section[data-open="true"] > .rs-section-body {
-  flex: 1 1 auto; min-height: 0; overflow: auto; margin-top: 12px; gap: 10px;
+  /* A degraded source adds a notice the card was not sized for. It scrolls in
+     place rather than printing over the figures beneath it. */
+  overflow: auto;
 }
 
-/* ── the card head, which is the whole card when closed ── */
-
-.rs-section-head { margin: 0; font-size: inherit; font-weight: inherit; }
-.rs-section-toggle {
-  width: 100%; display: flex; align-items: baseline; gap: 14px;
-  background: none; border: 0; padding: 0; cursor: pointer;
-  font: inherit; color: inherit; text-align: left;
+.rs-section-head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 10px;
 }
 .rs-section-heading {
-  display: flex; align-items: baseline; gap: 9px; min-width: 0; flex-wrap: wrap;
+  display: flex; align-items: baseline; gap: 9px; min-width: 0; flex-wrap: nowrap;
+  margin: 0; font-size: inherit; font-weight: inherit;
+}
+.rs-section-title { flex: 0 0 auto; }
+.rs-section-sub {
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .rs-section-summary {
-  margin-left: auto; display: flex; align-items: baseline; gap: 10px;
+  margin-left: auto; flex: 0 0 auto;
+  display: flex; align-items: baseline; gap: 10px;
   white-space: nowrap;
 }
 .rs-sum-fig {
@@ -691,71 +498,200 @@
 .rs-sum-delta { font-size: 11.5px; font-weight: 600; color: var(--c-text-muted); }
 .rs-sum-none { font-size: 12px; font-weight: 600; color: var(--c-text-faint); }
 
-.rs-section-toggle .rs-kpi-chevron {
-  position: static; flex: 0 0 auto; align-self: center; margin: 0 2px 0 4px;
-  border-color: var(--c-text-muted);
-}
-.rs-section[data-open="true"] > .rs-section-head .rs-kpi-chevron {
-  transform: rotate(-135deg);
-}
-.rs-section-toggle:hover .rs-section-title { color: var(--c-teal-hover); }
-.rs-section-toggle:focus-visible {
-  outline: 2px solid var(--c-teal); outline-offset: 3px; border-radius: 3px;
-}
+.rs-root[data-fit="on"] .rs-section-title { font-size: 13.5px; }
+.rs-root[data-fit="on"] .rs-section-sub { font-size: 10.5px; margin-top: 0; }
 
-/* ── inside an open card ── */
+/* ── the trend card ── */
 
-.rs-deck .rs-section-title { font-size: 13.5px; }
-.rs-deck .rs-section-sub { font-size: 10.5px; margin-top: 0; }
-.rs-deck .rs-chart-card {
+.rs-root[data-fit="on"] .rs-chart-card {
   flex: 1 1 auto; min-height: 0; overflow: hidden;
-  display: flex; flex-direction: column; padding: 10px 10px 6px;
+  display: flex; flex-direction: column; padding: 8px 8px 4px;
 }
-/* No floor: a floor taller than the card it sits in does not make the chart
-   bigger, it makes the bottom of it disappear. The chart is exactly the size of
-   its box, and charts/mount.js thins its chrome when that box is short. */
-.rs-deck .rs-chart { flex: 1 1 auto; min-height: 0; height: auto; }
-.rs-deck .rs-drawer { flex: 0 0 auto; }
-.rs-deck .rs-drawer-body { max-height: 240px; overflow: auto; }
-/* Three ticket figures on one line. Stacked they cost the charts under them a
-   whole text line for nothing. */
-.rs-deck .rs-ops-kpis { flex: 0 0 auto; gap: 24px; }
-.rs-deck .rs-ops-kpi { display: flex; align-items: baseline; gap: 8px; }
-.rs-deck .rs-ops-value { font-size: 18px; }
-.rs-deck .rs-ops-charts { flex: 1 1 auto; min-height: 0; }
-.rs-deck .rs-ops-table-wrap { flex: 0 0 auto; }
+.rs-root[data-fit="on"] .rs-chart { flex: 1 1 auto; min-height: 0; height: auto; }
+/* The ring alone carries a floor. It mounts with density off (the centre label
+   is the figure), so unlike the plots there is no thinning pass to save it when
+   the box is short — it just draws its arc through its own number. On the one
+   account whose billing source is delayed, the notice above it pushes the card
+   past its row and the body scrolls the last few pixels, which is what that
+   scroll container is there for. */
+.rs-root[data-fit="on"] .rs-progress-ring { min-height: 158px; }
+.rs-root[data-fit="on"] .rs-chart-note { margin-top: 0; font-size: 10.5px; }
 
-/* The billing and transaction summary strips repeat, word for word, the
-   headline figures now printed on the card's own strip. */
-.rs-deck [data-block="billing-revenue"] .rs-summary,
-.rs-deck [data-block="transactions"] .rs-summary { display: none; }
+/* ── the progress card ── */
+
+.rs-progress {
+  flex: 1 1 auto; min-height: min-content;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: stretch; gap: 14px;
+}
+.rs-progress-ring {
+  min-height: 96px; height: auto; width: 100%; align-self: stretch; overflow: hidden;
+}
+.rs-progress-facts {
+  display: flex; flex-direction: column; justify-content: center; gap: 5px; min-width: 0;
+}
+.rs-progress-facts dt {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--c-text-faint);
+}
+.rs-progress-facts dd {
+  font-size: 12.5px; font-weight: 600; color: var(--c-text); margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.rs-progress-total { font-size: 16px !important; color: var(--c-navy) !important; }
+.rs-progress-empty {
+  flex: 1 1 auto; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; text-align: center;
+}
+
+.rs-root[data-fit="on"] .rs-state {
+  flex: 0 0 auto; padding: 9px 11px; gap: 9px;
+}
+.rs-root[data-fit="on"] .rs-state-title { font-size: 12px; margin-bottom: 2px; }
+.rs-root[data-fit="on"] .rs-state-body { font-size: 11.5px; }
+
+/* ── operational activity ── */
+
+.rs-sev-strip {
+  flex: 0 0 auto;
+  display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap;
+}
+.rs-sev-cell { display: flex; align-items: baseline; gap: 7px; }
+.rs-sev-count {
+  font-size: 16px; font-weight: 700; color: var(--c-navy);
+  font-variant-numeric: tabular-nums;
+}
+.rs-sev-oldest { margin-left: auto; }
+.rs-sev-oldest .rs-sev-count { font-size: 13px; }
+
+/* ── relationship and ownership ── */
+
+/* min-height:0, so the shrink lands on the contact list rather than on the
+   card: the manager stays pinned and a long list scrolls under them. */
+.rs-rel {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.rs-rel-lead { flex: 0 0 auto; }
+.rs-rel-lead {
+  display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; min-width: 0;
+}
+.rs-rel-lead-text { min-width: 0; flex: 1 1 auto; }
+.rs-rel-name, .rs-rel-sub {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rs-rel-name { font-size: 13.5px; font-weight: 700; color: var(--c-navy); }
+.rs-rel-sub { font-size: 11px; color: var(--c-text-faint); margin-top: 1px; }
+.rs-rel-team { display: flex; align-items: center; gap: 4px; margin-left: auto; flex: 0 0 auto; }
+.rs-rel-team .rs-avatar { font-size: 9px; }
+.rs-rel-team-label { font-size: 10.5px; color: var(--c-text-faint); margin-left: 4px; }
+
+.rs-rel-contacts {
+  list-style: none; flex: 1 1 auto; min-height: 0; overflow: auto;
+  display: flex; flex-direction: column; gap: 5px;
+  border-top: 1px solid var(--c-border-soft); padding-top: 8px;
+}
+.rs-rel-contacts li {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: baseline; gap: 10px;
+}
+.rs-rel-contact-name {
+  font-size: 11.5px; font-weight: 600; color: var(--c-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rs-rel-contact-role {
+  font-size: 11px; color: var(--c-text-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rs-rel-contact-when { font-size: 11px; color: var(--c-text-faint); white-space: nowrap; }
+.rs-rel-meeting {
+  margin-top: auto; font-size: 10.5px; color: var(--c-text-faint); line-height: 1.5;
+}
+
+/* ── evidence, on the card rather than behind it ── */
+
+.rs-evidence-line {
+  flex: 0 0 auto; font-size: 10.5px; color: var(--c-text-faint);
+  line-height: 1.5; padding-top: 2px;
+}
+.rs-evidence-line .rs-mono { font-size: 10px; }
+
+/* ── project cards, side by side ── */
+
+.rs-projects {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  gap: 10px; overflow: auto;
+}
+.rs-project {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  padding: 9px 11px 10px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-md, 7px);
+}
+.rs-project-head { display: flex; flex-direction: column; gap: 4px; }
+.rs-project-title-row {
+  display: flex; align-items: flex-start; gap: 8px; justify-content: space-between;
+}
+.rs-project-title-row .rs-pill { flex: 0 0 auto; }
+.rs-project-name {
+  font-size: 12.5px; font-weight: 700; color: var(--c-navy); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rs-project-meta {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--c-text-faint);
+  white-space: nowrap; overflow: hidden;
+}
+.rs-project-meta > span:first-child {
+  overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.rs-project-facts {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px;
+}
+.rs-project-facts dt {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--c-text-faint);
+}
+.rs-project-facts dd {
+  font-size: 10.5px; font-weight: 600; color: var(--c-text); margin-top: 1px;
+  line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rs-project-blocker {
+  display: flex; align-items: flex-start; gap: 7px; margin-top: auto;
+  padding: 7px 9px; border-radius: var(--radius-sm, 4px);
+  background: var(--c-red-bg); color: #A32C2C;
+  font-size: 10.5px; line-height: 1.45;
+}
 
 /* ── the header bar ──
    One row rather than a card with four stacked rows: identity, status, source
    chips and the simulated-data line sit on one line and wrap only if they
-   must. Stacked, they cost the deck about eighty pixels. */
+   must. Stacked, they cost the cards below them about eighty pixels. */
 
 .rs-root[data-fit="on"] .rs-header {
-  flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px 20px;
-  padding: 10px 14px 11px;
+  flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px 18px;
+  padding: 9px 14px 10px;
 }
-.rs-root[data-fit="on"] .rs-header-main { flex: 1 1 380px; gap: 14px; }
+.rs-root[data-fit="on"] .rs-header-main { flex: 1 1 330px; gap: 12px; }
 .rs-root[data-fit="on"] .rs-account-name { font-size: 19px; }
 .rs-root[data-fit="on"] .rs-header-meta { margin-top: 2px; font-size: 11.5px; }
-.rs-root[data-fit="on"] .rs-header-title { font-size: 12px; margin-top: 3px; }
+.rs-root[data-fit="on"] .rs-header-title { font-size: 11.5px; margin-top: 0; font-style: italic; }
 .rs-root[data-fit="on"] .rs-header-status {
   flex-direction: row; align-items: baseline; gap: 10px;
 }
-.rs-root[data-fit="on"] .rs-header-sources { flex: 0 0 auto; margin-top: 0; }
+.rs-root[data-fit="on"] .rs-header-sources { flex: 0 0 auto; margin-top: 0; gap: 5px; }
+.rs-root[data-fit="on"] .rs-src-chip { padding: 3px 8px; font-size: 10.5px; }
 .rs-root[data-fit="on"] .rs-simulated-note {
-  flex: 1 1 300px; margin-top: 0; font-size: 10px;
+  flex: 1 1 220px; margin-top: 0; font-size: 9.5px; line-height: 1.45;
 }
 
 /* ── the KPI rail ── */
 
-/* The KPI rail stays one row here whatever the column width. Stepping down to
-   three across doubles its height, and the height it takes is the height the
-   open card does not get. */
 .rs-root[data-fit="on"] .rs-kpi-track {
   gap: 8px; grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -763,11 +699,32 @@
 .rs-root[data-fit="on"] .rs-kpi-head { padding: 9px 12px 10px; }
 .rs-root[data-fit="on"] .rs-kpi-label { font-size: 9.5px; padding-right: 14px; }
 .rs-root[data-fit="on"] .rs-kpi-sub { font-size: 10.5px; }
-/* The card's own "refreshed" line repeats the header's. */
+/* The meta line repeats what the header already says — the refresh time, or
+   the name of the measure the label has already named. */
 .rs-root[data-fit="on"] .rs-kpi-meta { display: none; }
-.rs-root[data-fit="on"] .rs-spark { height: 74px; }
-.rs-root[data-fit="on"] .rs-spark-tall { height: 118px; }
-.rs-root[data-fit="on"] .rs-kpi-panel-inner { padding: 12px; gap: 10px; }
+
+/* ── narrow columns ──
+   The pair stops being a pair and the project cards stop being a row; the
+   dashboard becomes a single column and the thread scrolls it. Below this
+   width neither would be readable side by side. */
+
+@container rs (max-width: 720px) {
+  .rs-root[data-fit="on"] {
+    height: auto;
+  }
+  .rs-root[data-fit="on"] .rs-blocks {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .rs-root[data-fit="on"] [data-block="operations"],
+  .rs-root[data-fit="on"] [data-block="relationship"],
+  .rs-root[data-fit="on"] [data-block="transactions"],
+  .rs-root[data-fit="on"] [data-block="billing-revenue"] { grid-column: 1; }
+  .rs-root[data-fit="on"] .rs-chart { min-height: 180px; }
+  .rs-progress { grid-template-columns: minmax(0, 1fr); }
+  .rs-progress-ring { min-height: 170px; }
+  .rs-projects { grid-auto-flow: row; grid-auto-columns: auto; }
+}
 
 /* ══════════════ Clarification chips ══════════════
    The chips name the account as well as the CTN. A user who asked about a
@@ -793,11 +750,6 @@
 
 @media (max-width: 1240px) {
   .rs-kpi-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rs-ops-charts { grid-template-columns: minmax(0, 1fr); }
-}
-
-@media (max-width: 1080px) {
-  .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 
 /* The size container is the shell, not the dashboard — see mountInMessage. */
@@ -805,8 +757,6 @@
 
 @container rs (max-width: 1000px) {
   .rs-kpi-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rs-ops-charts { grid-template-columns: minmax(0, 1fr); }
-  .rs-rel-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 
 @container rs (max-width: 720px) {
@@ -816,12 +766,10 @@
     padding-bottom: 8px;
   }
   .rs-kpi { flex: 0 0 220px; scroll-snap-align: start; }
-  .rs-kpi[data-expanded="true"] { flex: 0 0 min(90%, 440px); }
   .rs-section { padding: 18px 16px 20px; }
   .rs-account-name { font-size: 20px; }
   .rs-header-main { flex-direction: column; }
   .rs-header-status { align-items: flex-start; }
-  .rs-ops-kpis { gap: 20px; }
 }
 
 @media (max-width: 860px) {
@@ -830,12 +778,10 @@
     padding-bottom: 8px;
   }
   .rs-kpi { flex: 0 0 220px; scroll-snap-align: start; }
-  .rs-kpi[data-expanded="true"] { flex: 0 0 min(92vw, 440px); }
   .rs-section { padding: 18px 16px 20px; }
   .rs-account-name { font-size: 20px; }
   .rs-header-main { flex-direction: column; }
   .rs-header-status { align-items: flex-start; }
-  .rs-ops-kpis { gap: 20px; }
 }
 
 /* ══════════════ Reduced motion ══════════════

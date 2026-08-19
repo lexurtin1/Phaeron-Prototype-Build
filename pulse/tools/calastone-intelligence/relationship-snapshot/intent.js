@@ -24,7 +24,7 @@
  */
 
 import { WorkflowDecisionSchema, safeValidate } from './schemas.js';
-import { DEFAULT_BLOCK_ORDER, FOCUS_VALUES, PERIOD_VALUES } from './config.js';
+import { DEFAULT_BLOCK_ORDER, PERIOD_VALUES } from './config.js';
 import { lookupAccount, namedEntity, accountForCtn } from './data/directory.js';
 
 /** A valid CTN is exactly `CTN` followed by three digits. */
@@ -60,14 +60,6 @@ const SNAPSHOT_HINTS = [
   /show\s+(me\s+)?(the\s+)?(billing|transactions|operational|operations|delivery|projects)/i,
   /billing\s+and\s+transactions/i,
   /operational\s+activity/i,
-];
-
-const FOCUS_HINTS = [
-  { focus: 'billing', re: /\bbilling\b|\brevenue\b|\binvoic/i },
-  { focus: 'transactions', re: /\btransaction/i },
-  { focus: 'operations', re: /\boperational\b|\boperations\b|\bticket/i },
-  { focus: 'delivery', re: /\bdelivery\b|\bproject|\bjira\b|\bmilestone/i },
-  { focus: 'relationship', re: /\brelationship\b|\bowner|\bcontact|\bstakeholder/i },
 ];
 
 const PERIOD_HINTS = [
@@ -117,14 +109,11 @@ export function classifyLocally(text) {
     return WorkflowDecisionSchema.parse({ workflow: 'other' });
   }
 
-  const focus = FOCUS_HINTS.find((h) => h.re.test(text))?.focus ?? null;
   const period = PERIOD_HINTS.find((h) => h.re.test(text))?.period ?? 'ytd';
 
   return WorkflowDecisionSchema.parse({
     workflow: 'relationship_snapshot',
-    focus,
     period,
-    blockOrder: null,
     title: null,
   });
 }
@@ -305,4 +294,4 @@ export function gate(text, decision, pending = null) {
 
 export { lookupAccount, namedEntity, accountForCtn, ACCOUNT_DIRECTORY } from './data/directory.js';
 
-export { DEFAULT_BLOCK_ORDER, FOCUS_VALUES, PERIOD_VALUES };
+export { DEFAULT_BLOCK_ORDER, PERIOD_VALUES };

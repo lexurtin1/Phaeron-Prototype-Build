@@ -20,13 +20,13 @@ const { extractCtn, hasValidCtn, classifyLocally, gate, CTN_PATTERN } = await im
 const { getSnapshot, loadSnapshot, sortTickets } = await import(`${FEATURE}/data/mock-repo.js`);
 const { ACCOUNT_DIRECTORY, lookupAccount, namedEntity, accountForCtn } = await import(`${FEATURE}/data/directory.js`);
 const { RelationshipSnapshotSchema, WorkflowDecisionSchema, safeValidate } = await import(`${FEATURE}/schemas.js`);
-const { resolveOrder, ALLOWED_BLOCK_IDS, BLOCKS } = await import(`${FEATURE}/blocks/registry.js`);
-const { DEFAULT_BLOCK_ORDER, FOCUS_ORDERS, BLOCK_IDS } = await import(`${FEATURE}/config.js`);
+const { ALLOWED_BLOCK_IDS, BLOCKS } = await import(`${FEATURE}/blocks/registry.js`);
+const { DEFAULT_BLOCK_ORDER, BLOCK_IDS, PAIRED_BLOCKS, BLOCK_ROWS } = await import(`${FEATURE}/config.js`);
 const fmt = await import(`${FEATURE}/format.js`);
 const billing = await import(`${FEATURE}/charts/billing-revenue.js`);
 const transactions = await import(`${FEATURE}/charts/transactions.js`);
 const operations = await import(`${FEATURE}/charts/operations.js`);
-const timeline = await import(`${FEATURE}/charts/project-timeline.js`);
+const progress = await import(`${FEATURE}/charts/billing-progress.js`);
 
 const require = createRequire(import.meta.url);
 const intentRoute = require('../api/snapshot-intent.js');
@@ -91,11 +91,13 @@ test('unrelated prompts are not claimed', () => {
   }
 });
 
-test('display focus is extracted from the prompt', () => {
-  assert.equal(classifyLocally('Show billing for CTN 202').focus, 'billing');
-  assert.equal(classifyLocally('Show operational activity for CTN 404').focus, 'operations');
-  assert.equal(classifyLocally('relationship snapshot: show projects for CTN 404').focus, 'delivery');
-  assert.equal(classifyLocally('Show transactions for CTN 202').focus, 'transactions');
+test('the classifier decides workflow and period, and nothing about layout', () => {
+  // The dashboard is a fixed template, so there is no focus to extract and no
+  // ordering to propose. What is left is: is this ours, and over what period.
+  const d = classifyLocally('Show billing for CTN 202 over the last 3 months');
+  assert.deepEqual(Object.keys(d).sort(), ['period', 'title', 'workflow']);
+  assert.equal(d.workflow, 'relationship_snapshot');
+  assert.equal(d.period, 'last_3_months');
 });
 
 test('period defaults to YTD and is extracted when stated', () => {
@@ -169,7 +171,7 @@ test('a pending workflow resumes on a later message carrying a CTN', () => {
   assert.equal(outcome.ctn, '101');
   assert.equal(outcome.resumed, true);
   assert.equal(outcome.originalPrompt, first, 'the original prompt is preserved verbatim');
-  assert.equal(outcome.decision.focus, pending.decision.focus, 'the original decision is reused');
+  assert.equal(outcome.decision.period, pending.decision.period, 'the original decision is reused');
 });
 
 test('a pending workflow is not resumed by a message with no CTN', () => {
@@ -280,12 +282,12 @@ test('a pending workflow resumes on a later message naming an account', () => {
 test('a resumed run drops a title written about a firm we could not show', () => {
   const first = 'relationship snapshot for Barclays';
   const pending = gate(first, classifyLocally(first)).pending;
-  pending.decision = { ...pending.decision, focus: 'billing', title: 'Billing overview for Barclays' };
+  pending.decision = { ...pending.decision, period: 'last_3_months', title: 'Billing overview for Barclays' };
 
   const outcome = gate('CTN 505', classifyLocally('CTN 505'), pending);
   assert.equal(outcome.ctn, '505');
   // What the user wanted to see survives; what it was called does not.
-  assert.equal(outcome.decision.focus, 'billing');
+  assert.equal(outcome.decision.period, 'last_3_months');
   assert.equal(outcome.decision.title, null);
 });
 
@@ -464,10 +466,8 @@ test('loadSnapshot reports four retrieval stages in order', async () => {
 test('a well-formed decision parses', () => {
   const r = safeValidate(WorkflowDecisionSchema, {
     workflow: 'relationship_snapshot',
-    focus: 'billing',
     period: 'ytd',
-    blockOrder: ['account-header', 'billing-revenue'],
-    title: 'Relationship snapshot, billing focus',
+    title: 'Relationship snapshot for BlackRock',
   });
   assert.ok(r.ok, r.error);
 });
@@ -476,32 +476,25 @@ test('defaults are applied for omitted optional fields', () => {
   const r = safeValidate(WorkflowDecisionSchema, { workflow: 'relationship_snapshot' });
   assert.ok(r.ok, r.error);
   assert.equal(r.data.period, 'ytd');
-  assert.equal(r.data.focus, null);
-  assert.equal(r.data.blockOrder, null);
+  assert.equal(r.data.title, null);
 });
 
 test('unknown enum values are rejected', () => {
   assert.equal(safeValidate(WorkflowDecisionSchema, { workflow: 'delete_everything' }).ok, false);
   assert.equal(safeValidate(WorkflowDecisionSchema,
-    { workflow: 'relationship_snapshot', focus: 'salary' }).ok, false);
-  assert.equal(safeValidate(WorkflowDecisionSchema,
     { workflow: 'relationship_snapshot', period: 'all_time' }).ok, false);
 });
 
-test('unknown block ids are rejected', () => {
+test('the decision carries nothing that could describe a layout', () => {
+  // The template is fixed, so an ordering or an emphasis has nowhere to go.
   const r = safeValidate(WorkflowDecisionSchema, {
     workflow: 'relationship_snapshot',
-    blockOrder: ['account-header', 'exfiltrate-data'],
+    blockOrder: ['projects', 'kpi-rail'],
+    focus: 'billing',
+    layout: '<div>injected</div>',
   });
-  assert.equal(r.ok, false);
-});
-
-test('a repeated block id is rejected', () => {
-  const r = safeValidate(WorkflowDecisionSchema, {
-    workflow: 'relationship_snapshot',
-    blockOrder: ['operations', 'operations'],
-  });
-  assert.equal(r.ok, false);
+  assert.ok(r.ok, r.error);
+  assert.deepEqual(Object.keys(r.data).sort(), ['period', 'title', 'workflow']);
 });
 
 test('markup in the title is rejected', () => {
@@ -516,56 +509,57 @@ test('an over-long title is rejected', () => {
     { workflow: 'relationship_snapshot', title: 'x'.repeat(91) }).ok, false);
 });
 
-/* ═══════════════════════ block registry allow-list ═══════════════════════ */
+/* ═══════════════════════ the fixed template ═══════════════════════ */
 
-test('the registry exposes exactly the allow-listed blocks', () => {
-  assert.deepEqual([...ALLOWED_BLOCK_IDS].sort(), [...BLOCK_IDS].sort());
-  for (const id of ALLOWED_BLOCK_IDS) {
-    assert.equal(typeof BLOCKS[id], 'function', `${id} has no renderer`);
+test('the template is seven blocks in a fixed order', () => {
+  assert.deepEqual([...DEFAULT_BLOCK_ORDER], [
+    'account-header', 'kpi-rail',
+    'operations', 'relationship',
+    'transactions', 'billing-revenue',
+    'projects',
+  ]);
+  assert.deepEqual([...BLOCK_IDS], [...DEFAULT_BLOCK_ORDER],
+    'the template and the allow-list are the same thing');
+});
+
+test('operational activity is the first card under the headline figures', () => {
+  // A spike in tickets is the thing here most likely to need acting on, so it
+  // is not allowed to drift down the page.
+  assert.equal(DEFAULT_BLOCK_ORDER.indexOf('operations'), 2);
+  assert.ok(DEFAULT_BLOCK_ORDER.indexOf('operations') < DEFAULT_BLOCK_ORDER.indexOf('transactions'));
+  assert.ok(DEFAULT_BLOCK_ORDER.indexOf('operations') < DEFAULT_BLOCK_ORDER.indexOf('projects'));
+});
+
+test('every paired row names two blocks that exist, in display order', () => {
+  for (const row of BLOCK_ROWS) {
+    assert.equal(row.length, 2);
+    const [left, right] = row;
+    assert.ok(DEFAULT_BLOCK_ORDER.includes(left), left);
+    assert.ok(DEFAULT_BLOCK_ORDER.includes(right), right);
+    assert.equal(DEFAULT_BLOCK_ORDER.indexOf(left) + 1, DEFAULT_BLOCK_ORDER.indexOf(right),
+      `${left} and ${right} must be adjacent to share a row`);
   }
 });
 
-test('non-allow-listed ids are dropped', () => {
-  const order = resolveOrder(['operations', '<script>alert(1)</script>', 'made-up', '__proto__']);
-  assert.ok(!order.includes('made-up'));
-  assert.ok(!order.some((id) => id.includes('<')));
-  assert.ok(order.every((id) => ALLOWED_BLOCK_IDS.includes(id)));
+test('every id in the template has a renderer behind it', () => {
+  for (const id of DEFAULT_BLOCK_ORDER) {
+    assert.equal(typeof BLOCKS[id], 'function', id);
+  }
+  assert.deepEqual([...ALLOWED_BLOCK_IDS].sort(), [...BLOCK_IDS].sort(),
+    'a block with no renderer would leave a hole in the template');
 });
 
-test('a requested order is honoured, then completed with the remaining blocks', () => {
-  const order = resolveOrder(['operations', 'projects']);
-  assert.equal(order[0], 'operations');
-  assert.equal(order[1], 'projects');
-  assert.equal(new Set(order).size, order.length, 'no duplicates');
-  assert.equal(order.length, ALLOWED_BLOCK_IDS.length, 'no block is silently hidden');
-});
-
-test('duplicates collapse to the first occurrence', () => {
-  const order = resolveOrder(['operations', 'operations', 'projects']);
-  assert.deepEqual(order.slice(0, 2), ['operations', 'projects']);
-});
-
-test('an empty or absent order falls back to the default', () => {
-  assert.deepEqual(resolveOrder(null), [...DEFAULT_BLOCK_ORDER]);
-  assert.deepEqual(resolveOrder([]), [...DEFAULT_BLOCK_ORDER]);
-  assert.deepEqual(resolveOrder('not-an-array'), [...DEFAULT_BLOCK_ORDER]);
-});
-
-test('focus reorders blocks without adding or removing any', () => {
-  for (const [focus, expected] of Object.entries(FOCUS_ORDERS)) {
-    const order = resolveOrder(null, { focus });
-    assert.deepEqual(order, expected, focus);
-    assert.deepEqual([...order].sort(), [...ALLOWED_BLOCK_IDS].sort(),
-      `${focus} changed the block set`);
+test('the paired row is the two measures, at equal width', () => {
+  assert.deepEqual([...PAIRED_BLOCKS], ['transactions', 'billing-revenue']);
+  for (const id of PAIRED_BLOCKS) {
+    assert.ok(DEFAULT_BLOCK_ORDER.includes(id), id);
   }
 });
 
-test('focus always keeps the header and KPI rail at the top', () => {
-  for (const focus of Object.keys(FOCUS_ORDERS)) {
-    const order = resolveOrder(null, { focus });
-    assert.equal(order[0], 'account-header');
-    assert.equal(order[1], 'kpi-rail');
-  }
+test('the template is frozen', () => {
+  // Nothing at runtime — model output least of all — may rewrite the layout.
+  assert.ok(Object.isFrozen(BLOCK_IDS));
+  assert.ok(Object.isFrozen(DEFAULT_BLOCK_ORDER));
 });
 
 /* ═══════════════════════ chart option builders ═══════════════════════ */
@@ -595,10 +589,50 @@ test('a narrowed period slices the month window', () => {
   assert.equal(opt.xAxis.data.at(-1), 'Aug');
 });
 
+test('transaction volume is a trend line, not a tally of bars', () => {
+  const opt = transactions.buildOption(getSnapshot('303').transactions);
+  assert.equal(opt.series[0].type, 'line');
+  assert.ok(opt.series[0].areaStyle, 'the trend carries a fill beneath it');
+  assert.equal(opt.series[1].lineStyle.type, 'dashed', 'last year is muted and dashed');
+});
+
 test('the transactions chart states its unit and is separate from billing', () => {
   const opt = transactions.buildOption(getSnapshot('303').transactions);
   assert.match(opt.yAxis.name, /count/i, 'the measure must be unambiguous');
   assert.ok(!/GBP|£/.test(opt.yAxis.name), 'transactions are not a monetary value');
+});
+
+test('the billing ring measures this year against the whole of last year', () => {
+  const b = getSnapshot('101').billing;
+  assert.equal(progress.hasTarget(b), true);
+  assert.equal(progress.progress(b), b.ytd / b.priorFullYear);
+
+  const opt = progress.buildOption(b);
+  const [filled, remaining] = opt.series[0].data;
+  assert.ok(Math.abs(filled.value + remaining.value - 1) < 1e-9, 'the ring is a whole');
+  assert.equal(opt.series[0].type, 'pie');
+  assert.ok(opt.series[0].radius[0], 'a ring, not a pie');
+});
+
+test('the ring fills but never wraps past a full year', () => {
+  const ahead = { ...getSnapshot('101').billing, ytd: 3_000_000, priorFullYear: 1_000_000 };
+  const opt = progress.buildOption(ahead);
+  assert.equal(opt.series[0].data[0].value, 1, 'the arc stops at full');
+  assert.equal(opt.series[0].data[1].value, 0);
+  // ...and the centre keeps counting, so 300% does not read as 0%.
+  assert.match(opt.graphic[0].children[0].style.text, /300%/);
+});
+
+test('there is no ring when there is nothing to track towards', () => {
+  for (const b of [
+    { available: true, ytd: 100, priorFullYear: null },
+    { available: true, ytd: 100, priorFullYear: 0 },
+    { available: false, ytd: null, priorFullYear: 500 },
+  ]) {
+    assert.equal(progress.hasTarget(b), false, JSON.stringify(b));
+    assert.equal(progress.progress(b), null);
+    assert.equal(progress.buildOption(b), null, 'no invented percentage');
+  }
 });
 
 test('the severity chart is titled exactly as the brief requires', () => {
@@ -623,25 +657,10 @@ test('raised and resolved are separate series over the same months', () => {
   assert.ok(opt.series.every((s) => s.data.every((v) => v >= 0)));
 });
 
-test('the project timeline renders only for multiple dated active projects', () => {
-  assert.equal(timeline.shouldRender(getSnapshot('101').projects), false, 'one project');
-  assert.equal(timeline.shouldRender(getSnapshot('404').projects), true, 'four projects');
-  assert.equal(timeline.shouldRender([]), false);
-  assert.equal(timeline.shouldRender(null), false);
-});
-
-test('the timeline uses one row per active dated project', () => {
-  const projects = getSnapshot('404').projects;
-  const opt = timeline.buildOption(projects);
-  const active = projects.filter((p) => p.status !== 'complete');
-  assert.equal(opt.series[0].data.length, active.length);
-  assert.equal(opt.yAxis.data.length, active.length);
-});
-
 test('charts handle an empty series without throwing', () => {
   const empty = {
     available: true, currency: 'GBP', measure: 'Billed revenue',
-    months: [], monthly: [], priorMonthly: [], ytd: 0, priorYtd: 0,
+    months: [], monthly: [], priorMonthly: [], ytd: 0, priorYtd: 0, priorFullYear: 0,
   };
   assert.doesNotThrow(() => billing.buildOption(empty));
   assert.doesNotThrow(() => operations.buildSeverityOption({
@@ -705,17 +724,17 @@ test('initials are derived from a name', () => {
 test('the server drops anything not on its allow-list', () => {
   const d = intentRoute.normalizeDecision({
     workflow: 'exfiltrate',
-    focus: 'salary',
     period: 'all_time',
-    blockOrder: ['operations', 'evil-block', 'operations'],
+    focus: 'salary',
+    blockOrder: ['projects', 'evil-block'],
     title: 'Snapshot <img src=x onerror=alert(1)>',
   });
 
   assert.equal(d.workflow, 'other', 'unknown workflow falls back');
-  assert.equal(d.focus, null);
-  assert.equal(d.period, 'ytd');
-  assert.deepEqual(d.blockOrder, ['operations'], 'unknown id and duplicate removed');
+  assert.equal(d.period, 'ytd', 'unknown period falls back');
   assert.ok(!/[<>]/.test(d.title), 'markup stripped from the title');
+  assert.equal('focus' in d, false, 'the layout is not the model\'s to describe');
+  assert.equal('blockOrder' in d, false);
 });
 
 test('the server never returns figures or free-form fields', () => {
@@ -725,8 +744,7 @@ test('the server never returns figures or free-form fields', () => {
     html: '<div>injected</div>',
     recommendation: 'You should upsell this client',
   });
-  assert.deepEqual(Object.keys(d).sort(),
-    ['blockOrder', 'focus', 'period', 'title', 'workflow']);
+  assert.deepEqual(Object.keys(d).sort(), ['period', 'title', 'workflow']);
 });
 
 test('the server survives malformed model output', () => {

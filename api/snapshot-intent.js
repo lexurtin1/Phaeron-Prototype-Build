@@ -37,11 +37,6 @@ const MAX_FIELD_CHARS = 120;
 // Kept in sync with relationship-snapshot/config.js. Duplicated deliberately:
 // this file is CommonJS and cannot import the browser ES module, and a server
 // allow-list that silently inherited client edits would not be much of a guard.
-const BLOCK_IDS = [
-  'account-header', 'kpi-rail', 'relationship',
-  'billing-revenue', 'transactions', 'operations', 'projects',
-];
-const FOCUS_VALUES = ['relationship', 'billing', 'transactions', 'operations', 'delivery'];
 const PERIOD_VALUES = ['ytd', 'last_6_months', 'last_3_months', 'current_month'];
 const WORKFLOWS = ['relationship_snapshot', 'other'];
 
@@ -50,9 +45,7 @@ const SYSTEM_PROMPT = `You classify internal account queries for Calastone's Int
 Return ONLY a JSON object matching this shape, with no prose and no code fences:
 {
   "workflow": "relationship_snapshot" | "other",
-  "focus": "relationship" | "billing" | "transactions" | "operations" | "delivery" | null,
   "period": "ytd" | "last_6_months" | "last_3_months" | "current_month",
-  "blockOrder": string[] | null,
   "title": string | null
 }
 
@@ -61,29 +54,23 @@ WORKFLOW
 overview, or to see billing, transactions, operational activity or delivery
 projects for an account. Otherwise "other".
 
-FOCUS
-The single area the user emphasised, or null when they asked for a general
-overview. Do not guess a focus from a passing mention.
-
 PERIOD
-The period the user asked for. Default to "ytd" when none is stated.
-
-BLOCKORDER
-Optional. An ordering of these exact ids, no others, no repeats:
-${BLOCK_IDS.join(', ')}
-Use null unless the user clearly asked to see something first.
+The period the user asked for. Default to "ytd" when none is stated. This
+genuinely narrows the months the dashboard charts.
 
 TITLE
 A short factual description of what was requested, 90 characters maximum, plain
 text only. Name the account when one is given, and say what the user asked to
-see. Examples: "Relationship snapshot for BlackRock, billing focus",
-"Operational activity for HSBC Asset Management, last 3 months". State no
-figure, and do not characterise the account or its performance in any way.
+see. Examples: "Relationship snapshot for BlackRock", "Transaction volume and
+billing for HSBC Asset Management, last 3 months". State no figure, and do not
+characterise the account or its performance in any way.
 
 HARD RULES
 - Never calculate or state revenue, transaction counts, health, ticket ages,
   project status or source freshness. You do not have that data.
 - Never emit HTML, CSS, chart configuration, tables or any markup.
+- The dashboard is a fixed template. You do not choose which cards appear, in
+  what order, or how large they are. Do not describe a layout.
 - Never offer recommendations, next steps, assessments, risk rankings or
   commercial judgement of any kind.
 - Never guess a CTN ID and never map an organisation name to one. Application
@@ -109,9 +96,7 @@ function sendJson(res, status, payload) {
 function defaultDecision(workflow) {
   return {
     workflow: workflow || 'other',
-    focus: null,
     period: 'ytd',
-    blockOrder: null,
     title: null,
   };
 }
@@ -119,30 +104,15 @@ function defaultDecision(workflow) {
 /**
  * Reduce arbitrary model output to a safe decision.
  *
- * Drops rather than rejects: an unrecognised focus becomes null, an
- * unrecognised block id is removed, an over-long title is truncated. The caller
- * always receives a renderable decision.
+ * Drops rather than rejects: an unrecognised period becomes "ytd", an over-long
+ * title is truncated, anything else on the object is ignored. The caller always
+ * receives a renderable decision.
  */
 function normalizeDecision(raw) {
   if (!raw || typeof raw !== 'object') return defaultDecision();
 
   const workflow = WORKFLOWS.includes(raw.workflow) ? raw.workflow : 'other';
-  const focus = FOCUS_VALUES.includes(raw.focus) ? raw.focus : null;
   const period = PERIOD_VALUES.includes(raw.period) ? raw.period : 'ytd';
-
-  let blockOrder = null;
-  if (Array.isArray(raw.blockOrder)) {
-    const seen = new Set();
-    const clean = [];
-    for (const id of raw.blockOrder) {
-      if (typeof id !== 'string') continue;
-      if (!BLOCK_IDS.includes(id)) continue; // not allow-listed
-      if (seen.has(id)) continue;            // duplicate
-      seen.add(id);
-      clean.push(id);
-    }
-    blockOrder = clean.length ? clean : null;
-  }
 
   let title = null;
   if (typeof raw.title === 'string') {
@@ -151,7 +121,7 @@ function normalizeDecision(raw) {
     title = cleaned.length ? cleaned : null;
   }
 
-  return { workflow, focus, period, blockOrder, title };
+  return { workflow, period, title };
 }
 
 /**
@@ -232,9 +202,7 @@ module.exports = async function handler(req, res) {
       keyConfigured: !!readKey(),
       model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
       workflows: WORKFLOWS,
-      focusValues: FOCUS_VALUES,
       periodValues: PERIOD_VALUES,
-      blockIds: BLOCK_IDS,
     });
     return;
   }

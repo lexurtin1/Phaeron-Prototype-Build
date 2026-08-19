@@ -41,44 +41,48 @@ export const ASSEMBLY_STAGES = [
   { at: 1.00, label: 'Jira projects and operational ticket data loaded' },
 ];
 
-/** Allow-listed block ids. The registry renders nothing outside this list. */
+/**
+ * The dashboard, in order. This is a fixed template, not a menu.
+ *
+ * Every account renders these seven blocks in this order, every time. The rows
+ * are: the company; its headline figures; operational activity beside who owns
+ * the relationship; the two measures side by side; and the delivery projects.
+ * Nothing collapses, nothing reorders, nothing hides — the only thing that
+ * changes between one snapshot and the next is the data.
+ *
+ * Operational activity sits directly under the headline figures on purpose. A
+ * spike in tickets is the thing on this dashboard most likely to need acting
+ * on, and the bottom of a page is where that goes unnoticed.
+ */
 export const BLOCK_IDS = Object.freeze([
   'account-header',
   'kpi-rail',
-  'relationship',
-  'billing-revenue',
-  'transactions',
   'operations',
+  'relationship',
+  'transactions',
+  'billing-revenue',
   'projects',
 ]);
 
-/** Default top-to-bottom block order. */
-export const DEFAULT_BLOCK_ORDER = Object.freeze([
-  'account-header',
-  'kpi-rail',
-  'relationship',
-  'billing-revenue',
-  'transactions',
-  'operations',
-  'projects',
-]);
-
-/** Allow-listed display-focus values Claude may request. */
-export const FOCUS_VALUES = Object.freeze([
-  'relationship', 'billing', 'transactions', 'operations', 'delivery',
-]);
+/** The template. Identical to BLOCK_IDS, and deliberately not configurable. */
+export const DEFAULT_BLOCK_ORDER = BLOCK_IDS;
 
 /**
- * Block order per focus. Focus only ever *reorders* the approved blocks —
- * it never adds, removes or invents one.
+ * The rows that hold two blocks. The first of each pair sits on the left.
+ * Operations is given the wider share; the two measures split their row evenly.
  */
-export const FOCUS_ORDERS = Object.freeze({
-  relationship: ['account-header', 'kpi-rail', 'relationship', 'billing-revenue', 'transactions', 'operations', 'projects'],
-  billing: ['account-header', 'kpi-rail', 'billing-revenue', 'transactions', 'relationship', 'operations', 'projects'],
-  transactions: ['account-header', 'kpi-rail', 'transactions', 'billing-revenue', 'relationship', 'operations', 'projects'],
-  operations: ['account-header', 'kpi-rail', 'operations', 'projects', 'relationship', 'billing-revenue', 'transactions'],
-  delivery: ['account-header', 'kpi-rail', 'projects', 'operations', 'relationship', 'billing-revenue', 'transactions'],
-});
+export const BLOCK_ROWS = Object.freeze([
+  Object.freeze(['operations', 'relationship']),
+  Object.freeze(['transactions', 'billing-revenue']),
+]);
+
+/** The two blocks that share a row at equal width. */
+export const PAIRED_BLOCKS = BLOCK_ROWS[1];
+
+/* Display focus and block ordering used to be Claude's to choose. They are not
+   any more: the template above is fixed, so there is nothing for a focus to
+   reorder and no ordering for the model to propose. What the model still
+   decides is the reporting period and the title — see schemas.js. */
 
 /** Allow-listed reporting periods. Each genuinely slices the month window. */
 export const PERIOD_VALUES = Object.freeze(['ytd', 'last_6_months', 'last_3_months', 'current_month']);
@@ -106,30 +110,6 @@ export const PROJECT_STATUSES = Object.freeze(['not_started', 'in_progress', 'bl
 
 export const TICKET_SEVERITIES = Object.freeze(['critical', 'high', 'medium', 'low']);
 export const TICKET_STATUSES = Object.freeze(['open', 'in_progress', 'awaiting_client', 'resolved']);
-
-/**
- * The blocks that live in the expandable card deck. The account header and the
- * KPI rail are not among them: they are always on screen, because between them
- * they answer which account this is and how it is doing.
- */
-export const DECK_BLOCKS = Object.freeze([
-  'relationship', 'billing-revenue', 'transactions', 'operations', 'projects',
-]);
-
-/**
- * Which card a display focus opens.
- *
- * This is where Claude's one display decision becomes visible: the focus it
- * returns for a prompt decides which card the dashboard opens on. It can only
- * ever name a block that already exists — see FOCUS_VALUES and the registry.
- */
-export const FOCUS_BLOCKS = Object.freeze({
-  relationship: 'relationship',
-  billing: 'billing-revenue',
-  transactions: 'transactions',
-  operations: 'operations',
-  delivery: 'projects',
-});
 
 /** Mock currency for billing. Stated explicitly wherever a figure is shown. */
 export const CURRENCY = 'GBP';

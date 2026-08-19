@@ -1,9 +1,10 @@
 /**
- * Relationship and ownership card.
+ * Relationship and ownership — who owns this account and who was last spoken to.
  *
- * A calm two-column layout, not a dense CRM record: who owns the relationship,
- * who supports it, who the client contacts are, and when contact last happened.
- * Avatars are generated initials placeholders — no photographs, no real people.
+ * A compact card, not a CRM record: the relationship manager, the supporting
+ * team as initials, and the client contacts with the date each was last
+ * engaged. Avatars are generated initials — no photographs, and every person
+ * here is invented.
  */
 
 import { esc, initials, formatDate, formatRelative } from '../format.js';
@@ -13,95 +14,49 @@ import { unavailableBlock } from './states.js';
 /**
  * @param {import('../schemas.js').RelationshipSnapshot} snapshot
  */
-export function render(snapshot, opts = {}) {
+export function render(snapshot) {
   const r = snapshot.relationship;
+  const src = snapshot.sources.find((s) => s.id === 'salesforce');
+
   const summary = r.available
     ? `<span class="rs-sum-fig">${esc(r.manager?.name || '—')}</span>`
-      + ` <span class="rs-sum-delta rs-tone-flat">${esc(String(r.contacts?.length ?? 0))} client contacts</span>`
+      + ` <span class="rs-sum-delta rs-tone-flat">${esc(String(r.contacts?.length ?? 0))} contacts</span>`
     : '<span class="rs-sum-none">Salesforce unavailable</span>';
 
   const sec = section('relationship', 'Relationship and ownership', {
     subtitle: 'Salesforce (simulated)',
     summary,
-    open: opts.open === true,
   });
   const host = body(sec);
 
   if (!r.available) {
-    const src = snapshot.sources.find((s) => s.id === 'salesforce');
     host.appendChild(unavailableBlock('Salesforce', src?.note));
     return sec;
   }
 
   host.appendChild(fromHTML(`
-    <div class="rs-rel-grid">
-
-      <div class="rs-rel-col">
-        <h3 class="rs-rel-heading">Primary relationship manager</h3>
-        <div class="rs-rel-person rs-rel-person-lead">
-          ${avatar(r.manager.name, initials(r.manager.name), { size: 44 })}
-          <div>
-            <div class="rs-rel-name">${esc(r.manager.name)}</div>
-            <div class="rs-rel-role">${esc(r.manager.title || '—')}</div>
-            <div class="rs-rel-sub">${esc(r.manager.region || '—')}</div>
-          </div>
+    <div class="rs-rel">
+      <div class="rs-rel-lead">
+        ${avatar(r.manager?.name || '—', initials(r.manager?.name || '—'), { size: 34 })}
+        <div class="rs-rel-lead-text">
+          <div class="rs-rel-name">${esc(r.manager?.name || '—')}</div>
+          <div class="rs-rel-sub">${esc(r.manager?.title || '—')} · ${esc(r.manager?.region || '—')}</div>
         </div>
-
-        <h3 class="rs-rel-heading">Supporting account team</h3>
-        <ul class="rs-rel-team">
-          ${r.team.map((m) => `
-            <li class="rs-rel-person">
-              ${avatar(m.name, initials(m.name), { size: 30 })}
-              <div>
-                <div class="rs-rel-name rs-rel-name-sm">${esc(m.name)}</div>
-                <div class="rs-rel-sub">${esc(m.role || m.title || '—')}</div>
-              </div>
-            </li>`).join('')}
-        </ul>
+        ${r.team.length ? `
+          <div class="rs-rel-team" title="${esc(r.team.map((m) => `${m.name} — ${m.role || m.title || ''}`).join(', '))}">
+            ${r.team.slice(0, 4).map((m) => avatar(m.name, initials(m.name), { size: 26 })).join('')}
+            <span class="rs-rel-team-label">+${esc(String(r.team.length))} supporting</span>
+          </div>` : ''}
       </div>
 
-      <div class="rs-rel-col">
-        <h3 class="rs-rel-heading">Key client contacts</h3>
-        <table class="rs-rel-table">
-          <thead>
-            <tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Last engagement</th></tr>
-          </thead>
-          <tbody>
-            ${r.contacts.map((c) => `
-              <tr>
-                <th scope="row">
-                  <div class="rs-rel-name rs-rel-name-sm">${esc(c.name)}</div>
-                  <div class="rs-rel-sub">${esc(c.organisation)}</div>
-                </th>
-                <td>${esc(c.role)}</td>
-                <td>
-                  <div>${esc(formatDate(c.lastEngagement))}</div>
-                  <div class="rs-rel-sub">${esc(formatRelative(c.lastEngagement))}</div>
-                </td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-
-        <div class="rs-rel-facts">
-          ${r.lastMeeting ? `
-            <div class="rs-rel-fact">
-              <div class="rs-cell-label">Most recent contact</div>
-              <div class="rs-cell-value">${esc(formatDate(r.lastMeeting.date))} · ${esc(r.lastMeeting.type)}</div>
-              <div class="rs-rel-sub rs-mono">${esc(r.lastMeeting.reference)}</div>
-            </div>` : ''}
-
-          ${r.openActions ? `
-            <div class="rs-rel-fact">
-              <div class="rs-cell-label">Open actions</div>
-              <div class="rs-cell-value">${esc(r.openActions.total)}</div>
-              <div class="rs-rel-sub">${
-                r.openActions.total === 0
-                  ? 'None recorded'
-                  : esc(r.openActions.byOwner.map((o) => `${o.count} ${o.owner}`).join(' · '))
-              }</div>
-            </div>` : ''}
-        </div>
-      </div>
+      <ul class="rs-rel-contacts">
+        ${r.contacts.map((c) => `
+          <li>
+            <span class="rs-rel-contact-name">${esc(c.name)}</span>
+            <span class="rs-rel-contact-role">${esc(c.role)}</span>
+            <span class="rs-rel-contact-when" title="${esc(formatDate(c.lastEngagement))}">${esc(formatRelative(c.lastEngagement))}</span>
+          </li>`).join('')}
+      </ul>
 
     </div>
   `));

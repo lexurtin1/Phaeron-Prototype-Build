@@ -16,7 +16,7 @@
 
 import { ASSEMBLY_STAGES, SOURCE_DEFS } from '../config.js';
 import { esc } from '../format.js';
-import { animate, countUp, flip, prefersReducedMotion, DUR, EASE } from './motion.js';
+import { animate, countUp, prefersReducedMotion, DUR, EASE } from './motion.js';
 
 const RADIUS = 54;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;

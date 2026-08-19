@@ -33,7 +33,10 @@ const observer = typeof ResizeObserver !== 'undefined'
   })
   : null;
 
-/** Options a chart was mounted with, so density can be re-derived on resize. */
+/**
+ * What each chart was mounted with, so density can be re-derived on resize.
+ * @type {WeakMap<Element, {option: object, density: boolean}>}
+ */
 const mountedOptions = new WeakMap();
 
 /** Below this the axis labels, the in-chart title and the plot all cannot fit. */
@@ -52,8 +55,9 @@ const COMPACT_HEIGHT = 152;
  * the window is resized rather than being fixed at mount time.
  */
 function applyDensity(chart, el) {
-  const option = mountedOptions.get(el);
-  if (!option) return;
+  const record = mountedOptions.get(el);
+  if (!record || !record.density) return;
+  const { option } = record;
 
   const compact = el.clientHeight > 0 && el.clientHeight < COMPACT_HEIGHT;
   if (chart.__rsCompact === compact) return;
@@ -136,7 +140,14 @@ function bindResize() {
  * @param {object} option
  * @returns {any|null} the instance, or null when ECharts is unavailable
  */
-export function mountChart(el, option) {
+/**
+ * @param {HTMLElement} el
+ * @param {object} option
+ * @param {{density?: boolean}} [opts] density:false for a chart whose chrome is
+ *   the point — the progress ring's centre label is the figure, not decoration,
+ *   and must survive a short box.
+ */
+export function mountChart(el, option, opts = {}) {
   if (!el) return null;
   const echarts = typeof window !== 'undefined' ? window.echarts : null;
 
@@ -159,7 +170,7 @@ export function mountChart(el, option) {
     animation: option.animation !== false && !prefersReducedMotion(),
   });
   instances.add(chart);
-  mountedOptions.set(el, option);
+  mountedOptions.set(el, { option, density: opts.density !== false });
   applyDensity(chart, el);
   observer?.observe(el);
   return chart;

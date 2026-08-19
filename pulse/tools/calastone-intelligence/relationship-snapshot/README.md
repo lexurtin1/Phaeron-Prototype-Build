@@ -10,10 +10,10 @@ thread: the dashboard assembles inside the assistant message that would otherwis
 and the thread column widens from 760px to 1560px to hold it. Ordinary messages keep their 760px
 measure, centred inside the wider column, so nothing already on screen moves.
 
-**It is one screen, not a page, at any window size.** The account header and the KPI rail are always
-visible; the five detail blocks below them are expandable cards, one open at a time. A closed card
-is a strip carrying its own headline figures, so nothing is hidden — and the open card gets every
-pixel the strips leave, which is what makes its charts worth looking at.
+**It is a fixed template, about one screen deep.** Five cards, the same five every time, in the same
+places: the company, its key figures, transaction volume and billing revenue side by side, and the
+delivery projects. Nothing collapses, nothing reorders, nothing is behind a toggle. What differs
+between one snapshot and the next is the data.
 
 > **The account names are real firms; nothing behind them is.** A sales audience recognises the
 > accounts it works with, and "Kestrel Fund Services" told them nothing. Every figure is generated
@@ -42,8 +42,8 @@ year?"*, or *"relationship snapshot for Barclays"* to see what happens when the 
 of the five.
 
 ```sh
-npm test                     # 82 unit tests, no browser needed
-npm run test:smoke -- http://localhost:4173   # 66 browser checks + screenshots
+npm test                     # 80 unit tests, no browser needed
+npm run test:smoke -- http://localhost:4173   # 70 browser checks + screenshots
 ```
 
 The smoke suite needs no Playwright install — `tests/cdp.mjs` drives whatever Chromium or Edge is
@@ -57,10 +57,10 @@ already on the machine over the DevTools Protocol using the `ws` package the rep
 submit()  (host page, one line)
    │
    ├─ 1. CLASSIFY   intent.js → POST /api/snapshot-intent
-   │       Claude picks: workflow, focus, period, blockOrder, title.
+   │       Claude picks: workflow, period, title. Not the layout.
    │       Server allow-lists the reply; client re-validates with Zod.
    │       Any failure falls back to classifyLocally() — the feature never dies
-   │       because the model is unavailable.
+   │       because the model is unavailable. The browser gives up after 9s.
    │
    │       NOTE the model does not decide WHETHER we handle the prompt. See
    │       "What actually claims a prompt" below.
@@ -76,8 +76,8 @@ submit()  (host page, one line)
    │       Four staged callbacks drive the assembly wheel. Validated against
    │       RelationshipSnapshotSchema before it reaches the DOM.
    │
-   └─ 4. RENDER     blocks/registry.js → renderBlocks(order, snapshot, host)
-           Allow-list only. Unknown ids are dropped and logged.
+   └─ 4. RENDER     blocks/registry.js → renderBlocks(snapshot, host)
+           The fixed template. There is no ordering to supply and none to check.
 ```
 
 ### How an account is identified
@@ -103,7 +103,7 @@ Claude is still never asked to guess a CTN or to map an organisation onto one.
 
 `tryHandle` must answer the host synchronously — `submit()` needs a boolean before it can decide
 whether to run its own path — so the decision to claim a turn is made by **`classifyLocally` alone**.
-The server is consulted afterwards and can only refine focus, period, block order and title. It
+The server is consulted afterwards and can only refine the period and the title. It
 cannot claim a prompt the local classifier passed on, and it cannot veto one it took.
 
 That makes the local hint list the **ceiling** on recognition, not the floor:
@@ -137,27 +137,30 @@ than about a sentence in the abstract. It is never asked to work the account out
 | Claude decides | Claude cannot touch |
 |---|---|
 | Is this a `relationship_snapshot`? | Any figure — revenue, transactions, ticket ages, project status |
-| Display focus (5 fixed values) — **which card the dashboard opens on** | HTML, CSS, chart options, tables, arbitrary widgets |
-| Reporting period (4 fixed values) | The CTN — it is never asked to guess or map one |
-| Ordering of allow-listed blocks | Which blocks exist |
-| A ≤90-char plain-text title, naming the account | Recommendations, next steps, assessments, rankings |
+| Reporting period (4 fixed values) | HTML, CSS, chart options, tables, arbitrary widgets |
+| A ≤90-char plain-text title, naming the account | The layout: which cards, in what order, how large |
+| | The CTN — it is never asked to guess or map one |
+| | Recommendations, next steps, assessments, rankings |
 
-So *"how is billing looking for HSBC this year?"* returns `focus: billing`, `period: ytd` and the
-title *"Billing overview for HSBC Asset Management, year to date"* — the deck opens on the billing
-card, orders the strips behind it, and prints that title under the account name. Same account, a
-different question, a different view.
+The decision object is three fields — `workflow`, `period`, `title` — and that is the entire surface.
+It used to carry a display focus and a block ordering; the template is fixed now, so there is
+nothing for either to do, and a field the renderer ignores is worse than no field at all.
 
-Enforced in three places, each of which alone would be sufficient:
-`api/snapshot-intent.js → normalizeDecision()` (server allow-list),
-`schemas.js → WorkflowDecisionSchema` (client re-validation),
-`blocks/registry.js → resolveOrder()` (render-time allow-list).
+The period is not decoration: `last_3_months` genuinely narrows the months the trend line charts.
+So *"transaction volume for HSBC over the last 3 months"* returns `period: last_3_months` and the
+title *"Transaction volume for HSBC Asset Management, last 3 months"* — the same five cards, a
+different window of data, and a title that says which.
+
+Enforced in two places, either of which alone would be sufficient:
+`api/snapshot-intent.js → normalizeDecision()` (server allow-list) and
+`schemas.js → WorkflowDecisionSchema` (client re-validation).
 
 ---
 
 ## Layout
 
 ```
-config.js          constants + allow-lists (block ids, focus, period, sources)
+config.js          the template, plus period and source constants
 schemas.js         Zod contracts for both boundaries
 intent.js          CTN regex, local classifier, server classifier, the gate
 index.js           controller: conversation state, assembly sequence, host hook
@@ -171,19 +174,22 @@ data/
   mock-repo.js     ← THE CONNECTOR SWAP POINT
 
 blocks/
-  registry.js      allow-listed block id → renderer
-  chart-sections.js  billing + transactions sections
+  registry.js      the fixed template: block id → renderer
+  chart-sections.js  the paired row — transaction volume + billing revenue
 
 charts/
-  theme.js         the Calastone ECharts theme, registered once
+  theme.js         the Calastone ECharts theme + the brand ramp, registered once
   mount.js         ECharts instance handling (kept apart so buildOption stays pure)
-  billing-revenue.js  transactions.js  operations.js  project-timeline.js
+  transactions.js       the trend line
+  billing-progress.js   the ring against last year
+  billing-revenue.js    monthly series (option builder; no mounted chart today)
+  operations.js         raised/resolved + severity
 
 components/
-  account-header.js  kpi-rail.js  relationship-card.js
-  operations-panel.js  project-tiles.js
+  account-header.js  kpi-rail.js  project-tiles.js
+  operations-panel.js  relationship-card.js
   states.js        empty / delayed / unavailable / error / clarification
-  dom.js           small DOM helpers, incl. section() — the expandable card
+  dom.js           small DOM helpers, incl. section() — the card
 
 motion/
   motion.js        Motion wrapper: reduced-motion enforcement + FLIP helper
@@ -203,8 +209,8 @@ severity — are deliberately **not** on that ramp, so a brand colour can never 
 |---|---|---|---|
 | 101 | HSBC Asset Management | hsbc | Stable account, all sources live |
 | 202 | Schroders | — | Billing/transaction trend variation |
-| 303 | BlackRock | black rock | Heavy operational ticket activity |
-| 404 | Legal & General Investment Management | legal & general, lgim, l&g | Four concurrent delivery projects (+ timeline) |
+| 303 | BlackRock | black rock | Heavy operational ticket activity (see the KPI rail) |
+| 404 | Legal & General Investment Management | legal & general, lgim, l&g | Four concurrent delivery projects |
 | 505 | abrdn | aberdeen | Billing **delayed**, transactions **unavailable** |
 
 Aliases are declared on the scenario, not derived: several of these firms are known by an
@@ -222,9 +228,14 @@ would use `new Date()`; pinning it means the same CTN renders identical figures 
 suite does not rot when the calendar turns. Relative times ("2 hours ago") are computed against
 `AS_OF`, not the wall clock.
 
-**Motion has no `layout` prop outside React.** Shared layout transitions (KPI expansion, focus
-reorder) use an explicit FLIP helper in `motion/motion.js`: measure, mutate, animate the inverse
-delta to zero.
+**The KPI rail states, it does not offer.** The five headline figures are static tiles — no
+chevron, no panel, nothing to click. A figure behind a disclosure is a figure the reader has to
+already suspect is worth opening, and these five are the ones nobody should have to go looking for.
+The detail that used to sit behind them lives in the always-open card that owns it, and the header
+names each source with its refresh time.
+
+Tone rides on the card edge rather than the number: an amber figure reads as a judgement about the
+figure, an amber edge reads as a card to look at.
 
 **`buildOption()` never imports ECharts.** Chart modules export a pure option builder plus a
 `mount()` that reaches for `window.echarts`. That is what lets the option builders be unit-tested in
@@ -265,43 +276,64 @@ views (`vKey==='chat'?'chat':'data'`) and now resolves `#view-<key>`.
 If `tryHandle` returns false the host's canned-answer path runs exactly as before. Nothing in the
 Market Research module or its Claude integration is touched.
 
-### The one-screen layout
+### The template
 
 ```
 ┌───────────────────────────────────────────────┐
-│ account header                                │  always
-│ KPI rail                                      │  always
-├───────────────────────────────────────────────┤
-│ ▸ Relationship        Rowan Whitfield · 3     │  strip
-│ ▾ Billing revenue     £1,223,731  +6.7%       │  ┐
-│                                               │  │ open, fills
-│                                               │  ┘
-│ ▸ Transactions        336,799  +6.3%          │  strip
-│ ▸ Operations          3 open · 0 high         │  strip
-│ ▸ Projects            1 in progress           │  strip
+│ BlackRock   CTN 303 · Strategic · EMEA        │  the company
+│ £2,613,316  785,694  7/8  14  2               │  key figures
+├───────────────────────────┬───────────────────┤
+│ Operational activity      │ Relationship and  │  7 cols / 5 cols
+│  ▁▃▅▂ raised vs resolved  │ ownership         │
+├──────────────────────┬────┴───────────────────┤
+│ Transaction volume   │ Billing revenue YTD    │  equal width, side by side
+│  ╱╲    ╱╲            │        ╭───╮           │
+│ ╱  ╲__╱  ╲___        │        │73%│  £2.6m    │
+│                      │        ╰───╯  of £3.6m │
+├──────────────────────┴────────────────────────┤
+│ Digital TA onboarding │ API v3 migration      │  a card per project
 └───────────────────────────────────────────────┘
 ```
 
-The dashboard's height is the chat thread's height, measured rather than estimated — `fitToThread`
-in `index.js` reads the thread and writes `--rs-fit-h`, because a stylesheet `calc(100vh - 214px)`
-that is eight pixels optimistic is the difference between one screen and a scrollbar. It re-measures
-when the window changes shape, and stands aside when the thread is not a scroll viewport at all.
+Two measures, two shapes, because they answer different questions. **Transaction volume** is a
+trend — the shape of the year, a line along the Calastone ramp with last year dashed behind it.
+**Billing revenue** is a position — a ring showing how far through last year's full-year total this
+year has come, which is a question a line chart cannot answer at a glance.
 
-Four things make the content fit rather than merely clip:
+Two honesty rules are wired into the ring rather than left to a reviewer:
 
-- **One card open at a time.** Not a style choice: two open cards would not fit, and the deck's
-  promise is that it always does. Which one starts open is Claude's `focus`.
-- **A closed card is not an empty label.** Each carries the headline figures it would lead with
-  open, so the deck reads as a dashboard whether or not anything is expanded.
-- **Charts mount on first open.** ECharts cannot measure a `display:none` box, so a closed card's
-  charts do not exist yet; `mountBlock` creates them the first time it opens, and a ResizeObserver
-  keeps them the size of the box they are in.
-- **Nothing is said twice.** The billing and transaction summary strips repeat the card's own
-  headline figures, and each KPI card's "refreshed" line repeats the header's; both are hidden.
+- Past 100% the arc stops at full and the centre keeps counting. A ring that wrapped round would
+  read as 12% when it meant 112%.
+- With no prior year there is no ring at all — the card prints the figure and says why. A circle at
+  a percentage of nothing is an invented figure, and inventing figures is the one thing this
+  feature must never do.
 
-**The source rail was removed.** The account header already carries a chip per source with its
-state, and each section's evidence drawer already carries the refresh time, record count and
-evidence reference. A third copy cost a fifth of the height and told nobody anything new.
+**The thread height is a floor, not a ceiling.** `fitToThread` in `index.js` measures the thread
+rather than estimating it and writes `--rs-fit-h`, because a stylesheet `calc(100vh - 214px)` that
+is eight pixels optimistic is the difference between a card that fits and one that does not. It
+re-measures when the window changes shape, and stands aside when the thread is not a scroll
+viewport at all.
+
+The dashboard takes that height as a `min-height` and grows past it when the alternative is a
+crushed chart. Both chart rows carry a floor sized so every plot clears `COMPACT_HEIGHT` in
+`charts/mount.js` (152px) — below that a chart drops its in-chart title, its axis name and half its
+gridlines to survive the box, and a chart that has thinned itself to fit is worse than a hundred
+pixels of scroll. On a 1600×1000 window the dashboard runs about 990px against a 810px thread; the
+one account with a delayed billing source runs to about 1070px, because the notice it has to print
+sits above the ring.
+
+The row weights are deliberately proportional to the row floors. An `fr` row cannot reach its own
+floor without dragging its siblings up by their weights too, so a mismatched pair overshoots —
+the original weights against these floors inflated the dashboard by an extra 130px of nothing.
+Change a floor and rescale its weight with it.
+
+Below 720px of column width the pair stops being a pair and the project cards stop being a row:
+the template becomes a single column and the thread scrolls it, because neither would be readable
+side by side at that width.
+
+**Evidence is on the cards, not behind them.** Each of the paired cards ends with its source, state,
+refresh time, record count and evidence reference in plain text. That used to be a disclosure; a
+figure whose provenance is one click away is a figure most people never check.
 
 ### Why the widened column rather than a breakout
 
@@ -325,9 +357,8 @@ that satisfies `RelationshipSnapshotSchema`, and no UI code needs to change. Spe
   hard-asserts it, deliberately, so the prototype cannot quietly start claiming to be live:
   1. `schemas.js` — `simulated: z.literal(true)` on `RelationshipSnapshotSchema` and `SourceSchema`
   2. `components/account-header.js` — the `.rs-simulated-note` paragraph
-  3. `components/source-rail.js` — the `.rs-rail-note` paragraph, and the `(simulated)` subtitles in
-     `blocks/chart-sections.js`, `components/operations-panel.js`, `components/project-tiles.js`
-     and `components/relationship-card.js`
+  3. The `(simulated)` subtitles in `blocks/chart-sections.js` and `components/project-tiles.js`,
+     and the per-card evidence line in `blocks/chart-sections.js`
 
 ---
 

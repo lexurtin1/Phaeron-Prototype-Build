@@ -1,5 +1,9 @@
 /**
- * TransactionYtdChart — transactions processed by month.
+ * Transaction volume — a trend line, month by month.
+ *
+ * A trend, not a tally: the shape of the year is the point, so this is a line
+ * along the Calastone ramp with a soft fill beneath it, and last year's line
+ * behind it in dashed grey for reference.
  *
  * Deliberately a separate chart from billing revenue, on its own axis, with the
  * measure ("Transactions processed", a count) stated on the axis so the number
@@ -45,12 +49,22 @@ export function buildOption(tx, opts = {}) {
     series: [
       {
         name: 'This year',
-        type: 'bar',
+        type: 'line',
         data: current,
-        barMaxWidth: 26,
-        itemStyle: {
-          color: rampGradient({ vertical: true, from: PALETTE.brandBlue, to: PALETTE.brandGreen }),
-          borderRadius: [3, 3, 0, 0],
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: { width: 2.6, color: rampGradient() },
+        itemStyle: { color: PALETTE.brandTeal },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(45,154,142,0.22)' },
+              { offset: 1, color: 'rgba(107,191,89,0.01)' },
+            ],
+          },
         },
       },
       ...(hasPrior ? [{
@@ -102,12 +116,20 @@ export function buildSparklineOption(tx) {
     yAxis: { type: 'value', show: true, axisLabel: { show: false }, splitLine: { show: false } },
     tooltip: { trigger: 'axis', valueFormatter: (v) => `${formatCount(v)} transactions` },
     series: [{
-      type: 'bar',
+      type: 'line',
       data: tx.monthly,
-      barMaxWidth: 8,
-      itemStyle: {
-        color: rampGradient({ vertical: true, from: PALETTE.brandBlue, to: PALETTE.brandGreen }),
-        borderRadius: [2, 2, 0, 0],
+      smooth: true,
+      showSymbol: false,
+      lineStyle: { width: 2, color: rampGradient() },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(45,154,142,0.20)' },
+            { offset: 1, color: 'rgba(107,191,89,0.01)' },
+          ],
+        },
       },
     }],
   };

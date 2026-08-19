@@ -18,7 +18,7 @@
 import { classifyWorkflow, classifyLocally, gate, extractCtn } from './intent.js';
 import { loadSnapshot } from './data/mock-repo.js';
 import { RelationshipSnapshotSchema, safeValidate } from './schemas.js';
-import { resolveOrder, renderBlocks, mountBlock } from './blocks/registry.js';
+import { renderBlocks } from './blocks/registry.js';
 import { createAssemblyWheel } from './motion/wheel.js';
 import * as kpiRail from './components/kpi-rail.js';
 import * as projectTiles from './components/project-tiles.js';
@@ -28,7 +28,6 @@ import { accountForCtn, lookupAccount } from './data/directory.js';
 import { fromHTML } from './components/dom.js';
 import { animate, enter, stagger, pause, prefersReducedMotion, DUR } from './motion/motion.js';
 import { disposeAll, resizeAll } from './charts/mount.js';
-import { DECK_BLOCKS, FOCUS_BLOCKS } from './config.js';
 import { esc } from './format.js';
 
 /* ───────────────────────── conversation state ───────────────────────── */
@@ -196,81 +195,11 @@ function bindFitToThread() {
   });
 }
 
-/* ───────────────────────── the card deck ─────────────────────────
- *
- * The account header and the KPI rail are always on screen: between them they
- * answer "which account, and how is it doing" without a click. Everything
- * below is a deck of expandable cards, one open at a time.
- *
- * That is what holds the dashboard to a single screen. A closed card is a
- * strip carrying its own headline figures, so nothing is hidden — the detail
- * behind it is one click away, and the open card gets all the height that
- * remains, which is what makes its charts worth looking at.
- */
-
-/**
- * Move the detail blocks into a deck and make them exclusive.
- *
- * @param {HTMLElement} stage the .rs-blocks container
- * @param {Element[]} elements rendered blocks, in display order
- * @returns {HTMLElement|null}
- */
-function buildDeck(stage, elements) {
-  const cards = elements.filter((el) => DECK_BLOCKS.includes(el.dataset?.block));
-  if (!cards.length) return null;
-
-  const deck = document.createElement('div');
-  deck.className = 'rs-deck';
-  stage.insertBefore(deck, cards[0]);
-  for (const card of cards) deck.appendChild(card);
-
-  deck.addEventListener('click', (event) => {
-    const toggle = event.target.closest?.('.rs-section-toggle');
-    if (!toggle || !deck.contains(toggle)) return;
-    const card = toggle.closest('.rs-section');
-    setOpenCard(deck, card, card.dataset.open !== 'true');
-  });
-
-  return deck;
-}
-
-/** @param {Element} card @param {boolean} open */
-function setCardState(card, open) {
-  card.dataset.open = String(open);
-  card.querySelector('.rs-section-toggle')?.setAttribute('aria-expanded', String(open));
-  const cardBody = card.querySelector('.rs-section-body');
-  if (cardBody) cardBody.hidden = !open;
-}
-
-/**
- * Open one card and close the rest. Exclusivity is not a style choice: two open
- * cards would not fit, and the deck's promise is that it always does.
- */
-function setOpenCard(deck, card, open) {
-  for (const other of deck.querySelectorAll(':scope > .rs-section')) {
-    setCardState(other, other === card && open);
-  }
-  if (!open) return;
-
-  // Charts in a closed card were never mounted — ECharts cannot measure a box
-  // that is display:none, so it mounts the first time the card is opened.
-  requestAnimationFrame(() => {
-    mountBlock(card);
-    resizeAll();
-  });
-}
-
-/** The card that starts open: the one Claude's focus points at, else the first. */
-function initialOpenBlock(order, focus) {
-  const wanted = focus && FOCUS_BLOCKS[focus];
-  if (wanted && order.includes(wanted)) return wanted;
-  return order.find((id) => DECK_BLOCKS.includes(id)) || null;
-}
-
 /* ───────────────────────── assembly sequence ───────────────────────── */
 
 /**
- * The dashboard reveal: header → KPI cards → the card deck.
+ * The dashboard reveal, top to bottom: header → KPI cards → the paired rows →
+ * the project cards.
  */
 async function runAssemblySequence(elements) {
   const byBlock = (name) => elements.find((e) => e.dataset?.block === name);
@@ -284,8 +213,11 @@ async function runAssemblySequence(elements) {
     kpiRail.animateIn(kpis);
   }
 
-  // Charts reveal left to right.
-  const charts = [byBlock('billing-revenue'), byBlock('transactions')].filter(Boolean);
+  // The paired rows reveal left to right.
+  const charts = [
+    byBlock('operations'), byBlock('relationship'),
+    byBlock('transactions'), byBlock('billing-revenue'),
+  ].filter(Boolean);
   if (charts.length) {
     await pause(0.08);
     animate(
@@ -295,7 +227,7 @@ async function runAssemblySequence(elements) {
     );
   }
 
-  const tail = [byBlock('relationship'), byBlock('operations'), byBlock('projects')].filter(Boolean);
+  const tail = [byBlock('projects')].filter(Boolean);
   if (tail.length) {
     await pause(0.08);
     animate(tail, { opacity: [0, 1], transform: ['translateY(10px)', 'translateY(0px)'] },
@@ -370,20 +302,17 @@ async function run(ctn, decision, meta = {}) {
   widen();
   await pause(0.15);
 
-  // The deck holds one screen at any width, so there is no threshold to test.
+  // The template is sized to the thread, so the whole dashboard is on screen.
   root.dataset.fit = 'on';
   fitToThread(root);
   bindFitToThread();
 
-  // 3. Render the allow-listed blocks in the resolved order.
-  const order = resolveOrder(decision.blockOrder, { focus: decision.focus });
+  // 3. Render the fixed template. Same five blocks, same order, every time.
   const stage = document.createElement('div');
   stage.className = 'rs-blocks';
-  const openBlock = initialOpenBlock(order, decision.focus);
-  const { elements } = renderBlocks(order, snapshot, stage, {
+  const { elements } = renderBlocks(snapshot, stage, {
     title: decision.title,
     period: decision.period,
-    openBlock,
   });
 
   // Hide until the sequence animates them in, so nothing flashes at full opacity.
@@ -392,7 +321,6 @@ async function run(ctn, decision, meta = {}) {
   }
 
   host.appendChild(stage);
-  buildDeck(stage, elements);
 
   // 4. The wheel becomes the header status chip rather than simply vanishing.
   const chip = statusChip(stage);
@@ -400,7 +328,6 @@ async function run(ctn, decision, meta = {}) {
 
   await runAssemblySequence(elements);
 
-  root.setAttribute('data-focus', decision.focus || 'default');
   keepInView(root, { align: 'top' });
   running = false;
   return snapshot;
@@ -500,7 +427,6 @@ async function handleAsync(text, assistantNode, claim = {}) {
     workflow: (local.workflow === 'relationship_snapshot' || pendingWorkflow || claim.byName)
       ? 'relationship_snapshot'
       : remote.workflow,
-    focus: remote.focus ?? local.focus,
     period: source === 'server' ? remote.period : local.period,
   };
 

@@ -11,7 +11,7 @@
 
 import { z } from './vendor/zod.js';
 import {
-  BLOCK_IDS, FOCUS_VALUES, PERIOD_VALUES, SOURCE_STATES,
+  PERIOD_VALUES, SOURCE_STATES,
   PROJECT_STATUSES, TICKET_SEVERITIES, TICKET_STATUSES,
 } from './config.js';
 
@@ -21,28 +21,15 @@ import {
  * The ONLY thing the model is permitted to influence.
  *
  * Note what is absent: no HTML, no CSS, no chart options, no figures, no
- * account data, no free-form block definitions. Claude selects from fixed
- * enums and writes one short plain-text title. Everything else is computed.
+ * account data, no block definitions and no block ORDER — the dashboard is a
+ * fixed template. Claude picks a reporting period from a fixed enum and writes
+ * one short plain-text title. Everything else is computed.
  */
 export const WorkflowDecisionSchema = z.object({
   workflow: z.enum(['relationship_snapshot', 'other']),
 
-  /** Optional display emphasis. */
-  focus: z.enum(FOCUS_VALUES).nullable().default(null),
-
   /** Requested reporting period; defaults to YTD when not supplied. */
   period: z.enum(PERIOD_VALUES).default('ytd'),
-
-  /**
-   * Requested block ordering. Every entry must be an allow-listed id, and no
-   * id may repeat. The registry re-checks this, but rejecting here means a
-   * malformed decision never reaches the renderer at all.
-   */
-  blockOrder: z.array(z.enum(BLOCK_IDS))
-    .max(BLOCK_IDS.length)
-    .refine((ids) => new Set(ids).size === ids.length, 'blockOrder must not repeat a block id')
-    .nullable()
-    .default(null),
 
   /**
    * A concise factual title. Plain text only — the `<` guard blocks any attempt
@@ -85,6 +72,8 @@ export const BillingSchema = z.object({
   ...SeriesBase,
   currency: z.string(),
   measure: z.string(),
+  /** Last year's full-year total — what the progress ring tracks towards. */
+  priorFullYear: z.number().nullable(),
 });
 
 export const TransactionsSchema = z.object({
