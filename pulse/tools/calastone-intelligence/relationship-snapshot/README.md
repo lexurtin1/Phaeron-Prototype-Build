@@ -17,11 +17,17 @@ between one snapshot and the next is the data.
 
 > **The account names are real firms; nothing behind them is.** A sales audience recognises the
 > accounts it works with, and "Kestrel Fund Services" told them nothing. Every figure is generated
-> by `data/mock-repo.js`, and the relationship managers, account teams and client contacts remain
-> entirely fictional.
+> by `data/mock-repo.js`.
+
+> **The Calastone staff are real colleagues; the client contacts are not.** An account's
+> relationship manager is decided by `rmFor()` in `data/scenarios.js` from the account's segment,
+> so the demo shows the right owner rather than a name drawn from a hat. The people shown as
+> working *at* the client — "Head of Fund Services, HSBC Asset Management" — stay invented, and
+> should: they are named individuals attributed to real firms, which is the one thing on this page
+> that must never look real.
 
 > **Everything on screen is simulated.** No Salesforce, billing, transaction or Jira system is
-> contacted. All names, organisations and figures are invented.
+> contacted. All organisations and figures are invented.
 
 ---
 
@@ -169,7 +175,7 @@ snapshot.css       all feature CSS, scoped to .rs-root / .rs-*
 
 data/
   seed.js          xmur3 + mulberry32 deterministic PRNG
-  scenarios.js     fictional fixtures for CTN 101/202/303/404/505
+  scenarios.js     account profiles for CTN 101/202/303/404/505; staff and rmFor()
   directory.js     name → CTN, derived from scenarios.js
   mock-repo.js     ← THE CONNECTOR SWAP POINT
 
@@ -190,6 +196,8 @@ components/
   operations-panel.js  relationship-card.js
   states.js        empty / delayed / unavailable / error / clarification
   dom.js           small DOM helpers, incl. section() — the card
+
+qa.js              follow-up questions about the snapshot on screen
 
 motion/
   motion.js        Motion wrapper: reduced-motion enforcement + FLIP helper
@@ -218,6 +226,42 @@ abbreviation no algorithm would produce from the registered name, and "Legal & G
 Management" must not be reachable as "general".
 
 Any other three-digit CTN produces a deterministic generated profile.
+
+---
+
+## Follow-up questions
+
+Once a dashboard is on screen, anything said next that the host has no canned answer for is
+treated as a question about it. `qa.js` posts the rendered snapshot to `/api/snapshot-qa`,
+which owns the rules and streams Claude's answer back as NDJSON.
+
+**The rules live on the server, not in the browser.** `/api/claude` is a pass-through — a
+system prompt sent through it is editable from devtools, and the rules *are* this feature. So
+the answering route owns them outright, exactly as `/api/snapshot-intent` owns the
+classifier's. The client picks the question; it does not pick the instructions.
+
+**What it will not do.** The prompt is built around one honest limit: the fixtures cannot say
+*why* anything happened. Ticket volume exists only as monthly totals, open-ticket ages are
+drawn at random so recency carries no signal, and no record anywhere holds a cause, category
+or link between a ticket and a project. Asked "why have their ticket volumes increased", the
+answer gives the figures that moved and then says the records carry no cause — rather than
+supplying a plausible one, which is the failure this whole feature exists to avoid. It also
+refuses to rank, rate or recommend, the same prohibitions the dashboard is held to.
+
+**Arithmetic is pre-computed.** Asked how the year looks, the model would sum eight months in
+its head and land a few off — it did, before `deriveTotals()` existed. Raised, resolved and
+net year-to-date now arrive in the prompt as figures to quote rather than sums to perform.
+
+**The prompt is one cache prefix.** Rules and data go in `system` behind a `cache_control`
+breakpoint and the question rides in the user turn, so a second question about the same
+account reads the prefix from cache. Watch `cache_read_input_tokens` to confirm it.
+
+Grounding is the account on screen in full — including `tickets.items[]`, which the dashboard
+never renders — plus a one-line digest of the other four accounts, so "is that worse than
+Schroders?" has something to compare against without shipping five whole snapshots.
+
+Each answer ends with a line naming the account and saying no live system was contacted. A
+figure that leaves the dashboard has to carry its label with it.
 
 ---
 

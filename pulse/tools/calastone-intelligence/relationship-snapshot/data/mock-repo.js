@@ -19,7 +19,7 @@ import {
 } from '../config.js';
 import { createRng, monthlySeries, isoMinus, isoMinusDays } from './seed.js';
 import {
-  SCENARIOS, STAFF, SUPPORT_ROLES, CLIENT_CONTACTS, MEETING_TYPES,
+  SCENARIOS, STAFF, rmFor, SUPPORT_ROLES, CLIENT_CONTACTS, MEETING_TYPES,
   TICKET_TITLES, PROJECT_NAMES, MILESTONES, JIRA_ITEM_TITLES,
   FALLBACK_NAME_PARTS, TIERS, SEGMENTS, REGIONS,
 } from './scenarios.js';
@@ -294,8 +294,18 @@ function buildRelationship(profile, rng, available) {
       lastMeeting: null, openActions: null,
     };
   }
-  const manager = rng.pick(STAFF);
-  const team = rng.sample(SUPPORT_ROLES, rng.int(2, 4));
+  // The one field here that is not seeded-random: an account's owner is a fact
+  // about the account, not a roll of the dice. See rmFor() in scenarios.js.
+  const manager = rmFor(profile);
+  // One entry per person, and never the manager twice — SUPPORT_ROLES lists the
+  // same bench under several delivery roles.
+  const bench = [];
+  for (const role of SUPPORT_ROLES) {
+    if (role.name === manager.name) continue;
+    if (bench.some((b) => b.name === role.name)) continue;
+    bench.push(role);
+  }
+  const team = rng.sample(bench, rng.int(2, 4));
   const contacts = rng.sample(CLIENT_CONTACTS, rng.int(2, 3)).map((c) => ({
     ...c,
     organisation: profile.accountName,

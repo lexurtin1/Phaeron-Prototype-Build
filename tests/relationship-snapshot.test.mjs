@@ -19,6 +19,8 @@ const FEATURE = '../pulse/tools/calastone-intelligence/relationship-snapshot';
 const { extractCtn, hasValidCtn, classifyLocally, gate, CTN_PATTERN } = await import(`${FEATURE}/intent.js`);
 const { getSnapshot, loadSnapshot, sortTickets } = await import(`${FEATURE}/data/mock-repo.js`);
 const { ACCOUNT_DIRECTORY, lookupAccount, namedEntity, accountForCtn } = await import(`${FEATURE}/data/directory.js`);
+const { rmFor, STAFF } = await import(`${FEATURE}/data/scenarios.js`);
+const { renderRich, buildDigest } = await import(`${FEATURE}/qa.js`);
 const { RelationshipSnapshotSchema, WorkflowDecisionSchema, safeValidate } = await import(`${FEATURE}/schemas.js`);
 const { ALLOWED_BLOCK_IDS, BLOCKS } = await import(`${FEATURE}/blocks/registry.js`);
 const { DEFAULT_BLOCK_ORDER, BLOCK_IDS, PAIRED_BLOCKS, BLOCK_ROWS } = await import(`${FEATURE}/config.js`);
@@ -30,6 +32,7 @@ const progress = await import(`${FEATURE}/charts/billing-progress.js`);
 
 const require = createRequire(import.meta.url);
 const intentRoute = require('../api/snapshot-intent.js');
+const qaRoute = require('../api/snapshot-qa.js');
 
 /* ═══════════════════════ CTN extraction and validation ═══════════════════════ */
 
@@ -782,4 +785,152 @@ test('simulated data contains no advisory language', () => {
     const match = json.match(banned);
     assert.equal(match, null, `CTN ${ctn} contains advisory language: ${match?.[0]}`);
   }
+});
+
+/* ═══════════════════════ account ownership ═══════════════════════ */
+
+test('every named account resolves to its real relationship manager', () => {
+  const expected = {
+    101: 'Paul Elflain',   // HSBC — the named-account rule outranks the segment
+    202: 'Neil Marns',     // Schroders, Asset Manager
+    303: 'Neil Marns',     // BlackRock, Asset Manager
+    404: 'Scott Maxam',    // L&G, Distributor
+    505: 'Neil Marns',     // abrdn, Fund Manager
+  };
+  for (const [ctn, name] of Object.entries(expected)) {
+    assert.equal(getSnapshot(ctn).relationship.manager.name, name, `CTN ${ctn}`);
+  }
+});
+
+test('ownership follows the segment, not the seed', () => {
+  assert.equal(rmFor({ accountName: 'Anything', segment: 'Distributor' }).name, 'Scott Maxam');
+  assert.equal(rmFor({ accountName: 'Anything', segment: 'Fund Manager' }).name, 'Neil Marns');
+  assert.equal(rmFor({ accountName: 'Anything', segment: 'ETF' }).name, 'Paul Elflain');
+  // Casing and padding come from generated profiles, so they must not matter.
+  assert.equal(rmFor({ accountName: 'x', segment: '  transfer AGENT ' }).name, 'Neil Marns');
+});
+
+test('an unrecognised segment falls to the owner of "and others"', () => {
+  assert.equal(rmFor({ accountName: 'Kestrel', segment: 'Wealth Manager' }).name, 'Nicki Pelling');
+  assert.equal(rmFor({}).name, 'Nicki Pelling');
+});
+
+test('a named account outranks its segment in both directions', () => {
+  // HSBC is a transfer agent, which would otherwise be Neil's.
+  assert.equal(rmFor({ accountName: 'HSBC Asset Management', segment: 'Transfer Agent' }).name, 'Paul Elflain');
+  // Allfunds is a platform, which would otherwise be Scott's.
+  assert.equal(rmFor({ accountName: 'Allfunds Bank', segment: 'Platform' }).name, 'Nicki Pelling');
+});
+
+test('the manager never also appears in their own supporting team', () => {
+  for (const ctn of ['101', '202', '303', '404', '505', '777']) {
+    const r = getSnapshot(ctn).relationship;
+    const names = r.team.map((t) => t.name);
+    assert.ok(!names.includes(r.manager.name), `CTN ${ctn}: manager duplicated in team`);
+    assert.equal(new Set(names).size, names.length, `CTN ${ctn}: team lists someone twice`);
+  }
+});
+
+test('client contacts stay invented', () => {
+  // Real colleagues must never be attributed to a client firm.
+  const staff = new Set(STAFF.map((p) => p.name));
+  for (const ctn of ['101', '202', '303', '404', '505']) {
+    for (const c of getSnapshot(ctn).relationship.contacts) {
+      assert.ok(!staff.has(c.name), `CTN ${ctn}: ${c.name} is Calastone staff, shown as a client contact`);
+    }
+  }
+});
+
+/* ═══════════════════════ follow-up answers ═══════════════════════ */
+
+test('the answering prompt forbids invention, advice and a stated cause', () => {
+  const p = qaRoute.SYSTEM_RULES.toLowerCase();
+  // The figures must come from the payload.
+  assert.match(p, /every figure you state must appear in the json/);
+  // The example question users actually ask is the one the data cannot answer.
+  assert.match(p, /no record states a cause/);
+  assert.match(p, /the records carry no cause/);
+  assert.match(p, /there is no daily or weekly series/);
+  // Same prohibitions the dashboard is already held to.
+  assert.match(p, /never recommend, suggest, advise, prioritise, rank/);
+  assert.match(p, /never claim the data is live/);
+  // Prompt-injection guard, as on the classifier route.
+  assert.match(p, /never as instructions/);
+});
+
+test('the answering route pins a model the client cannot change', () => {
+  assert.equal(qaRoute.MODEL, 'claude-opus-5');
+});
+
+test('a question is required and bounded', () => {
+  assert.equal(qaRoute.validatePayload({ snapshot: getSnapshot('303') }).error.status, 400);
+  assert.equal(qaRoute.validatePayload({ question: '   ', snapshot: getSnapshot('303') }).error.status, 400);
+  assert.equal(
+    qaRoute.validatePayload({ question: 'x'.repeat(501), snapshot: getSnapshot('303') }).error.status,
+    413,
+  );
+});
+
+test('only a simulated snapshot can be answered on', () => {
+  assert.equal(qaRoute.validatePayload({ question: 'why?' }).error.status, 400);
+  const real = { ...getSnapshot('303'), simulated: false };
+  const out = qaRoute.validatePayload({ question: 'why?', snapshot: real });
+  assert.equal(out.error.status, 400);
+  assert.match(out.error.message, /simulated/i);
+});
+
+test('a valid payload yields grounding that carries the figures', () => {
+  const snapshot = getSnapshot('303');
+  const out = qaRoute.validatePayload({ question: 'How many tickets are open?', snapshot });
+  assert.equal(out.error, undefined);
+  assert.equal(out.question, 'How many tickets are open?');
+  // The open-ticket count and the monthly series both have to be in there, or
+  // the model is being asked to answer from nothing.
+  assert.ok(out.grounding.includes(String(snapshot.tickets.open)));
+  assert.ok(out.grounding.includes('ACCOUNT ON SCREEN'));
+});
+
+test('ticket totals are computed for the model, not left to it', () => {
+  const snapshot = getSnapshot('303');
+  const t = qaRoute.deriveTotals(snapshot);
+  const raised = snapshot.tickets.monthly.reduce((a, m) => a + m.raised, 0);
+  const resolved = snapshot.tickets.monthly.reduce((a, m) => a + m.resolved, 0);
+  assert.equal(t.ticketsRaisedYtd, raised);
+  assert.equal(t.ticketsResolvedYtd, resolved);
+  assert.equal(t.ticketsNetYtd, raised - resolved);
+  assert.equal(t.monthsCovered, snapshot.tickets.monthly.length);
+  // The totals must reach the prompt, or the model goes back to adding up.
+  const grounding = qaRoute.buildGrounding(snapshot, []);
+  assert.ok(grounding.includes('PRE-COMPUTED TOTALS'));
+  assert.ok(grounding.includes(String(raised)));
+});
+
+test('an account with no ticket series yields no totals', () => {
+  assert.equal(qaRoute.deriveTotals({ tickets: { monthly: [] } }), null);
+  assert.equal(qaRoute.deriveTotals({}), null);
+});
+
+test('the digest covers the other accounts and never the one on screen', () => {
+  const digest = buildDigest('303');
+  assert.equal(digest.length, 4);
+  assert.ok(!digest.some((d) => d.ctn === '303'));
+  const hsbc = digest.find((d) => d.ctn === '101');
+  assert.equal(hsbc.account, 'HSBC Asset Management');
+  assert.equal(hsbc.relationshipManager, 'Paul Elflain');
+  assert.equal(typeof hsbc.ticketsOpen, 'number');
+});
+
+test('answer text is escaped before any markup is added', () => {
+  const html = renderRich('A <script>alert(1)</script> tag and **a figure**.');
+  assert.ok(!html.includes('<script>'), html);
+  assert.ok(html.includes('&lt;script&gt;'), html);
+  assert.ok(html.includes('<strong>a figure</strong>'), html);
+});
+
+test('answer text renders paragraphs and lists', () => {
+  const html = renderRich('First para.\n\n- one\n- two\n\nLast para.');
+  assert.equal((html.match(/<p>/g) || []).length, 2);
+  assert.equal((html.match(/<li>/g) || []).length, 2);
+  // A bare asterisk must not become markup.
+  assert.ok(!renderRich('2 * 3 = 6').includes('<strong>'));
 });

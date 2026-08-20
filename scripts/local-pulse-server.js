@@ -82,12 +82,34 @@ async function handleApi(req, res, pathname) {
 
   const fauxReq = { method: req.method, body, url: req.url, query, headers: req.headers };
   let ended = false;
+  // Streaming routes (api/snapshot-qa.js) call write() repeatedly before end().
+  // Once the first chunk is out the status and headers are committed, which is
+  // what headersSent reports — a handler checks it before trying to send an
+  // error status it can no longer set.
+  let streaming = false;
   const fauxRes = {
     statusCode: 200,
     headers: {},
+    get headersSent() { return streaming || ended; },
     setHeader(k, v) { this.headers[k] = v; },
+    flushHeaders() {
+      if (streaming || ended) return;
+      streaming = true;
+      res.writeHead(this.statusCode, this.headers);
+    },
+    write(chunk) {
+      if (ended) return false;
+      this.flushHeaders();
+      return res.write(chunk);
+    },
     end(payload) {
       if (ended) return;
+      if (streaming) {
+        ended = true;
+        if (payload) res.write(payload);
+        res.end();
+        return;
+      }
       ended = true;
       const headers = { ...this.headers };
       if (!headers['Content-Type'] && !headers['content-type']) {

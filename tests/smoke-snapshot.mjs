@@ -270,6 +270,69 @@ try {
   await page.eval(settle);
   await page.screenshot(path.join(SHOTS, '03-kpi-rail.png'));
 
+  /* ─── 3b. Follow-up questions about the snapshot on screen ─── */
+  console.log('\n[Follow-up answers]');
+  const qaReady = await page.eval(`
+    const r = await fetch('/api/snapshot-qa', { cache: 'no-store' });
+    if (!r.ok) return false;
+    const b = await r.json();
+    return !!b.keyConfigured;`);
+
+  if (!qaReady) {
+    console.log('  SKIP  follow-up answers — /api/snapshot-qa has no ANTHROPIC_API_KEY');
+  } else {
+    check('the module keeps the snapshot it rendered',
+      await page.eval('return window.RelationshipSnapshot.current?.ctn === "303";'));
+
+    await page.eval(ask('How many tickets are open and how old is the oldest?'));
+    await page.eval(waitFor(`
+      document.querySelector('.rs-answer-note')`, 45000));
+
+    const answered = await page.eval(`
+      const shells = [...document.querySelectorAll('.rs-answer')];
+      const shell = shells[shells.length - 1];
+      return {
+        text: shell.querySelector('.rs-answer-body').innerText,
+        note: shell.querySelector('.rs-answer-note')?.innerText || '',
+        error: !!shell.querySelector('.rs-answer-error'),
+        html: shell.querySelector('.rs-answer-body').innerHTML,
+      };`);
+
+    check('the follow-up produced an answer, not an error',
+      !answered.error && answered.text.length > 40, answered.text.slice(0, 120));
+    // 14 open and 47 days are CTN 303's figures. An answer that cannot quote
+    // them is not reading the snapshot it was handed.
+    check('the answer quotes figures from the snapshot',
+      answered.text.includes('14') && answered.text.includes('47'),
+      answered.text.slice(0, 160));
+    check('the answer says the data is simulated',
+      /simulated/i.test(answered.note), answered.note);
+    check('the answer renders as markup, not raw text',
+      /<p>|<ul>/.test(answered.html));
+    check('the canned fallback did not claim the turn',
+      !answered.text.toLowerCase().includes('still in development'));
+
+    // The question users actually ask, and the one the fixtures cannot answer.
+    await page.eval(ask('Why have their ticket volumes increased in the past few days?'));
+    await page.eval(waitFor(`
+      document.querySelectorAll('.rs-answer-note').length >= 2`, 45000));
+    const why = await page.eval(`
+      const shells = [...document.querySelectorAll('.rs-answer')];
+      return shells[shells.length - 1].querySelector('.rs-answer-body').innerText.toLowerCase();`);
+
+    check('a "why" question is answered without inventing a cause',
+      /no cause|does not (say|state|record)|carries no|nothing .*records|no root cause/.test(why),
+      why.slice(0, 200));
+    check('it states the data is monthly, not daily',
+      /month|daily|weekly/.test(why), why.slice(0, 200));
+    check('the answer offers no advice',
+      !/recommend|you should|we should|next step|suggest|priorit|advis/.test(why),
+      why.slice(0, 200));
+
+    await page.eval(settle);
+    await page.screenshot(path.join(SHOTS, '04-follow-up.png'));
+  }
+
   /* ─── 4. Missing CTN → clarification, no data fetched ─── */
   console.log('\n[Missing CTN gate]');
   await page.eval(resetToChat);

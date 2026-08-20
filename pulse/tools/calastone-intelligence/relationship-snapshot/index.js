@@ -28,6 +28,7 @@ import { accountForCtn, lookupAccount } from './data/directory.js';
 import { fromHTML } from './components/dom.js';
 import { animate, enter, stagger, pause, prefersReducedMotion, DUR } from './motion/motion.js';
 import { disposeAll, resizeAll } from './charts/mount.js';
+import { answer as answerQuestion } from './qa.js';
 import { esc } from './format.js';
 
 /* ───────────────────────── conversation state ───────────────────────── */
@@ -41,6 +42,13 @@ let pendingWorkflow = null;
 
 /** Guards against two snapshots assembling at once. */
 let running = false;
+
+/**
+ * The snapshot currently on screen, so a follow-up question has something to be
+ * about. Until now the module rendered a dashboard and forgot it immediately.
+ * @type {import('./schemas.js').RelationshipSnapshot|null}
+ */
+let lastSnapshot = null;
 
 /* ───────────────────────── DOM plumbing ─────────────────────────
  *
@@ -297,6 +305,7 @@ async function run(ctn, decision, meta = {}) {
     return null;
   }
   snapshot = parsed.data;
+  lastSnapshot = snapshot;
 
   // Retrieval succeeded, so there is now a dashboard to make room for.
   widen();
@@ -386,11 +395,45 @@ function tryHandle(text, assistantNode) {
     || (namesAnAccount && !hostAnswersThis)
     || answersPending;
 
-  if (!claimsTurn) return false;
+  if (claimsTurn) {
+    // Own the turn, then refine the decision with the server classifier.
+    handleAsync(text, assistantNode, { byName: Boolean(namesAnAccount && !hostAnswersThis) });
+    return true;
+  }
 
-  // Own the turn, then refine the decision with the server classifier.
-  handleAsync(text, assistantNode, { byName: Boolean(namesAnAccount && !hostAnswersThis) });
-  return true;
+  // Last claim, and the weakest on purpose: anything else said while a dashboard
+  // is on screen is treated as a question about it. This sits AFTER the checks
+  // above so that "relationship snapshot for abrdn" still starts a new dashboard
+  // rather than being answered as a question about the old one, and it still
+  // defers to the host's canned answers.
+  if (lastSnapshot && !hostAnswersThis && assistantNode) {
+    answerAsync(text, assistantNode);
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Answer a follow-up about the snapshot on screen.
+ *
+ * Errors are rendered into the message rather than thrown: the turn is already
+ * owned by the time this runs, so throwing would leave the user looking at a
+ * typing indicator that never resolves.
+ *
+ * @param {string} text
+ * @param {HTMLElement} assistantNode
+ */
+async function answerAsync(text, assistantNode) {
+  const body = assistantNode.querySelector('.assistant-body');
+  if (!body || !lastSnapshot) return;
+  try {
+    await answerQuestion(text, lastSnapshot, body);
+  } catch (err) {
+    console.error('Relationship snapshot: follow-up failed', err);
+    body.replaceChildren(errorState(String((err && err.message) || err)));
+  }
+  keepInView(assistantNode.closest('.msg') || assistantNode, { align: 'top' });
 }
 
 /**
@@ -487,9 +530,12 @@ const api = {
   run,
   extractCtn,
   get pending() { return pendingWorkflow; },
+  /** The snapshot a follow-up question would be answered against. */
+  get current() { return lastSnapshot; },
   /** Test/debug hook: clear conversation state and remove rendered dashboards. */
   reset() {
     pendingWorkflow = null;
+    lastSnapshot = null;
     running = false;
     disposeAll();
     for (const root of document.querySelectorAll('.rs-root')) {

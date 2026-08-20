@@ -726,6 +726,27 @@
   .rs-projects { grid-auto-flow: row; grid-auto-columns: auto; }
 }
 
+/* ══════════════ Follow-up answers ══════════════
+   Prose, not a dashboard. The assistant body already styles p / ul / strong for
+   the host's canned answers, so this adds spacing and the provenance line only —
+   an answer that quotes simulated figures has to say so, exactly as the cards do. */
+
+.rs-answer { display: flex; flex-direction: column; gap: 10px; }
+.rs-answer-body > p { margin: 0 0 10px; }
+.rs-answer-body > p:last-child { margin-bottom: 0; }
+.rs-answer-body > ul { margin: 0 0 10px; padding-left: 2px; }
+.rs-answer-note {
+  margin: 2px 0 0; font-size: 10.5px; line-height: 1.45;
+  color: var(--c-text-faint); font-style: italic;
+}
+.rs-answer-error {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; border-radius: var(--radius-md, 7px);
+  background: var(--c-red-bg); border: 1px solid rgba(239,68,68,0.30);
+  font-size: 12.5px; color: var(--c-text);
+}
+.rs-answer-error strong { color: #C23434; }
+
 /* ══════════════ Clarification chips ══════════════
    The chips name the account as well as the CTN. A user who asked about a
    company they know by name has to be able to see which of these is theirs —
