@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calastone · System Architecture</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;background:#f3f2f2;}
+  a{color:#ec3013;text-decoration:none;} a:hover{color:#b91c0c;}
+  *{-webkit-font-smoothing:antialiased;}
+  @keyframes trigFlash{0%,100%{opacity:.4;box-shadow:0 0 0 0 rgba(236,48,19,0)}50%{opacity:1;box-shadow:0 0 16px 2px rgba(236,48,19,.55)}}
+  .om-btn{font-family:'Archivo',sans-serif;font-weight:600;font-size:12px;letter-spacing:.02em;text-transform:uppercase;border:2px solid #201e1d;background:#fff;color:#201e1d;padding:8px 14px;cursor:pointer;border-radius:0;display:inline-flex;align-items:center;gap:7px;transition:background .12s,color .12s;}
+  .om-btn:hover{background:#201e1d;color:#fff;}
+  .om-btn.pri{background:#ec3013;border-color:#ec3013;color:#fff;}
+  .om-btn.pri:hover{background:#b91c0c;border-color:#b91c0c;}
+  .om-btn:focus-visible{outline:2px solid #ec3013;outline-offset:2px;}
+  .om-box{transition:box-shadow .1s,border-color .1s;}
+  .om-box:hover{box-shadow:0 4px 14px rgba(32,30,29,.16)!important;}
+  .om-box:focus-visible{outline:2px solid #ec3013;outline-offset:2px;}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="position:fixed;inset:0;overflow:hidden;background:#f3f2f2;font-family:'Archivo',sans-serif;cursor:grab;touch-action:none;">
+
+  <div style="position:absolute;top:0;left:0;right:0;height:64px;background:rgba(243,242,242,.94);backdrop-filter:blur(6px);border-bottom:2px solid #201e1d;display:flex;align-items:center;gap:22px;padding:0 22px;z-index:20;box-sizing:border-box;">
+    <div style="display:flex;flex-direction:column;gap:2px;flex:0 0 auto;">
+      <div style="font-weight:800;font-size:18px;letter-spacing:-.02em;color:#201e1d;line-height:1;">Pulse<span style="color: rgb(236, 48, 19);">.</span> <span style="font-weight: 500; color: rgb(111, 106, 100); font-size: 13px;">system architecture · v3</span></div>
+      <div style="font-size:10.5px;color:#6f6a64;letter-spacing:.02em;font-family:ui-monospace,Menlo,monospace;">store the meaning, not the data · never guess a fact · one governed MCP doorway</div>
+    </div>
+    <a href="../../index.html" class="om-btn" style="flex:0 0 auto;text-decoration:none;white-space:nowrap;">&#8592; Pulse Home</a>
+    <div style="flex:1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
+      <sc-for list="{{ stages }}" as="st" hint-placeholder-count="6">
+        <button onClick="{{ st.onClick }}" style="{{ st.style }}">
+          <span style="{{ st.numStyle }}">{{ st.n }}</span>
+          <span style="font-weight:600;font-size:11.5px;letter-spacing:.01em;">{{ st.name }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div ref="{{ stageRef }}" style="position:absolute;top:0;left:0;width:1680px;height:1610px;transform-origin:0 0;will-change:transform;">
+
+    <div style="position:absolute;left:0;top:0;width:1680px;height:210px;background:#eceff3;"></div>
+    <div style="position:absolute;left:0;top:210px;width:1680px;height:1130px;background:#f6f4f0;"></div>
+    <div style="position:absolute;left:0;top:1340px;width:1680px;height:270px;background:#e8f4f4;"></div>
+    <div style="position:absolute;left:0;top:208px;width:1680px;height:0;border-top:2px solid #201e1d;"></div>
+    <div style="position:absolute;left:0;top:1338px;width:1680px;height:0;border-top:2px solid #201e1d;"></div>
+
+    <div style="position:absolute;left:10px;top:0;width:44px;height:210px;display:flex;align-items:center;justify-content:center;">
+      <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-weight:800;font-size:15px;letter-spacing:.16em;color:#4a5568;">DATA SOURCES</div>
+    </div>
+    <div style="position:absolute;left:10px;top:210px;width:44px;height:1130px;display:flex;align-items:center;justify-content:center;">
+      <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-weight:800;font-size:15px;letter-spacing:.16em;color:#b91c0c;">INTERNAL ENGINE</div>
+    </div>
+    <div style="position:absolute;left:10px;top:1340px;width:44px;height:270px;display:flex;align-items:center;justify-content:center;">
+      <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-weight:800;font-size:15px;letter-spacing:.16em;color:#0a6d6d;">OUTPUT FRONTEND</div>
+    </div>
+
+    <div style="position:absolute;left:66px;top:12px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:700;letter-spacing:.03em;color:#4a5568;">DATA SOURCES — external systems · never copied · read live at the moment they're asked for</div>
+    <div style="position:absolute;left:66px;top:222px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:700;letter-spacing:.03em;color:#8a5a52;">INTERNAL ENGINE — ingestion · two-layer ontology · governed MCP boundary · verify (ring-fenced, no public egress)</div>
+    <div style="position:absolute;left:66px;top:1350px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:700;letter-spacing:.03em;color:#0a6d6d;">OUTPUT FRONTEND — live push + conversational entry point</div>
+
+    <div style="position:absolute;left:96px;top:240px;width:1548px;height:1088px;border:2px dashed #d08a80;border-radius:16px;background:rgba(236,48,19,.022);"></div>
+    <div style="position:absolute;left:112px;top:226px;background:#fff;border:2px solid #d08a80;border-radius:4px;padding:5px 11px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#b91c0c;">◈ SSO/SAML · RBAC · VPC PRIVATELINK · NO PUBLIC EGRESS</div>
+
+    <!-- MCP Server boundary (backdrop) -->
+    <div style="position:absolute;left:280px;top:854px;width:1180px;height:410px;border:2.5px solid #2f7bff;border-radius:16px;background:rgba(47,123,255,.045);box-shadow:0 10px 30px rgba(47,123,255,.1);z-index:0;"></div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.mcp.enter }}" onMouseLeave="{{ hov.mcp.leave }}" onFocus="{{ hov.mcp.enter }}" onBlur="{{ hov.mcp.leave }}" style="position:absolute;left:296px;top:866px;width:auto;display:flex;align-items:center;gap:12px;background:#2f7bff;border-radius:6px;padding:6px 13px;box-shadow:0 3px 10px rgba(47,123,255,.28);cursor:pointer;z-index:2;">
+      <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:14px;">🔐</span><div style="font-weight:800;font-size:14.5px;letter-spacing:-.01em;color:#fff;">Ontology MCP Server</div></div>
+      <div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;color:#cfe0ff;letter-spacing:.03em;">governed · versioned · verified &nbsp;·&nbsp; one doorway · every read grounded, cited, permission-scoped</div>
+    </div>
+
+    {{ svgLayer }}
+
+    <!-- ═══ BAND 1 · sources ═══ -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.perplexity.enter }}" onMouseLeave="{{ hov.perplexity.leave }}" onFocus="{{ hov.perplexity.enter }}" onBlur="{{ hov.perplexity.leave }}" style="position:absolute;left:110px;top:76px;width:250px;height:104px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #6b7280;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:14.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Perplexity API</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">market research signals</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#dbf1f1;color:#0a6d6d;border:1px solid #9fd8d8;">▼ push · scheduled scan</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.graph.enter }}" onMouseLeave="{{ hov.graph.leave }}" onFocus="{{ hov.graph.enter }}" onBlur="{{ hov.graph.leave }}" style="position:absolute;left:410px;top:76px;width:250px;height:104px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #6b7280;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:14.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Graph API Webhook</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">shared Outlook inbox · new mail</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#dbf1f1;color:#0a6d6d;border:1px solid #9fd8d8;">▼ push · event-driven</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.salesforce.enter }}" onMouseLeave="{{ hov.salesforce.leave }}" onFocus="{{ hov.salesforce.enter }}" onBlur="{{ hov.salesforce.leave }}" style="position:absolute;left:760px;top:76px;width:250px;height:104px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #6b7280;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:14.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Salesforce</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">CRM · truth for values · never copied</div>
+      <div style="margin-top:auto;align-self:flex-start;display:flex;gap:5px;flex-wrap:wrap;">
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#efe4f7;color:#7c3a9e;border:1px solid #d9bce8;">▲ checked by sync</span>
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#fbe6fb;color:#a021a0;border:1px solid #edb9ed;">⇅ live at read</span>
+      </div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.jira.enter }}" onMouseLeave="{{ hov.jira.leave }}" onFocus="{{ hov.jira.enter }}" onBlur="{{ hov.jira.leave }}" style="position:absolute;left:1060px;top:76px;width:250px;height:104px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #6b7280;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:14.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">JIRA</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">issues · epics · never copied</div>
+      <div style="margin-top:auto;align-self:flex-start;display:flex;gap:5px;flex-wrap:wrap;">
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#efe4f7;color:#7c3a9e;border:1px solid #d9bce8;">▲ checked by sync</span>
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#fbe6fb;color:#a021a0;border:1px solid #edb9ed;">⇅ live at read</span>
+      </div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.confluence.enter }}" onMouseLeave="{{ hov.confluence.leave }}" onFocus="{{ hov.confluence.enter }}" onBlur="{{ hov.confluence.leave }}" style="position:absolute;left:1360px;top:76px;width:250px;height:104px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #6b7280;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:14.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Confluence</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">docs · pages · never copied</div>
+      <div style="margin-top:auto;align-self:flex-start;display:flex;gap:5px;flex-wrap:wrap;">
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#efe4f7;color:#7c3a9e;border:1px solid #d9bce8;">▲ checked by sync</span>
+        <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:#fbe6fb;color:#a021a0;border:1px solid #edb9ed;">⇅ live at read</span>
+      </div>
+    </div>
+
+    <!-- ═══ BAND 2 · engine ═══ -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.sqs.enter }}" onMouseLeave="{{ hov.sqs.leave }}" onFocus="{{ hov.sqs.enter }}" onBlur="{{ hov.sqs.leave }}" style="position:absolute;left:110px;top:268px;width:180px;height:84px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #8f8a84;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Message Queue</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">SQS · at-least-once buffer</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.proc.enter }}" onMouseLeave="{{ hov.proc.leave }}" onFocus="{{ hov.proc.enter }}" onBlur="{{ hov.proc.leave }}" style="position:absolute;left:310px;top:268px;width:250px;height:84px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #8f8a84;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Signal Processor</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">validate (schema-on-write) · DLQ · idempotent</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.bedrock.enter }}" onMouseLeave="{{ hov.bedrock.leave }}" onFocus="{{ hov.bedrock.enter }}" onBlur="{{ hov.bedrock.leave }}" style="position:absolute;left:580px;top:268px;width:280px;height:84px;box-sizing:border-box;background:#f3f0fb;border:2px solid #cbbcf0;border-top:4px solid #5b4b9e;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">AI Signal Classifier</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">Claude via PrivateLink · no egress</div>
+      <div style="margin-top:auto;font-size:9.5px;color:#5b4b9e;font-family:ui-monospace,Menlo,monospace;">raw signal → structured context</div>
+    </div>
+
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.syncWorkers.enter }}" onMouseLeave="{{ hov.syncWorkers.leave }}" onFocus="{{ hov.syncWorkers.enter }}" onBlur="{{ hov.syncWorkers.leave }}" style="position:absolute;left:880px;top:268px;width:600px;height:84px;box-sizing:border-box;background:#faf5fe;border:2px solid #d9bce8;border-top:4px solid #7c3a9e;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:8px 12px;display:flex;flex-direction:column;gap:5px;overflow:hidden;cursor:pointer;">
+      <div style="display:flex;align-items:baseline;gap:9px;">
+        <div style="font-weight:700;font-size:13.5px;line-height:1;letter-spacing:-.01em;color:#201e1d;">Sync Workers</div>
+        <div style="font-size:9.5px;color:#7c3a9e;font-family:ui-monospace,Menlo,monospace;">2–3×/day · maintain pointers + content_hash · trigger re-derivation on change · store NO data</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;background:#fff;border:1px solid #d9bce8;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#5b2d78;">salesforce_sync.py</div>
+        <div style="flex:1;background:#fff;border:1px solid #d9bce8;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#5b2d78;">jira_sync.py</div>
+        <div style="flex:1;background:#fff;border:1px solid #d9bce8;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#5b2d78;">confluence_sync.py</div>
+      </div>
+    </div>
+
+    <!-- ontology (anchor) — two layers, widened to fill -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.rds.enter }}" onMouseLeave="{{ hov.rds.leave }}" onFocus="{{ hov.rds.enter }}" onBlur="{{ hov.rds.leave }}" style="position:absolute;left:360px;top:380px;width:1000px;height:214px;box-sizing:border-box;background:#1e2128;border:2px solid #3a3f4a;border-top:4px solid #ec3013;border-radius:8px;box-shadow:0 8px 22px rgba(32,30,29,.28);padding:12px 18px;display:flex;flex-direction:column;gap:8px;overflow:hidden;color:#fff;cursor:pointer;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-weight:800;font-size:19px;line-height:1;letter-spacing:-.02em;color:#fff;">The Ontology — System Memory</div>
+          <div style="font-size:10.5px;color:#a8adba;font-family:ui-monospace,Menlo,monospace;margin-top:4px;">source of truth for <b style="color:#ffb3a3;">meaning</b> — facts resolved live, never stored</div>
+        </div>
+        <div style="animation:trigFlash 1.6s ease-in-out infinite;background:rgba(236,48,19,.16);border:1px solid #ec3013;border-radius:4px;padding:5px 9px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:700;color:#ff9a86;white-space:nowrap;">⚡ Trigger + LISTEN/NOTIFY</div>
+      </div>
+      <div style="background:#241f2e;border:1px solid #4a3a6e;border-left:3px solid #8f7bd6;border-radius:5px;padding:6px 10px;display:flex;align-items:center;gap:10px;">
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;color:#b9a6f2;letter-spacing:.04em;white-space:nowrap;">LAYER 1 · POINTERS</div>
+        <div style="display:flex;gap:6px;flex:1;">
+          <div style="flex:1;background:#2a2440;border:1px solid #5b4b9e;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#c9b8ff;">canonical_key</div>
+          <div style="flex:1;background:#2a2440;border:1px solid #5b4b9e;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#c9b8ff;">source_id</div>
+          <div style="flex:1;background:#2a2440;border:1px solid #5b4b9e;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#c9b8ff;">content_hash</div>
+          <div style="flex:1.1;background:#241f2e;border:1px dashed #5b4b9e;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#8f7bd6;">no payload stored</div>
+        </div>
+      </div>
+      <div style="flex:1;background:#282c35;border:1px solid #3a3f4a;border-left:3px solid #ec3013;border-radius:5px;padding:6px 10px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;color:#ffb3a3;letter-spacing:.04em;">LAYER 2 · CONTEXT — the asset a competitor can't clone</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:88px;background:#31353f;border:1px solid #454b57;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#dfe2e8;">interpretations</div>
+          <div style="flex:1;min-width:70px;background:#31353f;border:1px solid #454b57;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#dfe2e8;">links</div>
+          <div style="flex:1;min-width:80px;background:#31353f;border:1px solid #454b57;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#dfe2e8;">provenance</div>
+          <div style="flex:1;min-width:82px;background:#31353f;border:1px solid #454b57;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#dfe2e8;">confidence · decay</div>
+          <div style="flex:1;min-width:150px;background:#2a2440;border:1px solid #5b4b9e;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#c9b8ff;">context embeddings · halfvec · quantized</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- orchestrator + conversational entry -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.orch.enter }}" onMouseLeave="{{ hov.orch.leave }}" onFocus="{{ hov.orch.enter }}" onBlur="{{ hov.orch.leave }}" style="position:absolute;left:640px;top:648px;width:340px;height:80px;box-sizing:border-box;background:#fff7f0;border:2px solid #f3c79b;border-top:4px solid #f5842a;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 13px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:15px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Orchestrator</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">router_agent.py · owns the plan</div>
+      <div style="margin-top:auto;font-size:9.5px;color:#c26a1f;font-family:ui-monospace,Menlo,monospace;">dispatches specialists · fuses results</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.capi.enter }}" onMouseLeave="{{ hov.capi.leave }}" onFocus="{{ hov.capi.enter }}" onBlur="{{ hov.capi.leave }}" style="position:absolute;left:1120px;top:648px;width:320px;height:80px;box-sizing:border-box;background:#fff7f0;border:2px solid #f3c79b;border-top:4px solid #f5842a;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 13px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:15px;line-height:1.08;letter-spacing:-.01em;color:#201e1d;">Intelligence API</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">thin FastAPI route</div>
+      <div style="margin-top:auto;font-size:9.5px;color:#c26a1f;font-family:ui-monospace,Menlo,monospace;">the ONLY doorway from the frontend</div>
+    </div>
+
+    <!-- consumers · Pulse sub-agents -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.saAccount.enter }}" onMouseLeave="{{ hov.saAccount.leave }}" onFocus="{{ hov.saAccount.enter }}" onBlur="{{ hov.saAccount.leave }}" style="position:absolute;left:340px;top:750px;width:224px;height:84px;box-sizing:border-box;background:#eef4ff;border:2px solid #2f7bff;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.08;letter-spacing:-.01em;color:#1b3a8f;">Account Tracker</div>
+      <div style="font-size:9.5px;line-height:1.25;color:#4a6bb0;font-family:ui-monospace,Menlo,monospace;">signals · accounts</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:#dbe6fb;color:#1b3a8f;">Pulse specialist · asks via MCP</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.saMarket.enter }}" onMouseLeave="{{ hov.saMarket.leave }}" onFocus="{{ hov.saMarket.enter }}" onBlur="{{ hov.saMarket.leave }}" style="position:absolute;left:580px;top:750px;width:224px;height:84px;box-sizing:border-box;background:#eef4ff;border:2px solid #2f7bff;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.08;letter-spacing:-.01em;color:#1b3a8f;">Market Research</div>
+      <div style="font-size:9.5px;line-height:1.25;color:#4a6bb0;font-family:ui-monospace,Menlo,monospace;">country notes · versions</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:#dbe6fb;color:#1b3a8f;">Pulse specialist · asks via MCP</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.saNetwork.enter }}" onMouseLeave="{{ hov.saNetwork.leave }}" onFocus="{{ hov.saNetwork.enter }}" onBlur="{{ hov.saNetwork.leave }}" style="position:absolute;left:820px;top:750px;width:224px;height:84px;box-sizing:border-box;background:#eef4ff;border:2px solid #2f7bff;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.08;letter-spacing:-.01em;color:#1b3a8f;">Network Overview</div>
+      <div style="font-size:9.5px;line-height:1.25;color:#4a6bb0;font-family:ui-monospace,Menlo,monospace;">graph · corridors</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:#dbe6fb;color:#1b3a8f;">Pulse specialist · asks via MCP</div>
+    </div>
+
+    <!-- consumers · customer's own AI (external) -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.customerAI.enter }}" onMouseLeave="{{ hov.customerAI.leave }}" onFocus="{{ hov.customerAI.enter }}" onBlur="{{ hov.customerAI.leave }}" style="position:absolute;left:1110px;top:750px;width:350px;height:84px;box-sizing:border-box;background:#eef0fe;border:2px dashed #4f46e5;border-top:4px solid #4f46e5;border-radius:7px;box-shadow:0 3px 10px rgba(79,70,229,.14);padding:9px 13px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:13px;">🏢</span><div style="font-weight:700;font-size:14px;line-height:1.05;letter-spacing:-.01em;color:#2a2380;">Customer's own AI</div></div>
+      <div style="font-size:9.5px;line-height:1.25;color:#5b53c9;font-family:ui-monospace,Menlo,monospace;">Copilot · internal agents · chatbots</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:#e0defb;color:#4f46e5;border:1px solid #c4bff5;">external consumer · grounding-as-a-service</div>
+    </div>
+
+    <!-- ═══ Ontology MCP Server · interior ═══ -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.gateway.enter }}" onMouseLeave="{{ hov.gateway.leave }}" onFocus="{{ hov.gateway.enter }}" onBlur="{{ hov.gateway.leave }}" style="position:absolute;left:320px;top:900px;width:1100px;height:28px;box-sizing:border-box;background:#fff;border:2px solid #2f7bff;border-radius:6px;box-shadow:0 2px 5px rgba(32,30,29,.07);display:flex;align-items:center;gap:12px;padding:0 16px;overflow:hidden;cursor:pointer;z-index:2;">
+      <div style="font-weight:700;font-size:12.5px;color:#1b3a8f;letter-spacing:-.01em;">AgentCore Gateway</div>
+      <div style="font-size:9.5px;color:#3f6bd6;font-family:ui-monospace,Menlo,monospace;">authenticates every consumer · SSO/SAML · RBAC · per-consumer scope · nothing skips this checkpoint</div>
+    </div>
+
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.router.enter }}" onMouseLeave="{{ hov.router.leave }}" onFocus="{{ hov.router.enter }}" onBlur="{{ hov.router.leave }}" style="position:absolute;left:600px;top:948px;width:480px;height:58px;box-sizing:border-box;background:#fff2e6;border:2px solid #f2b071;border-top:4px solid #f5842a;border-radius:7px;box-shadow:0 2px 6px rgba(32,30,29,.09);padding:7px 14px;display:flex;align-items:center;gap:12px;overflow:hidden;cursor:pointer;z-index:2;">
+      <div style="flex:0 0 auto;">
+        <div style="font-weight:800;font-size:14px;letter-spacing:-.01em;color:#201e1d;line-height:1;">Router</div>
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;font-weight:700;color:#c26a1f;letter-spacing:.05em;margin-top:2px;">INTENT SPLIT</div>
+      </div>
+      <div style="flex:1;display:flex;gap:6px;">
+        <div style="flex:1;background:#fff;border:1px solid #2f7bff;border-radius:4px;padding:3px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#1b3a8f;line-height:1.2;">▸ exact fact →<br>Fact tool</div>
+        <div style="flex:1;background:#fff;border:1px solid #2f7bff;border-radius:4px;padding:3px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#1b3a8f;line-height:1.2;">▸ open question →<br>Context tool</div>
+      </div>
+    </div>
+
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.factTool.enter }}" onMouseLeave="{{ hov.factTool.leave }}" onFocus="{{ hov.factTool.enter }}" onBlur="{{ hov.factTool.leave }}" style="position:absolute;left:340px;top:1028px;width:410px;height:94px;box-sizing:border-box;background:#fff;border:2px solid #a021a0;border-radius:7px;box-shadow:0 4px 14px rgba(160,33,160,.18);padding:9px 13px;display:flex;flex-direction:column;gap:4px;overflow:hidden;cursor:pointer;z-index:2;">
+      <div style="display:flex;align-items:center;gap:7px;"><span style="font-size:13px;">⇅</span><div style="font-weight:800;font-size:15px;letter-spacing:-.01em;color:#201e1d;">Fact-Resolution Tool</div></div>
+      <div style="font-size:10px;line-height:1.3;color:#8a5a86;font-family:ui-monospace,Menlo,monospace;">deterministic · queries the source LIVE (SOQL / DAX)</div>
+      <div style="margin-top:auto;background:#fbeafb;border:1px solid #edb9ed;border-radius:4px;padding:4px 8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#a021a0;line-height:1.25;">LLM only phrases the result — <b>never invents a number</b></div>
+    </div>
+
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.contextTool.enter }}" onMouseLeave="{{ hov.contextTool.leave }}" onFocus="{{ hov.contextTool.enter }}" onBlur="{{ hov.contextTool.leave }}" style="position:absolute;left:780px;top:1028px;width:560px;height:94px;box-sizing:border-box;background:#eef4ff;border:2px solid #2f7bff;border-radius:7px;box-shadow:0 4px 14px rgba(47,123,255,.16);padding:9px 13px;display:flex;flex-direction:column;gap:5px;overflow:hidden;cursor:pointer;z-index:2;">
+      <div style="display:flex;align-items:baseline;gap:9px;">
+        <div style="font-weight:800;font-size:15px;letter-spacing:-.01em;color:#201e1d;">Context-Retrieval Tool</div>
+        <div style="font-size:9.5px;color:#3f6bd6;font-family:ui-monospace,Menlo,monospace;">semantic search over Layer 2</div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;gap:5px;">
+        <div style="flex:1;background:#fff;border:1px solid #cdd9f0;border-radius:4px;padding:4px 7px;font-family:ui-monospace,Menlo,monospace;font-size:8.5px;line-height:1.2;color:#1b3a8f;"><b>1 coarse</b><br>pgvector + trgm</div>
+        <span style="color:#9db4e6;font-size:12px;">→</span>
+        <div style="flex:1;background:#fff;border:1px solid #cdd9f0;border-radius:4px;padding:4px 7px;font-family:ui-monospace,Menlo,monospace;font-size:8.5px;line-height:1.2;color:#1b3a8f;"><b>2 rerank</b><br>cross-encoder</div>
+        <span style="color:#9db4e6;font-size:12px;">→</span>
+        <div style="flex:1;background:#fff;border:1px solid #cdd9f0;border-radius:4px;padding:4px 7px;font-family:ui-monospace,Menlo,monospace;font-size:8.5px;line-height:1.2;color:#1b3a8f;"><b>3 filter</b><br>entity · RLS</div>
+      </div>
+    </div>
+
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.verifier.enter }}" onMouseLeave="{{ hov.verifier.leave }}" onFocus="{{ hov.verifier.enter }}" onBlur="{{ hov.verifier.leave }}" style="position:absolute;left:380px;top:1158px;width:900px;height:44px;box-sizing:border-box;background:#fdecea;border:2px solid #ec3013;border-radius:7px;box-shadow:0 4px 14px rgba(236,48,19,.16);display:flex;align-items:center;gap:14px;padding:0 16px;overflow:hidden;cursor:pointer;z-index:2;">
+      <div style="display:flex;align-items:center;gap:7px;flex:0 0 auto;"><span style="font-size:14px;">✓</span><div style="font-weight:800;font-size:15px;letter-spacing:-.01em;color:#201e1d;">Verifier</div></div>
+      <div style="font-size:10.5px;color:#b91c0c;font-family:ui-monospace,Menlo,monospace;line-height:1.3;">every consumer's claim traced to a fresh citation within its window · else re-query then escalate · <b>never emits an unbacked answer</b></div>
+    </div>
+
+    <!-- company formatting -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.skills.enter }}" onMouseLeave="{{ hov.skills.leave }}" onFocus="{{ hov.skills.enter }}" onBlur="{{ hov.skills.leave }}" style="position:absolute;left:700px;top:1278px;width:300px;height:38px;box-sizing:border-box;background:#eafaf0;border:2px solid #25a85f;border-radius:6px;box-shadow:0 2px 5px rgba(32,30,29,.07);display:flex;align-items:center;gap:8px;padding:0 12px;overflow:hidden;cursor:pointer;">
+      <span style="font-size:13px;">✦</span>
+      <div style="font-weight:700;font-size:12px;color:#166534;line-height:1;">Company Formatting / Skills</div>
+      <div style="margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#3f8f5f;">Pulse egress</div>
+    </div>
+
+    <!-- ═══ BAND 3 · frontend ═══ -->
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ws.enter }}" onMouseLeave="{{ hov.ws.leave }}" onFocus="{{ hov.ws.enter }}" onBlur="{{ hov.ws.leave }}" style="position:absolute;left:560px;top:1372px;width:560px;height:56px;box-sizing:border-box;background:#e6f7f7;border:2px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 6px rgba(32,30,29,.1);display:flex;align-items:center;gap:14px;padding:0 18px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:800;font-size:16px;color:#0a6d6d;letter-spacing:-.01em;line-height:1;flex:0 0 auto;">Live<br>Broadcast</div>
+      <div style="font-size:10px;color:#0d8585;font-family:ui-monospace,Menlo,monospace;line-height:1.3;">WebSocket on PostgreSQL trigger + LISTEN/NOTIFY · receives formatted output first · fans to every authenticated session</div>
+    </div>
+
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftAccount.enter }}" onMouseLeave="{{ hov.ftAccount.leave }}" onFocus="{{ hov.ftAccount.enter }}" onBlur="{{ hov.ftAccount.leave }}" style="position:absolute;left:110px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">Account Tracker</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">per-account view</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftMarketplace.enter }}" onMouseLeave="{{ hov.ftMarketplace.leave }}" onFocus="{{ hov.ftMarketplace.enter }}" onBlur="{{ hov.ftMarketplace.leave }}" style="position:absolute;left:325px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">Agent Marketplace</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">browse agents</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftCalastone.enter }}" onMouseLeave="{{ hov.ftCalastone.leave }}" onFocus="{{ hov.ftCalastone.enter }}" onBlur="{{ hov.ftCalastone.leave }}" style="position:absolute;left:540px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #0fa3a3;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 8px rgba(15,163,163,.2);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">Calastone Intelligence</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">conversational</div>
+      <div style="margin-top:auto;align-self:flex-start;font-family:ui-monospace,Menlo,monospace;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:3px;background:#fde8cf;color:#c26a1f;">▲ also initiates requests</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftMovement.enter }}" onMouseLeave="{{ hov.ftMovement.leave }}" onFocus="{{ hov.ftMovement.enter }}" onBlur="{{ hov.ftMovement.leave }}" style="position:absolute;left:755px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">Market Movement</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">live globe</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftNetwork.enter }}" onMouseLeave="{{ hov.ftNetwork.leave }}" onFocus="{{ hov.ftNetwork.enter }}" onBlur="{{ hov.ftNetwork.leave }}" style="position:absolute;left:970px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">Network Overview</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">graph view</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftDemo.enter }}" onMouseLeave="{{ hov.ftDemo.leave }}" onFocus="{{ hov.ftDemo.enter }}" onBlur="{{ hov.ftDemo.leave }}" style="position:absolute;left:1185px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">Product Demo</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">guided walkthrough</div>
+    </div>
+    <div class="om-box" tabindex="0" onMouseEnter="{{ hov.ftUpload.enter }}" onMouseLeave="{{ hov.ftUpload.leave }}" onFocus="{{ hov.ftUpload.enter }}" onBlur="{{ hov.ftUpload.leave }}" style="position:absolute;left:1400px;top:1462px;width:195px;height:118px;box-sizing:border-box;background:#fff;border:2px solid #dcd7d1;border-top:4px solid #0fa3a3;border-radius:7px;box-shadow:0 2px 5px rgba(32,30,29,.07);padding:9px 11px;display:flex;flex-direction:column;gap:3px;overflow:hidden;cursor:pointer;">
+      <div style="font-weight:700;font-size:13.5px;line-height:1.05;letter-spacing:-.01em;color:#201e1d;">File Upload</div>
+      <div style="font-size:10px;line-height:1.25;color:#6f6a64;font-family:ui-monospace,Menlo,monospace;">drop zone</div>
+    </div>
+
+    {{ highlightLayer }}
+    {{ pulseLayer }}
+    <sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">{{ detailPanel }}</sc-if>
+  </div>
+
+  <div style="position:absolute;bottom:0;left:0;right:0;min-height:64px;background:rgba(243,242,242,.94);backdrop-filter:blur(6px);border-top:2px solid #201e1d;display:flex;align-items:center;gap:22px;padding:10px 22px;z-index:20;box-sizing:border-box;">
+    <div style="display:flex;flex-wrap:wrap;column-gap:16px;row-gap:8px;flex:1;align-content:center;">
+      <sc-for list="{{ legend }}" as="lg" hint-placeholder-count="9">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="{{ lg.swatch }}"></span>
+          <span style="font-size:10.5px;color:#3f3b37;font-family:ui-monospace,Menlo,monospace;letter-spacing:.01em;">{{ lg.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;flex:0 0 auto;border-right:2px solid #d9d4ce;padding-right:12px;margin-right:2px;">
+      <button class="om-btn" onClick="{{ onZoomOut }}" title="Zoom out" style="padding:8px 12px;">−</button>
+      <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:700;color:#6f6a64;min-width:46px;text-align:center;">{{ zoomLabel }}</span>
+      <button class="om-btn" onClick="{{ onZoomIn }}" title="Zoom in" style="padding:8px 12px;">+</button>
+      <button class="om-btn" onClick="{{ onFit }}" title="Fit whole diagram">Fit</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;">
+      <button class="om-btn" onClick="{{ onPrev }}" title="Previous stage">◀ Prev</button>
+      <button class="om-btn pri" onClick="{{ onPlay }}" style="min-width:104px;justify-content:center;">{{ playLabel }}</button>
+      <button class="om-btn" onClick="{{ onNext }}" title="Next stage">Next ▶</button>
+      <button onClick="{{ onAuto }}" style="{{ autoStyle }}" class="om-btn" title="Autoplay full loop">⟳ Autoplay</button>
+    </div>
+    <div style="flex:0 0 auto;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#6f6a64;min-width:150px;text-align:right;">
+      STAGE <span style="color:#ec3013;font-weight:700;">{{ currentStage }}</span> / 6
+      <div style="font-size:9.5px;color:#8a857f;">{{ stageCaption }}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;autoplaySeconds&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:3.8,&quot;min&quot;:1.5,&quot;max&quot;:8,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Playback&quot;},&quot;loopAutoplay&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Playback&quot;},&quot;showPacketLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Display&quot;}}">
+class Component extends DCLogic {
+  state = { stage: 1, playing: true, auto: false, expandedNodeId: null };
+
+  setup() {
+    this._init = true;
+    const C = { ingest:'#8f8a84', canon:'#7c4dff', route:'#f5842a', mcpOut:'#2f7bff', mcpRet:'#25a85f', push:'#0fa3a3', read:'#b7b1aa', live:'#c026d3', ext:'#4f46e5' };
+    this.C = C;
+    const B = {
+      perplexity:{x:110,y:76,w:250,h:104}, graph:{x:410,y:76,w:250,h:104}, salesforce:{x:760,y:76,w:250,h:104}, jira:{x:1060,y:76,w:250,h:104}, confluence:{x:1360,y:76,w:250,h:104},
+      sqs:{x:110,y:268,w:180,h:84}, proc:{x:310,y:268,w:250,h:84}, bedrock:{x:580,y:268,w:280,h:84},
+      syncWorkers:{x:880,y:268,w:600,h:84},
+      rds:{x:360,y:380,w:1000,h:214},
+      orch:{x:640,y:648,w:340,h:80}, capi:{x:1120,y:648,w:320,h:80},
+      saAccount:{x:340,y:750,w:224,h:84}, saMarket:{x:580,y:750,w:224,h:84}, saNetwork:{x:820,y:750,w:224,h:84},
+      customerAI:{x:1110,y:750,w:350,h:84},
+      mcp:{x:280,y:854,w:1180,h:410},
+      gateway:{x:320,y:900,w:1100,h:28},
+      router:{x:600,y:948,w:480,h:58},
+      factTool:{x:340,y:1028,w:410,h:94}, contextTool:{x:780,y:1028,w:560,h:94},
+      verifier:{x:380,y:1158,w:900,h:44},
+      skills:{x:700,y:1278,w:300,h:38},
+      ws:{x:560,y:1372,w:560,h:56},
+      ftAccount:{x:110,y:1462,w:195,h:118}, ftMarketplace:{x:325,y:1462,w:195,h:118}, ftCalastone:{x:540,y:1462,w:195,h:118}, ftMovement:{x:755,y:1462,w:195,h:118}, ftNetwork:{x:970,y:1462,w:195,h:118}, ftDemo:{x:1185,y:1462,w:195,h:118}, ftUpload:{x:1400,y:1462,w:195,h:118}
+    };
+    this.B = B;
+    const cx = id => B[id].x + B[id].w/2;
+    const ft = ['ftAccount','ftMarketplace','ftCalastone','ftMovement','ftNetwork','ftDemo','ftUpload'];
+    const F = [];
+    // Stage 1 — sources feed ingestion + sync workers, sync maintains pointers
+    F.push({s:1,pts:[[235,180],[235,244],[200,244],[200,268]],c:C.ingest,dash:1,label:'market scan \u2192 queue',dots:2});
+    F.push({s:1,pts:[[535,180],[535,252],[200,252],[200,268]],c:C.ingest,dash:1,label:'new mail',dots:2});
+    F.push({s:1,pts:[[885,180],[885,268]],c:C.canon,dash:1,label:'check for changes (2\u20133\u00d7/day)',dots:2});
+    F.push({s:1,pts:[[1185,180],[1185,268]],c:C.canon,dash:1,label:'',dots:1});
+    F.push({s:1,pts:[[1485,180],[1485,254],[1440,254],[1440,268]],c:C.canon,dash:1,label:'',dots:1});
+    F.push({s:1,pts:[[1180,352],[1180,366],[1050,366],[1050,380]],c:C.canon,dash:0,label:'maintain pointers + hash (no data)',dots:2});
+    // Stage 2 — mail ingestion pipeline
+    F.push({s:2,pts:[[290,310],[310,310]],c:C.ingest,dash:1,label:'dequeue',dots:2});
+    F.push({s:2,pts:[[560,310],[580,310]],c:C.ingest,dash:1,label:'validate + encrypt',dots:2});
+    F.push({s:2,pts:[[720,352],[720,380]],c:C.canon,dash:0,label:'classified \u2192 context object',dots:2});
+    // Stage 3 — ontology trigger fans out
+    F.push({s:3,pts:[[820,594],[820,648]],c:C.route,dash:0,label:'NOTIFY \u2192 orchestrator',dots:2});
+    F.push({s:3,pts:[[1360,500],[1560,500],[1560,1400],[1120,1400]],c:C.push,dash:0,label:'trigger + LISTEN/NOTIFY \u2192 live',dots:2});
+    // Stage 4 — conversational entry + dispatch to consumers
+    F.push({s:4,pts:[[637,1462],[637,1338],[1280,1338],[1280,728]],c:C.read,dash:1,label:'conversational request',dots:2});
+    F.push({s:4,pts:[[1120,688],[980,688]],c:C.route,dash:0,label:'request \u2192 orchestrator',dots:2});
+    F.push({s:4,pts:[[790,728],[452,742],[452,750]],c:C.route,dash:0,label:'dispatch to specialists',dots:1});
+    F.push({s:4,pts:[[810,728],[692,745],[692,750]],c:C.route,dash:0,label:'',dots:1});
+    F.push({s:4,pts:[[840,728],[932,745],[932,750]],c:C.route,dash:0,label:'',dots:1});
+    // Stage 5 — consumers enter the one governed doorway; router split; live-resolve; context read
+    F.push({s:5,pts:[[452,834],[452,900]],c:C.mcpOut,dash:0,label:'ask via MCP',dots:2});
+    F.push({s:5,pts:[[692,834],[692,900]],c:C.mcpOut,dash:0,label:'',dots:1});
+    F.push({s:5,pts:[[932,834],[932,900]],c:C.mcpOut,dash:0,label:'',dots:1});
+    F.push({s:5,pts:[[1285,834],[1285,900]],c:C.ext,dash:1,ext:1,label:'per-consumer scope \u00b7 customer\u2019s own permissions \u00b7 metered \u00b7 lineage-logged',dots:2});
+    F.push({s:5,pts:[[840,928],[840,948]],c:C.route,dash:0,label:'authenticated \u2192 route by intent',dots:1});
+    F.push({s:5,pts:[[720,1006],[545,1028]],c:C.mcpOut,dash:0,label:'exact-fact question',dots:2});
+    F.push({s:5,pts:[[960,1006],[1060,1028]],c:C.mcpOut,dash:0,label:'open / semantic question',dots:2});
+    // LIVE RESOLVE (the proof-point) — fact tool back out to each source
+    F.push({s:5,pts:[[380,1028],[70,1028],[70,200],[885,200],[885,180]],c:C.live,dash:1,live:1,label:'LIVE AT READ \u00b7 read-only \u00b7 cited \u00b7 never stored',dots:3});
+    F.push({s:5,pts:[[380,1028],[70,1028],[70,200],[1185,200],[1185,180]],c:C.live,dash:1,live:1,label:'',dots:2});
+    F.push({s:5,pts:[[380,1028],[70,1028],[70,200],[1485,200],[1485,180]],c:C.live,dash:1,live:1,label:'',dots:2});
+    // context tool reads Layer 2 and returns cited context
+    F.push({s:5,pts:[[1340,1050],[1560,1050],[1560,500],[1360,500]],c:C.mcpOut,dash:0,label:'read Layer 2 context',dots:2});
+    F.push({s:5,pts:[[1360,520],[1590,520],[1590,1075],[1340,1075]],c:C.mcpRet,dash:0,label:'cited context',dots:2});
+    // Stage 6 — verify, escalate/loop, format, broadcast, return to external consumer
+    F.push({s:6,pts:[[545,1122],[545,1158]],c:C.push,dash:0,label:'claims \u2192 verify',dots:1});
+    F.push({s:6,pts:[[1060,1122],[1060,1158]],c:C.push,dash:0,label:'',dots:1});
+    F.push({s:6,pts:[[400,1180],[320,1180],[320,1074],[340,1074]],c:C.live,dash:1,live:1,label:'unverified \u2192 re-query / escalate',dots:1});
+    F.push({s:6,pts:[[830,1202],[850,1278]],c:C.push,dash:0,label:'all claims cited \u2192 format',dots:2});
+    F.push({s:6,pts:[[850,1316],[840,1372]],c:C.push,dash:0,label:'formatted output',dots:2});
+    F.push({s:6,pts:[[1420,1180],[1530,1180],[1530,793],[1460,793]],c:C.ext,dash:1,ext:1,label:'grounded \u00b7 cited answer',dots:2});
+    ft.forEach((id,i)=>{ const x=cx(id); F.push({s:6,pts:[[840,1428],[x,1446],[x,1462]],c:C.push,dash:0,label:i===3?'live update':'',dots:1}); });
+    this.flows = F;
+    this.stageBoxes = {
+      1:['perplexity','graph','salesforce','jira','confluence','syncWorkers','rds'],
+      2:['sqs','proc','bedrock'], 3:['rds'],
+      4:['capi','orch','saAccount','saMarket','saNetwork','customerAI'],
+      5:['gateway','router','factTool','contextTool','saAccount','saMarket','saNetwork','customerAI'],
+      6:['verifier','skills','ws','customerAI'].concat(ft)
+    };
+    this.stageColor = {1:'#6b7280',2:'#8f8a84',3:'#7c4dff',4:'#f5842a',5:'#2f7bff',6:'#0fa3a3'};
+    this.stageMeta = [
+      {n:1,name:'Sources'},{n:2,name:'Ingestion'},{n:3,name:'Ontology'},
+      {n:4,name:'Orchestrate'},{n:5,name:'The Gate'},{n:6,name:'Live push'}
+    ];
+    this.captions = {1:'external systems \u00b7 never copied \u00b7 checked for changes',2:'queue \u2192 processor (schema-on-write) \u2192 AI classify',3:'two-layer ontology \u00b7 pointers + context \u00b7 trigger push',4:'conversational entry \u00b7 orchestrator dispatches consumers',5:'one governed MCP doorway \u00b7 router \u00b7 fact + context \u00b7 live-resolve',6:'verify every claim \u2192 format \u2192 websocket broadcast'};
+    this.S = this._fitScale(); this.tx = 0; this.ty = 64;
+    this.frame(this._bbox(this.stageBoxes[this.state.stage] || []), 70, 1.5, 0.62);
+
+    this.nodeDetails = {
+      perplexity:{accent:'#6b7280',title:'Perplexity',meta:'outside source \u00b7 market research',lines:['An outside AI search service that scans the web for market-research signals on our behalf.','It keeps our market view current without anyone manually trawling news, filings and reports all day.','Its findings are filed into the system\u2019s memory as research context, feeding the Market Research view further down the flow.']},
+      graph:{accent:'#6b7280',title:'Outlook Inbox Feed',meta:'outside source \u00b7 real-time email',lines:['A live tap on a shared Outlook inbox that pings us the instant a relevant email lands.','Because it pushes in real time, market-moving mail is captured the moment it arrives \u2014 no polling, no waiting, no delay.','It\u2019s the starting gun for the live Market Movement pipeline: each new mail is handed straight to the waiting line for processing.']},
+      salesforce:{accent:'#a021a0',title:'Salesforce',meta:'outside system \u00b7 customer records',lines:['The company\u2019s CRM \u2014 the official record of accounts, contacts and deals, and the truth for those values.','Store the meaning, not the data: we deliberately never copy it in. A background job checks it a few times a day and records only what changed and where it lives; the actual figures are fetched live from Salesforce the moment a question needs them.','That live read (the bold pink line) is the proof facts aren\u2019t hoarded here \u2014 so the numbers can never go stale.']},
+      jira:{accent:'#a021a0',title:'JIRA',meta:'outside system \u00b7 project tracking',lines:['The team\u2019s issue and project tracker \u2014 the record of what work is planned and underway.','As with Salesforce, we never copy its contents: we keep only the meaning and a pointer to where each item lives, and read the live detail on demand.','A background job checks it a few times a day for what\u2019s changed, so the system\u2019s memory stays current without ever holding a duplicate.']},
+      confluence:{accent:'#a021a0',title:'Confluence',meta:'outside system \u00b7 documents',lines:['The company\u2019s wiki \u2014 where internal docs and pages live.','We don\u2019t copy the pages in; we store what they mean and where to find them, then pull the real content live when a question needs it.','This feeds documents into the system\u2019s memory for research without creating a second, drifting copy of the wiki.']},
+      syncWorkers:{accent:'#7c3a9e',title:'Sync Workers',meta:'scheduled background jobs',lines:['Small automated jobs that quietly check Salesforce, JIRA and Confluence a few times a day for anything that has changed.','Store the meaning, not the data \u2014 they do NOT copy records across. They maintain only a pointer to each item (its key, its source id, and a fingerprint of what it looked like last time) plus our interpretation of it. Think of a library catalogue card: it tells you what a book is and which shelf it\u2019s on, without photocopying the book.','When that fingerprint changes, they flag the affected meaning for re-derivation \u2014 so the memory heals toward the truth instead of drifting between syncs.']},
+      sqs:{accent:'#8f8a84',title:'Message Queue',meta:'a waiting line for incoming messages',lines:['A queue \u2014 a waiting line that holds incoming messages until the system is ready for them.','When email arrives in bursts, the queue absorbs the surge so nothing is dropped and the next step can work at a steady, safe pace.','It sits between the inbox feed and the processor, handing over one message at a time (and re-delivering safely if a step fails).']},
+      proc:{accent:'#8f8a84',title:'Signal Processor',meta:'the intake desk',lines:['The intake desk: it checks each incoming message against a strict template, tidies it up and locks down anything sensitive before it goes further.','It rejects malformed data at the door \u2014 anything that fails is set aside for review rather than let through \u2014 so only clean, validated information ever enters the system. Repeat deliveries update the same record instead of creating duplicates.','Once a message passes, it hands the text to the AI classifier to work out what it means.']},
+      bedrock:{accent:'#5b4b9e',title:'AI Classifier',meta:'Claude, running privately',lines:['An AI model (Claude) that reads each raw, messy message and turns it into tidy, structured meaning.','Raw emails and reports come in every shape; without this step the system couldn\u2019t reliably file or search them. It gives everything a consistent form.','It runs entirely inside our private network \u2014 nothing is sent out to the public internet \u2014 and its structured output becomes a context object in the system\u2019s memory.']},
+      rds:{accent:'#ec3013',title:'The Ontology (System Memory)',meta:'source of truth for meaning',lines:['The system\u2019s long-term memory. Crucially, it stores meaning \u2014 not copies of company data.','It is built in two layers. Layer 1 holds only pointers: a key, where each fact lives, and a fingerprint of what it last looked like \u2014 never the record itself. Layer 2 holds the valuable part: our interpretations, the links between things, where each came from, and how confident/fresh it is. Like a library catalogue, it tells you what something means and where to find it without holding the book.','Because the raw data isn\u2019t hoarded here, there\u2019s nothing to go stale or leak \u2014 and the interpretation layer is the asset a competitor can\u2019t clone. The instant new meaning lands, it signals the live screens to update.']},
+      orch:{accent:'#f5842a',title:'Orchestrator',meta:'the traffic controller',lines:['The traffic controller. It reads a question, works out a plan, and calls on the right Pulse specialists.','It hands work out to the specialists and then fuses their pieces into one coherent answer \u2014 and never reaches into the database itself.','Each specialist then gets its grounded facts through the one governed MCP doorway below.']},
+      capi:{accent:'#f5842a',title:'Intelligence API',meta:'the single front door',lines:['The single front door through which every request from the Pulse screens enters the engine.','One controlled entrance means every request is checked for a valid, logged-in user before anything else happens \u2014 nothing sneaks in a side door.','It passes authenticated requests through to the orchestrator, and nothing reaches the engine any other way.']},
+      saAccount:{accent:'#2f7bff',title:'Account Tracker (Pulse specialist)',meta:'a consumer of the MCP server',lines:['One of Pulse\u2019s own specialists \u2014 it answers questions about specific accounts (briefings and signal summaries).','Having a dedicated expert per topic gives sharper answers than one generalist trying to do everything.','It never reads data directly: it asks the governed MCP doorway below, sees only what the user is permitted to, and gets back grounded, cited answers.']},
+      saMarket:{accent:'#2f7bff',title:'Market Research (Pulse specialist)',meta:'a consumer of the MCP server',lines:['A Pulse specialist that writes and updates country and market research notes.','A focused expert produces better, more consistent research than a catch-all assistant.','Like every consumer, it asks through the one governed doorway \u2014 so its answers are grounded and verified before it ever sees them.']},
+      saNetwork:{accent:'#2f7bff',title:'Network Overview (Pulse specialist)',meta:'a consumer of the MCP server',lines:['A Pulse specialist that answers questions about the global order-flow and settlement network, powering the chat on the globe view.','It concentrates all the network know-how in one place so the globe can be explored conversationally.','It reads only through the governed MCP doorway \u2014 permission-checked, cited, and verified \u2014 never straight from a database.']},
+      customerAI:{accent:'#4f46e5',title:'Customer\u2019s own AI',meta:'external consumer \u00b7 grounding-as-a-service',lines:['Every company we deploy into already runs its own AI \u2014 Microsoft Copilot, internal agents, chatbots \u2014 quite separately from Pulse.','The Ontology MCP Server offers those systems the same governed doorway Pulse itself uses: they ask, and get back grounded, cited, permission-scoped answers. This is grounding-as-a-service \u2014 the ontology makes the customer\u2019s existing AI more accurate, with Pulse nowhere in the loop.','Each consumer gets its own scope mapped to the customer\u2019s own permissions, metered and lineage-logged \u2014 so it is safe to open the same doorway to outside agents.']},
+      mcp:{accent:'#2f7bff',title:'Ontology MCP Server',meta:'the governed product boundary',lines:['The single doorway to the ontology. Every read \u2014 whoever is asking \u2014 passes through here; nothing reaches the memory or the sources around it.','Governed, versioned and verified: the Gateway authenticates and scopes each consumer, the Router splits fact vs. semantic questions, the two tools resolve them, and the Verifier guarantees every claim is grounded and cited before it leaves.','Because it is one clean, governed boundary, the ontology is reusable beyond Pulse: any authorised consumer \u2014 Pulse\u2019s own agents or the customer\u2019s \u2014 gets never-guessed answers by default. That is what makes it a sellable product, not just an internal component.']},
+      gateway:{accent:'#2f7bff',title:'AgentCore Gateway',meta:'the permissions checkpoint',lines:['The checkpoint at the mouth of the MCP doorway that every consumer\u2019s request must pass.','It authenticates who is asking and enforces what they may see \u2014 single sign-on, role-based permissions, and a per-consumer scope for outside AI \u2014 so an answer only ever contains data that consumer is cleared for.','Everything behind it (router, tools, verifier) is reachable only through this checkpoint: there is no side entrance to the memory or the sources.']},
+      router:{accent:'#f5842a',title:'Router \u2014 Intent Split',meta:'fact lookup vs. semantic question',lines:['Never guess a fact. The Router\u2019s single job is to read a question and decide what kind it is.','If you\u2019re asking for an exact figure (\u201cwhat\u2019s the AUM on this account?\u201d) it sends the request to the Fact-Resolution Tool, which fetches the real number live. If you\u2019re asking something open or interpretive, it sends it to the Context-Retrieval Tool instead.','This split is what keeps hard facts away from the guessing-prone generative path \u2014 numbers are fetched, never made up.']},
+      factTool:{accent:'#a021a0',title:'Fact-Resolution Tool',meta:'exact numbers, fetched live',gate:1,lines:['Never guess a fact. This tool handles exact-figure questions by querying the source system live and reading the real, current value \u2014 it never relies on a stored copy.','It runs a precise, deterministic query (no AI improvisation); the language model is only allowed to phrase the result in words. That is what makes fabricated numbers impossible.','The bold pink line up to Salesforce / JIRA / Confluence is the visible proof of the whole thesis: facts are resolved at the moment they\u2019re asked, then passed on cited and checkable \u2014 never stored.']},
+      contextTool:{accent:'#2f7bff',title:'Context-Retrieval Tool',meta:'the answer to open questions',gate:1,lines:['Handles open, interpretive questions by searching the meaning stored in Layer 2 of the memory.','A generalist AI searching everything would surface a lot of noise; this narrows to the genuinely relevant, permitted context first, so the answer is grounded rather than guessed.','It works in three steps before answering:'],stages:[['1 \u00b7 Cast a wide net','Gathers everything in the memory that might be relevant to the question'],['2 \u00b7 Rank the best','A sharper second pass reorders the results so the strongest matches rise to the top'],['3 \u00b7 Apply permissions','Removes anything this particular consumer isn\u2019t cleared to see, then returns cited context']]},
+      verifier:{accent:'#ec3013',title:'Verifier',meta:'inside the boundary \u00b7 the truth check',lines:['Never guess a fact. This is a strict checkpoint the AI cannot edit or talk its way past \u2014 and it sits inside the MCP boundary, so every consumer is covered by it, not just Pulse.','Before any answer is allowed out, it checks that every factual claim traces back to a real, freshly-resolved source within its freshness window. If a claim can\u2019t be backed, it doesn\u2019t patch over it \u2014 it sends the request back to be re-queried, and escalates if it still can\u2019t be confirmed.','Because it lives in the doorway, grounded, never-guessed answers are the default for anyone who uses the ontology. This is the runtime discipline that makes the whole thing trustworthy \u2014 and sellable.']},
+      skills:{accent:'#25a85f',title:'House Formatting',meta:'Pulse\u2019s final polish',lines:['The final polish for Pulse\u2019s own answers: it puts the verified result into Calastone\u2019s house voice and format.','So every answer reads consistently and on-brand, no matter which specialist produced it.','It\u2019s the last stop before a Pulse answer leaves the secure zone and is sent to the user\u2019s screen. (External consumers take the verified answer straight from the doorway in their own format.)']},
+      ws:{accent:'#0fa3a3',title:'Live Broadcast',meta:'real-time updates to every screen',lines:['A live loudspeaker that pushes updates onto everyone\u2019s screen the instant something changes.','Users see new signals in real time instead of having to refresh or wait for the next check.','The moment the system\u2019s memory records something new it\u2019s told immediately, then relays the finished update to every logged-in session at once \u2014 keeping everyone in sync.']},
+      ftAccount:{accent:'#0fa3a3',title:'Account Tracker',meta:'screen \u00b7 per-account view',lines:['The screen where a salesperson sees everything on their own accounts \u2014 signals, contacts, meetings and briefings.','One tidy place per account, and permissions make sure each person sees only their own.','It\u2019s fed by the live broadcast, so a new signal appears here the moment it\u2019s processed.']},
+      ftMarketplace:{accent:'#0fa3a3',title:'Agent Marketplace',meta:'screen \u00b7 manage the agents',lines:['A catalogue for switching the various AI specialists on and configuring them.','It lets the team manage what the system can do without needing engineering involvement.','A management layer sitting over the orchestration engine.']},
+      ftCalastone:{accent:'#0fa3a3',title:'Calastone Intelligence',meta:'screen \u00b7 ask in plain language',lines:['The conversational screen \u2014 ask a question in plain language and get an answer back.','It\u2019s the simplest way in for anyone, with no dashboards to learn.','It sends questions up through the front door and shows answers that were fetched, verified and cited before they reached the screen.']},
+      ftMovement:{accent:'#0fa3a3',title:'Market Movement',meta:'screen \u00b7 live globe',lines:['A live globe that lights up as market signals arrive.','It makes real-time activity instantly visible at a glance, rather than buried in a list.','It renders the classified signals pushed over the live broadcast \u2014 the flagship real-time view.']},
+      ftNetwork:{accent:'#0fa3a3',title:'Network Overview',meta:'screen \u00b7 globe graph',lines:['A 3D globe showing order-flow and settlement corridors between markets.','It turns complex network relationships into something you can actually see and explore.','It reads the same shared memory as Market Research, presented here as a graph.']},
+      ftDemo:{accent:'#0fa3a3',title:'Product Demo',meta:'screen \u00b7 guided walkthrough',lines:['A guided, click-through walkthrough of the product.','For telling the story in a meeting without needing live data or the AI switched on.','A standalone screen with no backend dependency.']},
+      ftUpload:{accent:'#0fa3a3',title:'File Upload',meta:'screen \u00b7 drop zone',lines:['A drop zone where users can upload their own documents into the system.','It lets people add their own material for the research specialist to work with.','Files are processed inside the private network and never leave it.']}
+    };
+  }
+
+  componentDidMount() {
+    if (!this._init) this.setup();
+    this.t = 0; this.sinceStage = 0; this.last = performance.now();
+    if (this.S == null) { this.S = this._fitScale(); this.tx = 0; this.ty = 64; }
+    this._onResize = () => { this.frame(this._bbox(this.stageBoxes[this.state.stage] || []), 70, 1.5, 0.62); this._apply(); };
+    this._onWheel = (e) => {
+      e.preventDefault();
+      const f = Math.exp(-e.deltaY * 0.0015);
+      const minS = this._fitScale(), maxS = 2.4;
+      const nS = Math.max(minS, Math.min(maxS, this.S * f));
+      const wx = (e.clientX - this.tx) / this.S, wy = (e.clientY - this.ty) / this.S;
+      this.S = nS; this.tx = e.clientX - wx * nS; this.ty = e.clientY - wy * nS; this._apply();
+    };
+    this._onDown = (e) => { if (e.button !== 0) return; this._drag = { x: e.clientX, y: e.clientY }; if (this.rootEl) this.rootEl.style.cursor = 'grabbing'; };
+    this._onMove = (e) => { if (!this._drag) return; this.tx += e.clientX - this._drag.x; this.ty += e.clientY - this._drag.y; this._drag = { x: e.clientX, y: e.clientY }; this._apply(); };
+    this._onUp = () => { this._drag = null; if (this.rootEl) this.rootEl.style.cursor = 'grab'; };
+    window.addEventListener('wheel', this._onWheel, { passive: false });
+    window.addEventListener('mousedown', this._onDown);
+    window.addEventListener('mousemove', this._onMove);
+    window.addEventListener('mouseup', this._onUp);
+    window.addEventListener('resize', this._onResize);
+    this.frame(this._bbox(this.stageBoxes[this.state.stage] || []), 70, 1.5, 0.62);
+    this._apply();
+    this._startLoop();
+  }
+  _startLoop() {
+    if (this._looping) return;
+    this._looping = true;
+    this.last = performance.now();
+    const loop = (now) => {
+      try {
+        const dt = Math.min(64, now - this.last); this.last = now;
+        if (this.state.playing) {
+          this.t = (this.t || 0) + dt;
+          if (this.state.auto) {
+            this.sinceStage = (this.sinceStage || 0) + dt;
+            const dur = (this.props.autoplaySeconds ?? 3.8) * 1000;
+            if (this.sinceStage >= dur) { this.sinceStage = 0; this.advance(); }
+          }
+        }
+        this._apply();
+        this.forceUpdate();
+      } catch (err) { /* keep the loop alive across a bad frame */ }
+      this._raf = requestAnimationFrame(loop);
+    };
+    this._raf = requestAnimationFrame(loop);
+  }
+  _apply() { if (this.stageEl) this.stageEl.style.transform = `translate(${this.tx || 0}px,${this.ty || 0}px) scale(${this.S || this._fitScale()})`; }
+  componentWillUnmount() {
+    cancelAnimationFrame(this._raf); this._looping = false;
+    window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('wheel', this._onWheel);
+    window.removeEventListener('mousedown', this._onDown);
+    window.removeEventListener('mousemove', this._onMove);
+    window.removeEventListener('mouseup', this._onUp);
+  }
+
+  _fitScale() { const vw = window.innerWidth, vh = window.innerHeight; return Math.min((vw - 28) / 1680, (vh - 200) / 1610); }
+  _bbox(ids) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    (ids || []).forEach(id => { const b = this.B[id]; if (!b) return; x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.w); y1 = Math.max(y1, b.y + b.h); });
+    if (x1 < x0) return { x: 0, y: 0, w: 1680, h: 1610 };
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  frame(bb, pad, maxS, floorS) {
+    pad = pad == null ? 60 : pad; maxS = maxS == null ? 2 : maxS;
+    const vw = window.innerWidth, vh = window.innerHeight, topBar = 64, botBar = 118;
+    const availW = vw - 40, availH = vh - topBar - botBar;
+    let S = Math.min(availW / (bb.w + pad * 2), availH / (bb.h + pad * 2));
+    S = Math.max(this._fitScale(), Math.min(S, maxS));
+    if (floorS) S = Math.max(S, Math.min(floorS, maxS));
+    this.S = S;
+    const cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2;
+    this.tx = vw / 2 - cx * S;
+    this.ty = topBar + availH / 2 - cy * S;
+  }
+  _zoomBy(f) {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const cxp = vw / 2, cyp = 64 + (vh - 182) / 2;
+    const minS = this._fitScale(), maxS = 2.4;
+    const nS = Math.max(minS, Math.min(maxS, this.S * f));
+    const wx = (cxp - this.tx) / this.S, wy = (cyp - this.ty) / this.S;
+    this.S = nS; this.tx = cxp - wx * nS; this.ty = cyp - wy * nS; this._apply();
+  }
+
+  advance() {
+    const loop = this.props.loopAutoplay !== false;
+    let n = this.state.stage + 1;
+    if (n > 6) { if (loop) n = 1; else { this.setState({ stage: 6, auto: false }); return; } }
+    this.setState({ stage: n });
+    this.frame(this._bbox(this.stageBoxes[n] || []), 70, 1.5, 0.62); this._apply();
+  }
+  go(n) { n = Math.max(1, Math.min(6, n)); this.sinceStage = 0; this.setState({ stage: n, auto: false }); this.frame(this._bbox(this.stageBoxes[n] || []), 70, 1.5, 0.62); this._apply(); }
+
+  ptAt(pts, p) {
+    p = Math.max(0, Math.min(1, p));
+    const segs = []; let tot = 0;
+    for (let i = 0; i < pts.length - 1; i++) { const l = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]); segs.push(l); tot += l; }
+    let d = p * tot;
+    for (let i = 0; i < segs.length; i++) {
+      if (d <= segs[i] || i === segs.length - 1) { const f = segs[i] ? d / segs[i] : 0; return { x: pts[i][0] + (pts[i+1][0]-pts[i][0])*f, y: pts[i][1] + (pts[i+1][1]-pts[i][1])*f }; }
+      d -= segs[i];
+    }
+    return { x: pts[pts.length-1][0], y: pts[pts.length-1][1] };
+  }
+  pathD(pts) { return 'M ' + pts.map(p => p[0] + ' ' + p[1]).join(' L '); }
+
+  buildDetail() {
+    const h = React.createElement;
+    const id = this.state.expandedNodeId;
+    if (!id) return null;
+    const d = this.nodeDetails[id]; const b = this.B[id];
+    if (!d || !b) return null;
+    const k = Math.max(0, Math.min(1, (performance.now() - (this._detailT || 0)) / 130));
+    const PW = d.gate ? 560 : 400;
+    let left = b.x + b.w/2 - PW/2;
+    left = Math.max(16, Math.min(left, 1680 - PW - 16));
+    const below = b.y + b.h + 12;
+    const placeAbove = b.y > 900 || b.h > 300;
+    const top = placeAbove ? Math.max(16, b.y - 12) : below;
+    const originY = placeAbove ? '100%' : '0%';
+    const mono = 'ui-monospace,Menlo,monospace';
+
+    const head = h('div', { key:'h', style:{ display:'flex', flexDirection:'column', gap:'3px', borderBottom:'1px solid #eceae7', paddingBottom:'8px', marginBottom:'8px' } },
+      h('div', { style:{ fontWeight:800, fontSize:'15px', letterSpacing:'-.01em', color:'#201e1d', lineHeight:1.1 } }, d.title),
+      h('div', { style:{ fontFamily:mono, fontSize:'10px', color:'#8a857f', letterSpacing:'.02em' } }, d.meta));
+
+    const body = [head];
+    d.lines.forEach((ln, i) => body.push(h('div', { key:'l'+i, style:{ display:'flex', gap:'7px', fontSize:'12.5px', lineHeight:1.5, color:'#3f3b37', marginBottom:'6px' } },
+      h('span', { style:{ color:d.accent, fontWeight:700, flex:'0 0 auto' } }, '\u2013'),
+      h('span', {}, ln))));
+
+    if (d.stages) {
+      body.push(h('div', { key:'sg', style:{ display:'grid', gridTemplateColumns:'1fr', gap:'6px', marginTop:'4px' } },
+        d.stages.map((s, i) => h('div', { key:i, style:{ background:'#f6f4f0', border:'1px solid #e4e0da', borderLeft:'3px solid '+d.accent, borderRadius:'4px', padding:'7px 9px' } },
+          h('div', { style:{ fontFamily:mono, fontSize:'10.5px', fontWeight:700, color:'#1b3a8f', marginBottom:'2px' } }, s[0]),
+          h('div', { style:{ fontSize:'11px', lineHeight:1.35, color:'#3f3b37' } }, s[1])))));
+    }
+
+    return h('div', { style:{ position:'absolute', left:left+'px', top:top+'px', width:PW+'px', zIndex:60,
+      transform:`scale(${0.96 + 0.04*k})`, transformOrigin:'50% '+originY, opacity:k, pointerEvents:'none',
+      background:'#fff', border:'2px solid #201e1d', borderTop:'4px solid '+d.accent, borderRadius:'8px',
+      boxShadow:'0 12px 34px rgba(32,30,29,.26)', padding:'12px 15px', fontFamily:"'Archivo',sans-serif" } }, body);
+  }
+
+  renderVals() {
+    if (!this._init) this.setup();
+    const h = React.createElement;
+    const stage = this.state.stage, t = this.t || 0;
+    const showLabels = this.props.showPacketLabels !== false;
+    const PERIOD = 2000;
+
+    const paths = [];
+    this.flows.forEach((f, i) => {
+      const active = f.s === stage;
+      if (active && f.live) {
+        paths.push(h('path', { key:'h'+i, d:this.pathD(f.pts), fill:'none', stroke:f.c, strokeWidth:9, opacity:0.16, strokeLinecap:'round', strokeLinejoin:'round' }));
+      }
+      const sw = active ? (f.live ? 3.6 : (f.ext ? 2 : 2.4)) : (f.live ? 1.8 : 1.3);
+      paths.push(h('path', { key:'b'+i, d:this.pathD(f.pts), fill:'none',
+        stroke: active ? f.c : '#cfcac4', strokeWidth: sw,
+        strokeDasharray: (f.dash || f.live || f.ext) ? (f.live ? '9 6' : (f.ext ? '4 4' : '6 5')) : 'none', strokeLinecap:'round', strokeLinejoin:'round',
+        opacity: active ? (f.live ? 1 : (f.ext ? 0.92 : 0.95)) : (f.live ? 0.42 : 0.3) }));
+      if (active) {
+        const e = f.pts[f.pts.length-1], p = f.pts[f.pts.length-2];
+        const ang = Math.atan2(e[1]-p[1], e[0]-p[0]); const s = f.live ? 10 : 6.5;
+        const a1 = [e[0]-s*Math.cos(ang-0.5), e[1]-s*Math.sin(ang-0.5)];
+        const a2 = [e[0]-s*Math.cos(ang+0.5), e[1]-s*Math.sin(ang+0.5)];
+        paths.push(h('polygon', { key:'a'+i, points:`${e[0]},${e[1]} ${a1[0]},${a1[1]} ${a2[0]},${a2[1]}`, fill:f.c }));
+      }
+    });
+    const svgLayer = h('svg', { viewBox:'0 0 1680 1610', width:1680, height:1610,
+      style:{ position:'absolute', left:0, top:0, overflow:'visible', pointerEvents:'none', zIndex:1 } }, paths);
+
+    const glow = 0.55 + 0.45 * Math.abs(Math.sin(t/520));
+    const col = this.stageColor[stage];
+    const rings = (this.stageBoxes[stage] || []).map(id => {
+      const b = this.B[id];
+      return h('div', { key:'r'+id, style:{ position:'absolute', left:b.x-3+'px', top:b.y-3+'px', width:b.w+6+'px', height:b.h+6+'px',
+        border:'2.5px solid '+col, borderRadius:'9px', pointerEvents:'none',
+        boxShadow:`0 0 ${10+14*glow}px ${1+3*glow}px ${col}`, opacity:0.35+0.6*glow } });
+    });
+    const clients = [];
+    if (stage === 6) {
+      const cg = 0.3 + 0.7 * Math.abs(Math.sin(t/300));
+      ['ftAccount','ftMarketplace','ftCalastone','ftMovement','ftNetwork','ftDemo','ftUpload'].forEach(id => {
+        const b = this.B[id];
+        for (let kk = 0; kk < 4; kk++) {
+          clients.push(h('div', { key:'c'+id+kk, style:{ position:'absolute', left:(b.x+12+kk*15)+'px', top:(b.y+b.h-18)+'px',
+            width:'9px', height:'9px', borderRadius:'50%', background:'#0fa3a3', opacity:cg, boxShadow:`0 0 6px ${1.5*cg+0.5}px #0fa3a3` } }));
+        }
+      });
+    }
+    const highlightLayer = h('div', { style:{ position:'absolute', inset:0, pointerEvents:'none', zIndex:3 } }, rings.concat(clients));
+
+    const items = [];
+    this.flows.filter(f => f.s === stage).forEach((f, fi) => {
+      const n = f.dots || 1;
+      for (let d = 0; d < n; d++) {
+        const prog = (((t/PERIOD) + d/n) % 1);
+        const pos = this.ptAt(f.pts, prog);
+        const sz = f.live ? 15 : 11;
+        items.push(h('div', { key:'d'+fi+'_'+d, style:{ position:'absolute', left:pos.x+'px', top:pos.y+'px', width:sz+'px', height:sz+'px',
+          marginLeft:(-sz/2)+'px', marginTop:(-sz/2)+'px', borderRadius:'50%', background:f.c, boxShadow:`0 0 ${f.live?14:9}px ${f.live?3:1}px ${f.c}`, border:(f.live?2:1.5)+'px solid #fff' } }));
+        if (d === 0 && f.label && showLabels) {
+          items.push(h('div', { key:'l'+fi, style:{ position:'absolute', left:pos.x+'px', top:(pos.y-9)+'px', transform:'translate(-50%,-100%)',
+            background: f.live ? '#5b0a5b' : '#201e1d', color:'#fff', fontFamily:'ui-monospace,Menlo,monospace', fontSize:(f.live?11:10)+'px', fontWeight: f.live?700:600, letterSpacing:'.02em',
+            padding: f.live?'4px 9px':'3px 7px', borderRadius:'4px', whiteSpace:'nowrap', boxShadow:'0 2px 6px rgba(0,0,0,.25)', borderBottom:(f.live?3:2)+'px solid '+f.c } }, f.label));
+        }
+      }
+    });
+    const pulseLayer = h('div', { style:{ position:'absolute', inset:0, pointerEvents:'none', zIndex:4 } }, items);
+
+    const stages = this.stageMeta.map(m => {
+      const on = m.n === stage;
+      return { n:m.n, name:m.name, onClick:()=>this.go(m.n),
+        style:`display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid ${on?this.stageColor[m.n]:'#d9d4ce'};background:${on?'#fff':'transparent'};border-radius:4px;padding:4px 9px 4px 5px;color:${on?'#201e1d':'#8a857f'};transition:all .12s;box-shadow:${on?'0 2px 7px rgba(0,0,0,.1)':'none'};`,
+        numStyle:`display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-weight:800;font-size:11px;color:#fff;background:${on?this.stageColor[m.n]:'#c3beb8'};` };
+    });
+
+    const legend = [
+      ['raw ingestion', this.C.ingest, 1, 3],
+      ['sync: pointers + hash', this.C.canon, 0, 3],
+      ['orchestrator / router', this.C.route, 0, 3],
+      ['tool query (via gate)', this.C.mcpOut, 0, 3],
+      ['grounded cited result', this.C.mcpRet, 0, 3],
+      ['real-time push', this.C.push, 0, 3],
+      ['conversational request', this.C.read, 1, 3],
+      ['live fact resolve (read-time)', this.C.live, 1, 5],
+      ['external consumer \u2014 grounding-as-a-service', this.C.ext, 1, 4]
+    ].map(([label, c, dash, thick]) => ({ label, swatch:`display:inline-block;width:22px;height:0;border-top:${thick}px ${dash?'dashed':'solid'} ${c};border-radius:2px;` }));
+
+    const mkHov = id => ({ enter:()=>{ if(this.state.expandedNodeId!==id){ this._detailT=performance.now(); this.setState({expandedNodeId:id}); } },
+      leave:()=>{ if(this.state.expandedNodeId===id) this.setState({expandedNodeId:null}); } });
+    const hov = {};
+    Object.keys(this.B).forEach(id => { hov[id] = mkHov(id); });
+
+    return {
+      svgLayer, highlightLayer, pulseLayer, stages, legend, hov,
+      hasDetail: !!this.state.expandedNodeId, detailPanel: this.buildDetail(),
+      currentStage: stage, stageCaption: this.captions[stage],
+      playLabel: this.state.playing ? '\u275a\u275a Pause' : '\u25b6 Play',
+      autoStyle: this.state.auto ? 'background:#201e1d;color:#fff;' : '',
+      stageRef: el => { this.stageEl = el; if (el) { this._apply(); this._startLoop && this._startLoop(); } },
+      rootRef: el => { this.rootEl = el; if (el) el.style.cursor = 'grab'; },
+      zoomLabel: Math.round((this.S || this._fitScale()) * 100) + '%',
+      onZoomIn: () => this._zoomBy(1.3),
+      onZoomOut: () => this._zoomBy(1 / 1.3),
+      onFit: () => { this.frame({ x: 0, y: 0, w: 1680, h: 1610 }, 24, 2); this._apply(); },
+      onPrev: () => this.go(this.state.stage - 1),
+      onNext: () => this.go(this.state.stage + 1),
+      onPlay: () => this.setState(s => ({ playing: !s.playing })),
+      onAuto: () => { this.sinceStage = 0; this.setState(s => ({ auto: !s.auto, playing: true })); }
+    };
+  }
+}
+</script>
+<script src="../../favicon-pulse.js"></script>
+</body>
+</html>
