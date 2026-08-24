@@ -655,16 +655,22 @@ async function loadAtlasFromDb(){
     const res = await fetch('/api/atlas', { headers:{ 'Accept':'application/json' } });
     const ctype = (res.headers.get('content-type')||'').toLowerCase();
     if(!res.ok || !ctype.includes('json')){
+      console.error('Atlas load failed — showing cached data. HTTP '+res.status+' ('+(ctype||'no content-type')+')');
       DB_OK=false;
       return false;
     }
     const atlas = await res.json();
-    if(atlas && atlas.error){ DB_OK=false; return false; }
+    if(atlas && atlas.error){
+      console.error('Atlas load failed — showing cached data.', atlas.error.message||atlas.error);
+      DB_OK=false;
+      return false;
+    }
     applyAtlasPayload(atlas);
     cacheLocally();
     DB_OK=true;
     return true;
-  }catch(_){
+  }catch(err){
+    console.error('Atlas load failed — showing cached data.', err);
     DB_OK=false;
     return false;
   }
