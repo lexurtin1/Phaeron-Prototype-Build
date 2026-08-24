@@ -52,6 +52,47 @@
     display: block;
   }
 
+  /* Header nav */
+  .ph-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .ph-nav-link {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--ink-200);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink-600);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition-base);
+  }
+  .ph-nav-link:hover {
+    border-color: var(--teal-500);
+    color: var(--teal-600);
+    box-shadow: var(--focus-ring);
+  }
+  .ph-nav-link:focus {
+    outline: none;
+    border-color: var(--accent-500);
+    box-shadow: var(--focus-ring);
+  }
+  @media (max-width: 900px) {
+    .ph-nav-link { font-size: 11px; padding: 0 10px; }
+  }
+  @media (max-width: 720px) {
+    .ph-nav { display: none; }
+  }
+
   /* Main content */
   main { width: 100%; max-width: 1264px; margin: 0 auto; padding: 38px 28px 80px; }
 
@@ -123,6 +164,9 @@
     <span class="pulse-label">Pulse</span>
     <canvas id="ph-ecg" width="52" height="13"></canvas>
   </div>
+  <nav class="ph-nav" aria-label="Pulse navigation">
+    <a href="./tools/system-architecture/index.html" class="ph-nav-link">System Architecture</a>
+  </nav>
   <div class="ph-search">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
       <circle cx="11" cy="11" r="7" stroke="#9aa6b0" stroke-width="2"></circle>
