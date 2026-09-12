@@ -20,16 +20,16 @@
 
 export const PALETTE = {
   /* the brand ramp, navy → dark crimson */
-  brandBlue: '#1B3A6B',
-  brandTeal: '#2F5285',
-  brandGreen: '#BE123C',
+  brandBlue: '#0C1A2E',
+  brandTeal: '#1B3A6B',
+  brandGreen: '#2F5285',
   brandLime: '#9F1239',
   brandDeep: '#132743',
 
-  teal: '#9F1239',
-  tealBright: '#BE123C',
+  teal: '#1B3A6B',
+  tealBright: '#2F5285',
   tealSoft: 'rgba(159,18,57,0.14)',
-  green: '#9F1239',
+  green: '#2F5285',
   blue: '#1B3A6B',
   grey: '#9AA6B0',
   greyLine: 'rgba(34,50,61,0.10)',

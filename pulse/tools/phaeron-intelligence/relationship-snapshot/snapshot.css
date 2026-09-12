@@ -26,8 +26,8 @@
      for a state. */
   --rs-blue:       #1D7FB8;
   --rs-blue-deep:  #1C4D6A;
-  --rs-teal:       #9F1239;
-  --rs-green:      #BE123C;
+  --rs-teal:       #1B3A6B;
+  --rs-green:      #2F5285;
   --rs-lime:       #6BBF59;
   --rs-ramp:       linear-gradient(90deg, var(--rs-blue) 0%, var(--rs-teal) 52%, var(--rs-lime) 100%);
   --rs-ramp-soft:  linear-gradient(90deg, rgba(29,127,184,.10) 0%, rgba(159,18,57,.10) 52%, rgba(107,191,89,.10) 100%);

@@ -17,9 +17,9 @@ export function HomePage() {
       <div className="pulse-aurora" aria-hidden>
         <SoftAurora
           lightMode
-          color1="#1B3A6B"
-          color2="#9F1239"
-          brightness={1.0}
+          color1="#07111F"
+          color2="#1B3A6B"
+          brightness={0.95}
           speed={0.55}
           scale={1.05}
           enableMouseInteraction={false}

@@ -898,7 +898,7 @@ function NetworkDiagram({
     stopColor: "#1B3A6B"
   }), /*#__PURE__*/React.createElement("stop", {
     offset: "100%",
-    stopColor: "#9F1239"
+    stopColor: "#2F5285"
   }))), !isAfter && meshLines.map(([a, b], i) => /*#__PURE__*/React.createElement("line", {
     key: 'm' + i,
     x1: a.x,

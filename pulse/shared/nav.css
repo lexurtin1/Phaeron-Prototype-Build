@@ -55,7 +55,7 @@
   width: 100%;
   margin-top: 5px;
   border-radius: 3px;
-  background: linear-gradient(90deg, #1B3A6B, #BE123C, #9F1239);
+  background: linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 70%, #2F5285 90%, #9F1239 100%);
 }
 
 /* Page title label */

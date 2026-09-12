@@ -6,9 +6,9 @@
    the linked token files.
    ============================================================ */
 :root{
-  --blue:#1B3A6B;
-  --blue-d:#132743;
-  --teal:#BE123C;
+  --blue:#0C1A2E;
+  --blue-d:#07111F;
+  --teal:#2F5285;
   --green:#9F1239;
   --ink-strong:#0f2230;
   --ink:#22323d;
@@ -85,7 +85,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-
 .topbar-divider{width:1px;height:22px;background:var(--line);flex-shrink:0}
 .brand{display:flex;flex-direction:column;line-height:1.05;flex-shrink:0}
 .brand .logo-text{font-size:14px;font-weight:300;letter-spacing:0.28em;color:var(--ink-strong);text-transform:uppercase}
-.brand .gradline{height:2px;width:100%;margin-top:5px;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--green))}
+.brand .gradline{height:2px;width:100%;margin-top:5px;border-radius:2px;background:linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%)}
 .page-title{font-size:13px;font-weight:500;color:var(--ink-2);letter-spacing:.01em}
 .topbar-spacer{flex:1}
 .live-badge{
@@ -252,7 +252,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-
 
 /* ---------- AI BRIEFING ---------- */
 .briefing{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-soft)}
-.briefing-accent{height:3px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--green))}
+.briefing-accent{height:3px;background:linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%)}
 .briefing-body{padding:18px 20px 20px}
 .brief-head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
 .brief-head .ai-badge{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:var(--teal-soft);color:var(--teal);font-size:10.5px;font-weight:700;letter-spacing:.05em;border:1px solid var(--teal-soft-2)}

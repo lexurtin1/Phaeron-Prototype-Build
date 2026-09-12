@@ -17,7 +17,7 @@ function NetworkIcon() {
       <line x1="10" y1="24" x2="38" y2="24" stroke="#dde4ea" strokeWidth="1.2" />
       <path
         d="M11 29 Q24 7 37 25"
-        stroke="#9F1239"
+        stroke="#1B3A6B"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeDasharray="1.5 5"
@@ -25,15 +25,15 @@ function NetworkIcon() {
       />
       <path
         d="M13 32 Q26 18 38 31"
-        stroke="#7A1233"
+        stroke="#2F5285"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeDasharray="1.5 5"
         className="icon-dash-slow"
       />
       <circle cx="11" cy="29" r="2" fill="#1B3A6B" />
-      <circle cx="37" cy="25" r="2" fill="#9F1239" />
-      <circle cx="38" cy="31" r="2" fill="#7A1233" />
+      <circle cx="37" cy="25" r="2" fill="#2F5285" />
+      <circle cx="38" cy="31" r="2" fill="#9F1239" />
     </svg>
   );
 }
@@ -50,9 +50,9 @@ function ResearchIcon() {
         <rect x="8" y="8" width="14" height="12" rx="3" fill="#E4EAF3" />
         <rect x="22" y="8" width="18" height="10" rx="3" fill="#5B7AAB" />
         <rect x="8" y="20" width="12" height="20" rx="3" fill="#1B3A6B" />
-        <rect x="20" y="18" width="11" height="12" rx="3" fill="#9F1239" />
+        <rect x="20" y="18" width="11" height="12" rx="3" fill="#1B3A6B" />
         <rect x="30" y="18" width="12" height="22" rx="3" fill="#B8C7DE" />
-        <rect x="20" y="30" width="11" height="12" rx="3" fill="#7A1233" />
+        <rect x="20" y="30" width="11" height="12" rx="3" fill="#2F5285" />
       </g>
       <circle cx="24" cy="24" r="14" stroke="#c3cdd5" strokeWidth="1.4" />
       <ellipse cx="24" cy="24" rx="6" ry="14" stroke="#ffffff" strokeOpacity=".55" strokeWidth="1" />
@@ -67,7 +67,7 @@ function DemoIcon() {
       <defs>
         <linearGradient id="csHub" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#1B3A6B" />
-          <stop offset="1" stopColor="#7A1233" />
+          <stop offset="1" stopColor="#2F5285" />
         </linearGradient>
       </defs>
       <line x1="24" y1="24" x2="24" y2="11" stroke="#dde4ea" strokeWidth="1.3" />
@@ -100,19 +100,19 @@ function MarketplaceIcon() {
   return (
     <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden>
       <rect x="9" y="9" width="30" height="30" rx="4" stroke="#c3cdd5" strokeWidth="1.4" />
-      <path d="M24 20 V13" stroke="#9F1239" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M28 24 H35" stroke="#9F1239" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M24 20 V13" stroke="#1B3A6B" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M28 24 H35" stroke="#1B3A6B" strokeWidth="1.6" strokeLinecap="round" />
       <path d="M24 28 V35" stroke="#1B3A6B" strokeWidth="1.6" strokeLinecap="round" />
       <path d="M20 24 H13" stroke="#1B3A6B" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M20 20 H15.5 V15.5" stroke="#7A1233" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M28 28 H32.5 V32.5" stroke="#7A1233" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 20 H15.5 V15.5" stroke="#2F5285" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M28 28 H32.5 V32.5" stroke="#2F5285" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       <rect x="19.5" y="19.5" width="9" height="9" rx="1.6" fill="#E4EAF3" stroke="#1B3A6B" strokeWidth="1.3" />
-      <circle cx="24" cy="13" r="2" fill="#9F1239" />
-      <circle cx="35" cy="24" r="2" fill="#9F1239" />
+      <circle cx="24" cy="13" r="2" fill="#1B3A6B" />
+      <circle cx="35" cy="24" r="2" fill="#1B3A6B" />
       <circle cx="24" cy="35" r="2" fill="#1B3A6B" />
       <circle cx="13" cy="24" r="2" fill="#1B3A6B" />
-      <circle cx="15.5" cy="15.5" r="1.8" fill="#7A1233" />
-      <circle cx="32.5" cy="32.5" r="1.8" fill="#7A1233" />
+      <circle cx="15.5" cy="15.5" r="1.8" fill="#2F5285" />
+      <circle cx="32.5" cy="32.5" r="1.8" fill="#2F5285" />
     </svg>
   );
 }
@@ -131,8 +131,8 @@ function IntelligenceIcon() {
       <line x1="15.5" y1="18.5" x2="25.5" y2="18.5" stroke="#dde4ea" strokeWidth="1.8" strokeLinecap="round" />
       <line x1="15.5" y1="22.5" x2="28.5" y2="22.5" stroke="#dde4ea" strokeWidth="1.8" strokeLinecap="round" />
       <line x1="15.5" y1="26.5" x2="22" y2="26.5" stroke="#dde4ea" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="29.5" cy="30.5" r="6.5" fill="#ffffff" stroke="#9F1239" strokeWidth="1.9" />
-      <line x1="34.4" y1="35.4" x2="39" y2="40" stroke="#9F1239" strokeWidth="2.1" strokeLinecap="round" />
+      <circle cx="29.5" cy="30.5" r="6.5" fill="#ffffff" stroke="#1B3A6B" strokeWidth="1.9" />
+      <line x1="34.4" y1="35.4" x2="39" y2="40" stroke="#1B3A6B" strokeWidth="2.1" strokeLinecap="round" />
     </svg>
   );
 }
@@ -143,11 +143,11 @@ function MovementIcon() {
       <defs>
         <linearGradient id="csHubMove" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#1B3A6B" />
-          <stop offset="1" stopColor="#7A1233" />
+          <stop offset="1" stopColor="#2F5285" />
         </linearGradient>
       </defs>
-      <circle cx="24" cy="24" r="11" stroke="#9F1239" strokeWidth="1.6" className="icon-pulse" />
-      <circle cx="24" cy="24" r="11" stroke="#7A1233" strokeWidth="1.6" className="icon-pulse icon-pulse-2" />
+      <circle cx="24" cy="24" r="11" stroke="#1B3A6B" strokeWidth="1.6" className="icon-pulse" />
+      <circle cx="24" cy="24" r="11" stroke="#2F5285" strokeWidth="1.6" className="icon-pulse icon-pulse-2" />
       <circle cx="24" cy="24" r="11" stroke="#1B3A6B" strokeWidth="1.6" className="icon-pulse icon-pulse-3" />
       <circle cx="24" cy="24" r="5.5" fill="url(#csHubMove)" />
       <ellipse cx="24" cy="24" rx="2.4" ry="5.5" stroke="#ffffff" strokeOpacity=".55" strokeWidth="1" />
@@ -163,13 +163,13 @@ function AccountsIcon() {
       <path d="M8 35 C8 27 26 27 26 35" stroke="#9aa6b0" strokeWidth="1.5" fill="none" strokeLinecap="round" />
       <polyline
         points="20,32 25,27 29,29 33,21.5 37,24 41,16"
-        stroke="#9F1239"
+        stroke="#1B3A6B"
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="41" cy="16" r="2.2" fill="#7A1233" />
+      <circle cx="41" cy="16" r="2.2" fill="#2F5285" />
     </svg>
   );
 }

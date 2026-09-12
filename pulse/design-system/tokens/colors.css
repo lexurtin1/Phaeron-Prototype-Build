@@ -1,8 +1,9 @@
 /* ============================================================
    PHAERON · COLOR TOKENS
    Light surfaces + neon dark navy + crimson accents.
-   Signature gradient: navy → dark crimson (#1B3A6B → #9F1239).
-   Legacy --teal-* / brand --accent-* / hub --green-* map for compat.
+   Signature gradient: majority navy with a thin dark-crimson tip
+   (#0C1A2E → #1B3A6B → #9F1239). Legacy --teal-* / brand --accent-* /
+   hub --green-* map for compat.
    ============================================================ */
 :root {
   /* ---- Ink / neutrals (cool navy-tinted slate) ---- */
@@ -65,10 +66,10 @@
   --green-300: var(--crimson-300);
   --green-100: var(--crimson-100);
 
-  /* ---- Signature brand gradient (navy → dark crimson) ---- */
-  --grad-brand: linear-gradient(135deg, #1B3A6B 0%, #9F1239 100%); /* @kind color */
-  --grad-brand-soft: linear-gradient(135deg, #2F5285 0%, #BE123C 100%); /* @kind color */
-  --grad-accent-rule: linear-gradient(90deg, #1B3A6B 0%, #9F1239 100%); /* @kind color */
+  /* ---- Signature brand gradient (majority navy, thin crimson tip) ---- */
+  --grad-brand: linear-gradient(135deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%); /* @kind color */
+  --grad-brand-soft: linear-gradient(135deg, #1B3A6B 0%, #2F5285 78%, #BE123C 100%); /* @kind color */
+  --grad-accent-rule: linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 70%, #2F5285 90%, #9F1239 100%); /* @kind color */
 
   /* ---- Participant palette (network roles) ---- */
   --role-investor:      #2F5285;  /* Investors / Distributors */

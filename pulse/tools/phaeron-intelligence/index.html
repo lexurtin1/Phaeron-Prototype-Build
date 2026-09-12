@@ -16,9 +16,9 @@
 :root{
   --c-teal:        #1B3A6B;
   --c-teal-hover:  #132743;
-  --c-teal-bright: #BE123C;
+  --c-teal-bright: #2F5285;
   --c-teal-soft:   rgba(27,58,107,0.08);
-  --c-teal-soft-2: rgba(159,18,57,0.14);
+  --c-teal-soft-2: rgba(47,82,133,0.14);
 
   --c-navy:        #0C1A2E;
   --c-ink:         #07111F;
@@ -144,7 +144,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .topbar-divider{width:1px;height:22px;background:var(--c-border);flex-shrink:0}
 .brand{display:flex;flex-direction:column;line-height:1;flex-shrink:0}
 .brand img{height:48px;width:auto;display:block;mix-blend-mode:multiply}
-.gradline{height:3px;border-radius:3px;background:linear-gradient(90deg,#1B3A6B,#BE123C,#9F1239);margin-top:4px}
+.gradline{height:3px;border-radius:3px;background:linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%);margin-top:4px}
 .topbar .module-name{font-size:13px;font-weight:500;color:var(--c-text-muted)}
 .topbar .spacer{flex:1}
 .topbar .live-indicator{
@@ -326,14 +326,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 #nn-0 .nn-circle{stroke:#1B3A6B;fill:rgba(27,58,107,0.08)}    /* Salesforce – Phaeron blue */
 #nn-1 .nn-circle{stroke:#22323D;fill:rgba(34,50,61,0.08)}     /* Contracts  – Navy */
 #nn-2 .nn-circle{stroke:#3B6FCC;fill:rgba(59,111,204,0.08)}   /* Jira       – Cobalt */
-#nn-3 .nn-circle{stroke:#9F1239;fill:rgba(159,18,57,0.08)}   /* PowerBI    – Teal */
-#nn-4 .nn-circle{stroke:#BE123C;fill:rgba(190,18,60,0.08)}   /* Billing    – Green */
+#nn-3 .nn-circle{stroke:#2F5285;fill:rgba(47,82,133,0.08)}   /* PowerBI    – Teal */
+#nn-4 .nn-circle{stroke:#5B7AAB;fill:rgba(91,122,171,0.08)}   /* Billing    – Green */
 #nn-5 .nn-circle{stroke:#566571;fill:rgba(86,101,113,0.08)}   /* Procedures – Slate */
 #nn-0 .nn-abbr,#nn-0 .nn-label{fill:#1B3A6B}
 #nn-1 .nn-abbr,#nn-1 .nn-label{fill:#22323D}
 #nn-2 .nn-abbr,#nn-2 .nn-label{fill:#3B6FCC}
-#nn-3 .nn-abbr,#nn-3 .nn-label{fill:#9F1239}
-#nn-4 .nn-abbr,#nn-4 .nn-label{fill:#BE123C}
+#nn-3 .nn-abbr,#nn-3 .nn-label{fill:#2F5285}
+#nn-4 .nn-abbr,#nn-4 .nn-label{fill:#5B7AAB}
 #nn-5 .nn-abbr,#nn-5 .nn-label{fill:#566571}
 /* hex centre */
 #hexCenter{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .52s both}
@@ -341,8 +341,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .ctx-toggle[data-ctx="Salesforce"].on{background:#1B3A6B;border-color:#1B3A6B}
 .ctx-toggle[data-ctx="Contracts"].on{background:#22323D;border-color:#22323D}
 .ctx-toggle[data-ctx="Jira"].on{background:#3B6FCC;border-color:#3B6FCC}
-.ctx-toggle[data-ctx="PowerBI"].on{background:#9F1239;border-color:#9F1239}
-.ctx-toggle[data-ctx="Billing"].on{background:#BE123C;border-color:#BE123C}
+.ctx-toggle[data-ctx="PowerBI"].on{background:#2F5285;border-color:#2F5285}
+.ctx-toggle[data-ctx="Billing"].on{background:#5B7AAB;border-color:#5B7AAB}
 .ctx-toggle[data-ctx="Procedures"].on{background:#566571;border-color:#566571}
 .net-line{animation:fadeIn .8s ease .58s both}
 #nn-0{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .66s both}
@@ -863,16 +863,16 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                     <defs>
                       <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%"   stop-color="#1B3A6B"/>
-                        <stop offset="50%"  stop-color="#9F1239"/>
-                        <stop offset="100%" stop-color="#BE123C"/>
+                        <stop offset="50%"  stop-color="#2F5285"/>
+                        <stop offset="100%" stop-color="#9F1239"/>
                       </linearGradient>
                     </defs>
                     <!-- lines stop at circle edge (r=22) so they never cross labels -->
                     <path class="net-line" id="nl-0" d="M220,120 L88,61"   pathLength="1" style="stroke:#1B3A6B"/>
                     <path class="net-line" id="nl-1" d="M220,120 L220,46"  pathLength="1" style="stroke:#22323D"/>
                     <path class="net-line" id="nl-2" d="M220,120 L352,61"  pathLength="1" style="stroke:#3B6FCC"/>
-                    <path class="net-line" id="nl-3" d="M220,120 L352,179" pathLength="1" style="stroke:#9F1239"/>
-                    <path class="net-line" id="nl-4" d="M220,120 L220,194" pathLength="1" style="stroke:#BE123C"/>
+                    <path class="net-line" id="nl-3" d="M220,120 L352,179" pathLength="1" style="stroke:#2F5285"/>
+                    <path class="net-line" id="nl-4" d="M220,120 L220,194" pathLength="1" style="stroke:#5B7AAB"/>
                     <path class="net-line" id="nl-5" d="M220,120 L88,179"  pathLength="1" style="stroke:#566571"/>
                     <!-- Phaeron hexagon centre -->
                     <g id="hexCenter">

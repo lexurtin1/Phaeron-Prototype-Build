@@ -1453,7 +1453,7 @@ switchToResearch = function() {
         <stop offset="100%" stop-color="rgba(159,18,57,0)"/>
       </radialGradient>
       <linearGradient id="hg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#9F1239"/>
+        <stop offset="0%" stop-color="#1B3A6B"/>
         <stop offset="100%" stop-color="#35b57e"/>
       </linearGradient>
       <filter id="hg-shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -1516,7 +1516,7 @@ switchToResearch = function() {
     const spokeG=ns('g',{id:'hs-spoke-g'});
     NODES.forEach((n,i)=>{
       const len=Math.hypot(n.x-CX,n.y-CY);
-      const ln=ns('line',{id:`hs-s${i}`,x1:CX,y1:CY,x2:n.x,y2:n.y,'data-role':n.role,'data-len':len,stroke:'#9F1239','stroke-width':'1.8','stroke-linecap':'round','stroke-dasharray':len,'stroke-dashoffset':len});
+      const ln=ns('line',{id:`hs-s${i}`,x1:CX,y1:CY,x2:n.x,y2:n.y,'data-role':n.role,'data-len':len,stroke:'#1B3A6B','stroke-width':'1.8','stroke-linecap':'round','stroke-dasharray':len,'stroke-dashoffset':len});
       ln.style.opacity='0';
       spokeG.appendChild(ln);
     });
@@ -1551,7 +1551,7 @@ switchToResearch = function() {
     hubOuter.style.transform=`translate(${CX}px,${CY}px)`;
     const hubInner=ns('g',{id:'hs-hub-inner'});
     hubInner.style.cssText='transform:scale(0);transform-origin:0px 0px;opacity:0';
-    hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#9F1239','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
+    hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#1B3A6B','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
     const hubT=ns('text',{x:0,y:0,'text-anchor':'middle','dominant-baseline':'middle'});
     hubT.style.cssText='font:800 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;letter-spacing:0.12em;fill:#fff;pointer-events:none';
     hubT.textContent='PHAERON';
@@ -1889,7 +1889,7 @@ window._orSetActiveStep=function(n){
     const b=document.getElementById('orStep'+i);
     if(!b)continue;
     if(i===n){
-      b.style.background='#9F1239'; b.style.color='#fff';
+      b.style.background='#1B3A6B'; b.style.color='#fff';
       b.style.border='none'; b.style.boxShadow='0 0 0 3px rgba(15,184,156,.22)';
     }else{
       b.style.background='#fff'; b.style.color='#566571';
@@ -2199,8 +2199,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
   const PRODUCTS=[
     {id:'order-routing',            lines:['Order','Routing'],          angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
-    {id:'settlements',              lines:['Settlements'],              angle:240, color:'#9F1239', colorD:'#7A1233', stroke:'rgba(159,18,57,0.5)'},
-    {id:'share-class-conversions',  lines:['Share Class','Conversions'],angle:210, color:'#BE123C', colorD:'#4a9d5b', stroke:'rgba(159,18,57,0.5)'},
+    {id:'settlements',              lines:['Settlements'],              angle:240, color:'#1B3A6B', colorD:'#7A1233', stroke:'rgba(27,58,107,0.5)'},
+    {id:'share-class-conversions',  lines:['Share Class','Conversions'],angle:210, color:'#BE123C', colorD:'#4a9d5b', stroke:'rgba(27,58,107,0.5)'},
     {id:'transfers',                lines:['Transfers'],                angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
     {id:'dividends',                lines:['Dividends'],                angle:150, color:'#6A4FA0', colorD:'#513c7a', stroke:'rgba(106,79,160,0.5)'},
     {id:'reporting',                lines:['Reporting'],                angle:120, color:'#B07C2C', colorD:'#8a6020', stroke:'rgba(176,124,44,0.5)'},

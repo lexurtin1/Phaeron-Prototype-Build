@@ -10,7 +10,7 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1B3A6B"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Research</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0C1A2E"/><stop offset="0.85" stop-color="#1B3A6B"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Research</text></svg>`
       ),
     title: 'Atlas Research Agent',
     subtitle: 'Country opportunity briefs and competitor scans',
@@ -24,14 +24,14 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9F1239"/><stop offset="1" stop-color="#132743"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Routing</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#132743"/><stop offset="0.88" stop-color="#2F5285"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Routing</text></svg>`
       ),
     title: 'Order Routing Copilot',
     subtitle: 'Hub-and-spoke path suggestions for pitches',
     handle: 'Routing',
     location: 'Try',
-    borderColor: '#9F1239',
-    gradient: 'linear-gradient(165deg, #9F1239, #0d1418)',
+    borderColor: '#1B3A6B',
+    gradient: 'linear-gradient(165deg, #1B3A6B, #0d1418)',
     url: '/tools/product-demo/index.html',
   },
   {
@@ -52,21 +52,21 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#BE123C"/><stop offset="1" stop-color="#1B3A6B"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Intel</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0C1A2E"/><stop offset="1" stop-color="#2F5285"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Intel</text></svg>`
       ),
     title: 'Relationship Snapshot',
     subtitle: 'Ask Atlas for CTN-ready relationship packs',
     handle: 'Intelligence',
     location: 'Try',
-    borderColor: '#BE123C',
-    gradient: 'linear-gradient(210deg, #BE123C, #0d1418)',
+    borderColor: '#1B3A6B',
+    gradient: 'linear-gradient(210deg, #1B3A6B, #0d1418)',
     url: '/tools/phaeron-intelligence/index.html',
   },
   {
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1B3A6B"/><stop offset="1" stop-color="#7A1233"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Signals</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0C1A2E"/><stop offset="0.9" stop-color="#1B3A6B"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Signals</text></svg>`
       ),
     title: 'Market Movement Watch',
     subtitle: 'Regulatory and competitor alerts by country',
@@ -96,7 +96,7 @@ export function MarketplacePage() {
   return (
     <div className="pulse-shell">
       <div className="pulse-aurora" aria-hidden>
-        <SoftAurora lightMode color1="#1B3A6B" color2="#9F1239" brightness={1.0} speed={0.5} />
+        <SoftAurora lightMode color1="#07111F" color2="#1B3A6B" brightness={0.95} speed={0.5} />
       </div>
       <div className="pulse-noise" aria-hidden>
         <Noise patternAlpha={8} />
@@ -129,10 +129,10 @@ export function MarketplacePage() {
           <div style={{ marginTop: 28 }}>
             <BorderGlow
               className="market-border"
-              glowColor="159 18 57"
+              glowColor="27 58 107"
               backgroundColor="#F2F5FA"
               borderRadius={24}
-              colors={['#1B3A6B', '#BE123C', '#9F1239']}
+              colors={['#0C1A2E', '#1B3A6B', '#2F5285', '#9F1239']}
               fillOpacity={0.22}
               glowIntensity={0.85}
             >
