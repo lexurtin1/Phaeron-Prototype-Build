@@ -150,10 +150,25 @@ function switchToOrderRouting() {
    ================================================================ */
 (function(){
   const W=860,H=640,CX=430,CY=320,R=25,RHUB=46,RING=226,SPREAD=50;
+  const ISLAND_OP_BEFORE=0.14,ISLAND_OP_AFTER=0.05;
+  const CAPTION_BEFORE='Valuable information sits across separate systems, formats and teams.';
+  const CAPTION_AFTER='Connect every internal system through Phaeron — <b>one hub, any format</b> — removing complexity, cost and risk.';
+  const reduceMotion=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Phaeron brand gradients — solid accents for tokens / hover highlights
   const swatch={
-    erp:'#3d8dbc',crm:'#5a7fa8',
-    projectmgmt:'#2ea39b',financial:'#1c4d6a',hr:'#56a773',
+    erp:'#2F5285',crm:'#5B7AAB',
+    projectmgmt:'#1B3A6B',financial:'#0C1A2E',hr:'#9F1239',
   };
+  const fills={
+    erp:['#2F5285','#1B3A6B'],
+    crm:['#5B7AAB','#2F5285'],
+    projectmgmt:['#1B3A6B','#0C1A2E'],
+    financial:['#0C1A2E','#132743'],
+    hr:['#1B3A6B','#9F1239'],
+  };
+  const cssGrad=role=>`linear-gradient(135deg, ${fills[role][0]} 0%, ${fills[role][1]} 100%)`;
+
   const GROUPS=[
     {role:'erp',         label:'ERP',                    angle:-90, lx:0,   ly:-64, anchor:'middle'},
     {role:'crm',         label:'CRM',                    angle:-18, lx:66,  ly:0,   anchor:'start' },
@@ -169,18 +184,76 @@ function switchToOrderRouting() {
     g.nodes=[-1,0,1].map(k=>({role:g.role,x:g.gx+k*SPREAD*Math.cos(tan),y:g.gy+k*SPREAD*Math.sin(tan)}));
   });
   const NODES=GROUPS.flatMap(g=>g.nodes);
-  const MESH=[];
-  for(let i=0;i<NODES.length;i++)for(let j=i+1;j<NODES.length;j++){
-    if(NODES[i].role===NODES[j].role)continue;
-    if((i*7+j*13)%10<7)MESH.push([NODES[i],NODES[j]]);
-  }
+  // Intra-group edges only — siloed islands, no cross-system mesh
+  const INTRA=[];
+  GROUPS.forEach(g=>{
+    const [a,b,c]=g.nodes;
+    INTRA.push([a,b],[b,c]);
+  });
 
-  let isAfter=false, hovered=null, autoMode=false, autoTimer=null, svgReady=false;
-  let activeAnims=[];
+  let isAfter=false, hovered=null, autoMode=false, svgReady=false, inView=true;
+  let activeAnims=[], autoTimers=[], spokeTokenTimers=[];
   const svgNS='http://www.w3.org/2000/svg';
   function hexPts(r){const w=(Math.sqrt(3)/2)*r;return`0,${-r} ${w},${-r/2} ${w},${r/2} 0,${r} ${-w},${r/2} ${-w},${-r/2}`;}
   const $=id=>document.getElementById(id);
   const ns=(tag,attrs)=>{const e=document.createElementNS(svgNS,tag);if(attrs)Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e;};
+
+  function clearAutoTimers(){
+    autoTimers.forEach(t=>clearTimeout(t));
+    autoTimers=[];
+  }
+  function scheduleAuto(fn,ms){
+    const id=setTimeout(fn,ms);
+    autoTimers.push(id);
+    return id;
+  }
+  function clearSpokeTokens(){
+    spokeTokenTimers.forEach(t=>clearTimeout(t));
+    spokeTokenTimers=[];
+    const g=$('hs-spoke-pulse-g');
+    if(g)g.innerHTML='';
+  }
+
+  function addSmilToken(parent,fx,fy,tx,ty,col,dur,begin,maxOp){
+    const pg=ns('g',{opacity:'0'});
+    const mot=document.createElementNS(svgNS,'animateMotion');
+    mot.setAttribute('path',`M ${fx} ${fy} L ${tx} ${ty}`);
+    mot.setAttribute('dur',`${dur}s`);
+    mot.setAttribute('repeatCount','indefinite');
+    mot.setAttribute('begin',`${begin}s`);
+    mot.setAttribute('calcMode','linear');
+    mot.setAttribute('rotate','auto');
+    pg.appendChild(mot);
+    pg.appendChild(ns('ellipse',{rx:'5',ry:'2.2',fill:col}));
+    const opA=document.createElementNS(svgNS,'animate');
+    opA.setAttribute('attributeName','opacity');
+    opA.setAttribute('values',`0;${maxOp};${maxOp};0`);
+    opA.setAttribute('keyTimes','0;0.12;0.85;1');
+    opA.setAttribute('dur',`${dur}s`);
+    opA.setAttribute('repeatCount','indefinite');
+    opA.setAttribute('begin',`${begin}s`);
+    pg.appendChild(opA);
+    parent.appendChild(pg);
+  }
+
+  function startSpokeTokens(){
+    clearSpokeTokens();
+    if(reduceMotion||!isAfter)return;
+    const g=$('hs-spoke-pulse-g');if(!g)return;
+    // One inbound token per group (middle node → hub), staggered
+    GROUPS.forEach((grp,gi)=>{
+      const n=grp.nodes[1];
+      const dur=(3.2+gi*0.25).toFixed(2);
+      const begin=(gi*0.55).toFixed(2);
+      addSmilToken(g,n.x,n.y,CX,CY,swatch[grp.role],dur,begin,0.45);
+      // Softer outbound after a delay
+      const tid=setTimeout(()=>{
+        if(!isAfter||reduceMotion)return;
+        addSmilToken(g,CX,CY,n.x,n.y,'#9F1239',(3.8+gi*0.2).toFixed(2),'0',0.28);
+      },1400+gi*120);
+      spokeTokenTimers.push(tid);
+    });
+  }
 
   // ---- SVG built once on first open ----
   function buildSVG(){
@@ -189,14 +262,16 @@ function switchToOrderRouting() {
     svg.style.cssText='width:100%;height:100%;display:block;overflow:visible';
 
     const defs=ns('defs');
-    defs.innerHTML=`
+    let gradDefs=`
       <radialGradient id="hg-bg-glow" cx="50%" cy="50%" r="50%">
         <stop offset="0%" stop-color="rgba(159,18,57,0.42)"/>
         <stop offset="100%" stop-color="rgba(159,18,57,0)"/>
       </radialGradient>
       <linearGradient id="hg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#1B3A6B"/>
-        <stop offset="100%" stop-color="#35b57e"/>
+        <stop offset="0%" stop-color="#0C1A2E"/>
+        <stop offset="62%" stop-color="#1B3A6B"/>
+        <stop offset="88%" stop-color="#2F5285"/>
+        <stop offset="100%" stop-color="#9F1239"/>
       </linearGradient>
       <filter id="hg-shadow" x="-50%" y="-50%" width="200%" height="200%">
         <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#22323d" flood-opacity="0.22"/>
@@ -205,49 +280,67 @@ function switchToOrderRouting() {
         <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>`;
+    Object.keys(fills).forEach(role=>{
+      const [a,b]=fills[role];
+      gradDefs+=`
+      <linearGradient id="hs-fill-${role}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${a}"/>
+        <stop offset="100%" stop-color="${b}"/>
+      </linearGradient>
+      <radialGradient id="hs-island-${role}-grad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${a}" stop-opacity="0.55"/>
+        <stop offset="55%" stop-color="${b}" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="${b}" stop-opacity="0"/>
+      </radialGradient>`;
+    });
+    defs.innerHTML=gradDefs;
     svg.appendChild(defs);
 
-    // mesh lines — fully visible in "before" state
-    const meshG=ns('g',{id:'hs-mesh-g'});
-    MESH.forEach(([a,b],i)=>{
-      const ln=ns('line',{id:`hs-m${i}`,x1:a.x,y1:a.y,x2:b.x,y2:b.y,'data-ra':a.role,'data-rb':b.role,stroke:'#b9c5cf','stroke-width':'1.2'});
-      ln.style.opacity='0.65';
-      meshG.appendChild(ln);
-    });
-    svg.appendChild(meshG);
-
-    // animated pulses — travel along every mesh line in both directions
-    const pulseG=ns('g',{id:'hs-pulse-g'});
-    pulseG.style.cssText='pointer-events:none;opacity:1;transition:opacity 0.35s ease';
-    MESH.forEach(([a,b])=>{
-      [
-        {fx:a.x,fy:a.y,tx:b.x,ty:b.y,col:swatch[a.role]},
-        {fx:b.x,fy:b.y,tx:a.x,ty:a.y,col:swatch[b.role]},
-      ].forEach(({fx,fy,tx,ty,col},pi)=>{
-        const dur=(1.1+Math.random()*1.3).toFixed(2);
-        const begin=(Math.random()*parseFloat(dur)).toFixed(2);
-        const pg=ns('g',{opacity:'0'});
-        const mot=document.createElementNS(svgNS,'animateMotion');
-        mot.setAttribute('path',`M ${fx} ${fy} L ${tx} ${ty}`);
-        mot.setAttribute('dur',`${dur}s`);
-        mot.setAttribute('repeatCount','indefinite');
-        mot.setAttribute('begin',`${begin}s`);
-        mot.setAttribute('calcMode','linear');
-        mot.setAttribute('rotate','auto');
-        pg.appendChild(mot);
-        pg.appendChild(ns('ellipse',{rx:'7',ry:'2.5',fill:col}));
-        const opA=document.createElementNS(svgNS,'animate');
-        opA.setAttribute('attributeName','opacity');
-        opA.setAttribute('values','0;0.92;0.92;0');
-        opA.setAttribute('keyTimes','0;0.1;0.88;1');
-        opA.setAttribute('dur',`${dur}s`);
-        opA.setAttribute('repeatCount','indefinite');
-        opA.setAttribute('begin',`${begin}s`);
-        pg.appendChild(opA);
-        pulseG.appendChild(pg);
+    // Soft island halos — local clarity, no shared context
+    const islandG=ns('g',{id:'hs-island-g'});
+    islandG.style.cssText='pointer-events:none';
+    GROUPS.forEach(g=>{
+      const halo=ns('ellipse',{
+        id:`hs-island-${g.role}`,
+        cx:g.gx,cy:g.gy,rx:88,ry:72,
+        fill:`url(#hs-island-${g.role}-grad)`,
       });
+      halo.style.opacity=String(ISLAND_OP_BEFORE);
+      islandG.appendChild(halo);
     });
-    svg.appendChild(pulseG);
+    svg.appendChild(islandG);
+
+    // Faint intra-group connectors (local only)
+    const intraG=ns('g',{id:'hs-intra-g'});
+    INTRA.forEach(([a,b],i)=>{
+      const ln=ns('line',{
+        id:`hs-i${i}`,x1:a.x,y1:a.y,x2:b.x,y2:b.y,
+        'data-role':a.role,stroke:swatch[a.role],'stroke-width':'1',
+      });
+      ln.style.opacity='0.22';
+      intraG.appendChild(ln);
+    });
+    svg.appendChild(intraG);
+
+    // Local-only activity tokens (skipped when reduceMotion)
+    const localPulseG=ns('g',{id:'hs-local-pulse-g'});
+    localPulseG.style.cssText='pointer-events:none;opacity:1';
+    if(!reduceMotion){
+      GROUPS.forEach((g,gi)=>{
+        const edges=[[g.nodes[0],g.nodes[1]],[g.nodes[1],g.nodes[2]]];
+        const count=1+(gi%2); // 1–2 tokens per group
+        for(let t=0;t<count;t++){
+          const [a,b]=edges[t%edges.length];
+          const reverse=t%2===1;
+          const fx=reverse?b.x:a.x,fy=reverse?b.y:a.y;
+          const tx=reverse?a.x:b.x,ty=reverse?a.y:b.y;
+          const dur=(3.2+((gi*0.37+t*0.55)%1.6)).toFixed(2);
+          const begin=((gi*0.7+t*1.1)%2.8).toFixed(2);
+          addSmilToken(localPulseG,fx,fy,tx,ty,swatch[g.role],dur,begin,0.5);
+        }
+      });
+    }
+    svg.appendChild(localPulseG);
 
     // hub glow — hidden initially
     const glow=ns('circle',{id:'hs-hub-glow',cx:CX,cy:CY,r:145,fill:'url(#hg-bg-glow)'});
@@ -264,12 +357,17 @@ function switchToOrderRouting() {
     });
     svg.appendChild(spokeG);
 
+    // Spoke signal tokens (After only)
+    const spokePulseG=ns('g',{id:'hs-spoke-pulse-g'});
+    spokePulseG.style.cssText='pointer-events:none';
+    svg.appendChild(spokePulseG);
+
     // node hexagons — always visible, CSS transitions handle scale on hover
     const nodeG=ns('g',{id:'hs-node-g'});
     NODES.forEach((n,i)=>{
       const g=ns('g',{id:`hs-n${i}`,'data-role':n.role,transform:`translate(${n.x},${n.y})`});
       g.style.cssText='cursor:pointer;transition:opacity 0.18s ease';
-      const poly=ns('polygon',{points:hexPts(R),fill:swatch[n.role],filter:'url(#hg-shadow)'});
+      const poly=ns('polygon',{points:hexPts(R),fill:`url(#hs-fill-${n.role})`,filter:'url(#hg-shadow)'});
       poly.style.cssText='transform-origin:0px 0px;transform:scale(1);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.18s';
       g.appendChild(poly);
       g.addEventListener('mouseenter',()=>{hovered=n.role;applyHover();});
@@ -290,7 +388,7 @@ function switchToOrderRouting() {
 
     // hub: outer group positions to centre; inner group drives the scale animation
     const hubOuter=ns('g',{id:'hs-hub-g'});
-    hubOuter.style.transform=`translate(${CX}px,${CY}px)`;
+    hubOuter.style.cssText=`transform:translate(${CX}px,${CY}px);pointer-events:none`;
     const hubInner=ns('g',{id:'hs-hub-inner'});
     hubInner.style.cssText='transform:scale(0);transform-origin:0px 0px;opacity:0';
     hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#1B3A6B','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
@@ -305,13 +403,11 @@ function switchToOrderRouting() {
     svgReady=true;
   }
 
-  // ---- cancel all running anime.js instances ----
   function cancelAnims(){
     activeAnims.forEach(a=>{try{a&&a.pause&&a.pause();}catch(e){}});
     activeAnims=[];
   }
 
-  // helper: anime.js state object driven via onUpdate callback
   function anim(state,params){
     const animate=window._hsAnimate;
     if(!animate)return null;
@@ -320,122 +416,155 @@ function switchToOrderRouting() {
     return inst;
   }
 
-  // ---- BEFORE → AFTER ----
-  function transitionToAfter(){
-    if(!svgReady)return;
-    isAfter=true;cancelAnims();hovered=null;applyHover();
-
-    const meshEls=[...document.querySelectorAll('[id^="hs-m"]')];
-    const hubInner=$('hs-hub-inner');
-    const hubGlow=$('hs-hub-glow');
-
-    // 0. Pulses fade out immediately as mesh starts dissolving
-    const pg=$('hs-pulse-g');if(pg){const ps={op:parseFloat(pg.style.opacity||'1')};anim(ps,{op:0,duration:280,ease:'outQuad',onUpdate:()=>pg.style.opacity=ps.op,onComplete:()=>pg.style.opacity='0'});}
-
-    // 1. Mesh lines scatter-dissolve with randomised delays (0–320ms window)
-    meshEls.forEach(el=>{
-      const s={op:parseFloat(el.style.opacity||'0.65')};
-      anim(s,{op:0,duration:300,delay:Math.random()*320,ease:'outQuad',
+  function setIslandOpacity(target,duration,delay){
+    GROUPS.forEach((g,i)=>{
+      const el=$(`hs-island-${g.role}`);if(!el)return;
+      if(reduceMotion||!duration){el.style.opacity=String(target);return;}
+      const s={op:parseFloat(el.style.opacity||String(ISLAND_OP_BEFORE))};
+      anim(s,{op:target,duration,delay:(delay||0)+i*40,ease:'outQuad',
         onUpdate:()=>el.style.opacity=s.op,
-        onComplete:()=>el.style.opacity='0'});
+        onComplete:()=>el.style.opacity=String(target)});
     });
+  }
 
-    // 2. Hub glow blooms in
-    const gs={op:0};
-    anim(gs,{op:0.9,duration:600,delay:280,ease:'outCubic',
-      onUpdate:()=>hubGlow.style.opacity=gs.op,
-      onComplete:()=>hubGlow.style.opacity='0.9'});
-
-    // 3. Hub hexagon springs up from centre — outBack overshoot
-    const hs={s:0,op:0};
-    anim(hs,{s:1,op:1,duration:780,delay:340,ease:'outBack(1.7)',
-      onUpdate:()=>{hubInner.style.transform=`scale(${hs.s})`;hubInner.style.opacity=hs.op;},
-      onComplete:()=>{hubInner.style.transform='scale(1)';hubInner.style.opacity='1';}});
-
-    // 4. Spokes draw out from hub in a circular sweep (grouped by role, 52ms apart)
+  function applyStaticState(after){
+    isAfter=after;
+    clearSpokeTokens();
+    const hubInner=$('hs-hub-inner'),hubGlow=$('hs-hub-glow'),localPg=$('hs-local-pulse-g');
+    GROUPS.forEach(g=>{
+      const el=$(`hs-island-${g.role}`);
+      if(el)el.style.opacity=String(after?ISLAND_OP_AFTER:ISLAND_OP_BEFORE);
+    });
+    if(localPg)localPg.style.opacity=after?'0':'1';
+    if(hubGlow)hubGlow.style.opacity=after?'0.9':'0';
+    if(hubInner){
+      hubInner.style.transform=after?'scale(1)':'scale(0)';
+      hubInner.style.opacity=after?'1':'0';
+    }
     NODES.forEach((n,i)=>{
       const el=$(`hs-s${i}`);if(!el)return;
       const len=parseFloat(el.getAttribute('data-len'));
+      el.setAttribute('stroke-dashoffset',after?'0':String(len));
+      el.style.opacity=after?'0.9':'0';
+      el.setAttribute('stroke','#1B3A6B');
+      el.setAttribute('stroke-width','1.8');
+    });
+    if(after&&!reduceMotion)startSpokeTokens();
+    updateUI();
+  }
+
+  // ---- BEFORE → AFTER ----
+  function transitionToAfter(){
+    if(!svgReady)return;
+    if(reduceMotion){applyStaticState(true);return;}
+    isAfter=true;cancelAnims();clearSpokeTokens();hovered=null;applyHover();
+
+    const hubInner=$('hs-hub-inner');
+    const hubGlow=$('hs-hub-glow');
+    const localPg=$('hs-local-pulse-g');
+
+    if(localPg){
+      const ps={op:parseFloat(localPg.style.opacity||'1')};
+      anim(ps,{op:0,duration:320,ease:'outQuad',onUpdate:()=>localPg.style.opacity=ps.op,onComplete:()=>localPg.style.opacity='0'});
+    }
+    setIslandOpacity(ISLAND_OP_AFTER,500,0);
+
+    const gs={op:parseFloat(hubGlow.style.opacity||'0')};
+    anim(gs,{op:0.9,duration:600,delay:180,ease:'outCubic',
+      onUpdate:()=>hubGlow.style.opacity=gs.op,
+      onComplete:()=>hubGlow.style.opacity='0.9'});
+
+    const curHubS=parseFloat((hubInner.style.transform.match(/scale\(([^)]+)\)/)||[])[1]||'0')||0;
+    const curHubOp=parseFloat(hubInner.style.opacity||'0')||0;
+    const hs={s:curHubS,op:curHubOp};
+    anim(hs,{s:1,op:1,duration:720,delay:220,ease:'outBack',
+      onUpdate:()=>{hubInner.style.transform=`scale(${hs.s})`;hubInner.style.opacity=hs.op;},
+      onComplete:()=>{hubInner.style.transform='scale(1)';hubInner.style.opacity='1';}});
+
+    NODES.forEach((n,i)=>{
+      const el=$(`hs-s${i}`);if(!el)return;
+      const len=parseFloat(el.getAttribute('data-len'));
+      el.setAttribute('stroke','#1B3A6B');
       const ss={d:len,op:0};
-      anim(ss,{d:0,op:0.9,duration:520,delay:620+i*52,ease:'inOutCubic',
+      anim(ss,{d:0,op:0.9,duration:520,delay:480+i*42,ease:'inOutCubic',
         onUpdate:()=>{el.setAttribute('stroke-dashoffset',ss.d);el.style.opacity=ss.op;},
         onComplete:()=>{el.setAttribute('stroke-dashoffset','0');el.style.opacity='0.9';}});
     });
 
+    const spokeStart=setTimeout(()=>{if(isAfter)startSpokeTokens();},1100);
+    spokeTokenTimers.push(spokeStart);
     updateUI();
   }
 
   // ---- AFTER → BEFORE ----
   function transitionToBefore(){
     if(!svgReady)return;
-    isAfter=false;cancelAnims();hovered=null;applyHover();
+    if(reduceMotion){applyStaticState(false);return;}
+    isAfter=false;cancelAnims();clearSpokeTokens();hovered=null;applyHover();
 
-    const meshEls=[...document.querySelectorAll('[id^="hs-m"]')];
     const hubInner=$('hs-hub-inner');
     const hubGlow=$('hs-hub-glow');
+    const localPg=$('hs-local-pulse-g');
 
-    // 1. Spokes retract back to hub — staggered in reverse circular order
     NODES.forEach((n,i)=>{
       const el=$(`hs-s${i}`);if(!el)return;
       const len=parseFloat(el.getAttribute('data-len'));
       const curD=parseFloat(el.getAttribute('stroke-dashoffset')||'0');
       const curOp=parseFloat(el.style.opacity||'0.9');
       const ss={d:curD,op:curOp};
-      const delay=(NODES.length-1-i)*38;
-      anim(ss,{d:len,op:0,duration:340,delay,ease:'inCubic',
+      const delay=(NODES.length-1-i)*32;
+      anim(ss,{d:len,op:0,duration:300,delay,ease:'inCubic',
         onUpdate:()=>{el.setAttribute('stroke-dashoffset',ss.d);el.style.opacity=ss.op;},
         onComplete:()=>{el.setAttribute('stroke-dashoffset',len);el.style.opacity='0';}});
     });
 
-    // 2. Hub hexagon contracts inward
-    const curS=parseFloat(hubInner.style.transform.replace(/[^0-9.]/g,'')||'1');
+    const curS=parseFloat((hubInner.style.transform.match(/scale\(([^)]+)\)/)||[])[1]||'1');
     const hs={s:curS,op:parseFloat(hubInner.style.opacity||'1')};
-    anim(hs,{s:0,op:0,duration:420,delay:260,ease:'inBack(1.4)',
+    anim(hs,{s:0,op:0,duration:380,delay:180,ease:'inBack(1.3)',
       onUpdate:()=>{hubInner.style.transform=`scale(${hs.s})`;hubInner.style.opacity=hs.op;},
       onComplete:()=>{hubInner.style.transform='scale(0)';hubInner.style.opacity='0';}});
 
-    // 3. Hub glow fades
     const gs={op:parseFloat(hubGlow.style.opacity||'0.9')};
-    anim(gs,{op:0,duration:380,delay:200,ease:'outQuad',
+    anim(gs,{op:0,duration:340,delay:140,ease:'outQuad',
       onUpdate:()=>hubGlow.style.opacity=gs.op,
       onComplete:()=>hubGlow.style.opacity='0'});
 
-    // 4. Mesh lines materialise with randomised delays (500–800ms window)
-    meshEls.forEach(el=>{
-      el.style.opacity='0';
-      const s={op:0};
-      anim(s,{op:0.65,duration:380,delay:500+Math.random()*300,ease:'outQuad',
-        onUpdate:()=>el.style.opacity=s.op,
-        onComplete:()=>el.style.opacity='0.65'});
-    });
+    setIslandOpacity(ISLAND_OP_BEFORE,480,420);
 
-    // 5. Pulses fade back in once mesh has settled
-    const pg2=$('hs-pulse-g');if(pg2){const ps={op:0};anim(ps,{op:1,duration:450,delay:860,ease:'outQuad',onUpdate:()=>pg2.style.opacity=ps.op,onComplete:()=>pg2.style.opacity='1'});}
+    if(localPg){
+      const ps={op:0};
+      anim(ps,{op:1,duration:420,delay:520,ease:'outQuad',
+        onUpdate:()=>localPg.style.opacity=ps.op,
+        onComplete:()=>localPg.style.opacity='1'});
+    }
 
     updateUI();
   }
 
-  // ---- hover: only touches visual properties, never restarts animations ----
   function applyHover(){
-    MESH.forEach(([a,b],i)=>{
-      const ln=$(`hs-m${i}`);if(!ln)return;
-      const hit=hovered&&(hovered===a.role||hovered===b.role);
-      ln.setAttribute('stroke',hovered?(hit?swatch[hovered]:'#b9c5cf'):'#b9c5cf');
-      ln.setAttribute('stroke-width',hovered&&hit?'2.5':'1.2');
-      if(hovered)ln.style.opacity=hit?'0.9':'0.07';
-      else if(!isAfter)ln.style.opacity='0.65';
+    GROUPS.forEach(g=>{
+      const el=$(`hs-island-${g.role}`);if(!el)return;
+      const base=isAfter?ISLAND_OP_AFTER:ISLAND_OP_BEFORE;
+      if(!hovered)el.style.opacity=String(base);
+      else el.style.opacity=String(hovered===g.role?Math.min(base+0.1,0.28):base*0.35);
+    });
+    INTRA.forEach(([a],i)=>{
+      const ln=$(`hs-i${i}`);if(!ln)return;
+      const hit=!hovered||hovered===a.role;
+      ln.style.opacity=hovered?(hit?'0.4':'0.06'):'0.22';
     });
     NODES.forEach((n,i)=>{
       const ln=$(`hs-s${i}`);if(!ln)return;
       const active=hovered===n.role;
-      ln.setAttribute('stroke',active?swatch[n.role]:'#9F1239');
-      ln.setAttribute('stroke-width',active?'3.5':'1.8');
-      if(hovered&&isAfter)ln.style.opacity=active?'1':'0.07';
+      ln.setAttribute('stroke',active?swatch[n.role]:'#1B3A6B');
+      ln.setAttribute('stroke-width',active?'3.2':'1.8');
+      if(hovered&&isAfter)ln.style.opacity=active?'1':'0.08';
+      else if(isAfter&&!hovered)ln.style.opacity='0.9';
     });
     NODES.forEach((n,i)=>{
       const g=$(`hs-n${i}`);if(!g)return;
       const active=hovered===n.role;
-      g.style.opacity=hovered&&!active?'0.2':'1';
+      g.style.opacity=hovered&&!active?'0.22':'1';
       const poly=g.querySelector('polygon');
       if(poly){poly.style.transform=active?'scale(1.3)':'scale(1)';poly.setAttribute('filter',active?'url(#hg-glow-fil)':'url(#hg-shadow)');}
     });
@@ -447,28 +576,74 @@ function switchToOrderRouting() {
     });
   }
 
+  function setCaption(html){
+    const cap=$('hs-caption');if(!cap)return;
+    if(cap.dataset.html===html){cap.style.opacity='1';return;}
+    cap.dataset.html=html;
+    if(reduceMotion){cap.innerHTML=html;cap.style.opacity='1';return;}
+    cap.style.opacity='0';
+    setTimeout(()=>{
+      if(cap.dataset.html!==html)return;
+      cap.innerHTML=html;
+      requestAnimationFrame(()=>{cap.style.opacity='1';});
+    },150);
+  }
+
   function updateUI(){
-    if($('hs-stage-eyebrow'))$('hs-stage-eyebrow').textContent=isAfter?'After · one connection':'Before · point-to-point';
+    if($('hs-stage-eyebrow'))$('hs-stage-eyebrow').textContent=isAfter?'After · one connection':'Before · siloed systems';
     if($('hs-side-eyebrow'))$('hs-side-eyebrow').textContent=isAfter?'After · connected systems':'Before · the problem';
     if($('hs-side-before'))$('hs-side-before').style.display=isAfter?'none':'block';
     if($('hs-side-after'))$('hs-side-after').style.display=isAfter?'block':'none';
-    const bb=$('hs-btn-before'),ba=$('hs-btn-after');
-    if(bb){bb.classList.toggle('active',!isAfter);ba.classList.toggle('active',isAfter);}
-    if($('hs-btn-auto'))$('hs-btn-auto').classList.toggle('active',autoMode);
+    setCaption(isAfter?CAPTION_AFTER:CAPTION_BEFORE);
+    const bb=$('hs-btn-before'),ba=$('hs-btn-after'),bAuto=$('hs-btn-auto');
+    if(bb){bb.classList.toggle('active',!isAfter);bb.setAttribute('aria-pressed',String(!isAfter));}
+    if(ba){ba.classList.toggle('active',isAfter);ba.setAttribute('aria-pressed',String(isAfter));}
+    if(bAuto){bAuto.classList.toggle('active',autoMode);bAuto.setAttribute('aria-pressed',String(autoMode));}
   }
 
-  function restartTimer(){
-    clearInterval(autoTimer);if(!autoMode)return;
-    autoTimer=setInterval(()=>isAfter?transitionToBefore():transitionToAfter(),3500);
+  // Auto: hold Before 3s → transition ~1.5s → hold After 3s → transition back ~1.2s
+  function stopAuto(){
+    clearAutoTimers();
+  }
+  function runAutoCycle(){
+    if(!autoMode||!inView)return;
+    if(!isAfter){
+      scheduleAuto(()=>{
+        if(!autoMode||!inView)return;
+        transitionToAfter();
+        scheduleAuto(()=>{
+          if(!autoMode||!inView)return;
+          transitionToBefore();
+          scheduleAuto(runAutoCycle,1200);
+        },3000+1500);
+      },3000);
+    }else{
+      scheduleAuto(()=>{
+        if(!autoMode||!inView)return;
+        transitionToBefore();
+        scheduleAuto(runAutoCycle,1200);
+      },3000);
+    }
+  }
+  function restartAuto(){
+    stopAuto();
+    if(!autoMode||reduceMotion||!inView)return;
+    runAutoCycle();
   }
 
   function hsShow(){
     if(!svgReady)buildSVG();
-    isAfter=false;updateUI();restartTimer();
+    isAfter=false;
+    if(svgReady)applyStaticState(false);
+    else updateUI();
     const overlay=$('hubSpokeUI');
     if(overlay){
       overlay.classList.add('hs-open');
-      animatePanelVisibility(overlay, true, { display: 'flex', y: 16, duration: 220 });
+      if(typeof animatePanelVisibility==='function'){
+        animatePanelVisibility(overlay, true, { display: 'flex', y: 16, duration: 220 });
+      }else{
+        overlay.style.display='flex';
+      }
     }
     const list=$('hs-role-list');
     if(list&&!list.children.length){
@@ -476,32 +651,68 @@ function switchToOrderRouting() {
         const item=document.createElement('div');
         item.className='hs-role-item';item.dataset.role=g.role;
         item.style.transition='background 0.18s,font-weight 0.1s';
-        item.innerHTML=`<span class="hs-role-swatch" style="background:${swatch[g.role]}"></span>${g.label}`;
+        item.innerHTML=`<span class="hs-role-swatch" style="background:${cssGrad(g.role)}"></span>${g.label}`;
         item.addEventListener('mouseenter',()=>{hovered=g.role;applyHover();});
         item.addEventListener('mouseleave',()=>{hovered=null;applyHover();});
         list.appendChild(item);
       });
     }
+    restartAuto();
   }
 
   function hsHide(){
-    cancelAnims();clearInterval(autoTimer);hovered=null;
+    cancelAnims();stopAuto();clearSpokeTokens();autoMode=false;hovered=null;
     const overlay=$('hubSpokeUI');
     if(overlay){
       overlay.classList.remove('hs-open');
-      animatePanelVisibility(overlay, false, { display: 'none', y: 16, duration: 220 });
+      if(typeof animatePanelVisibility==='function'){
+        animatePanelVisibility(overlay, false, { display: 'none', y: 16, duration: 220 });
+      }else{
+        overlay.style.display='none';
+      }
     }
     const btn=$('globeSwitchHubSpoke');if(btn)btn.classList.remove('active');
     const olp=$('officeLayerPanel');if(olp)olp.style.display='';
+    updateUI();
   }
 
   window._hsShow=hsShow;window.hsHide=hsHide;
 
   function wireButtons(){
     const bb=$('hs-btn-before'),ba=$('hs-btn-after'),bAuto=$('hs-btn-auto');
-    if(bb)bb.onclick=()=>{autoMode=false;restartTimer();if(isAfter)transitionToBefore();};
-    if(ba)ba.onclick=()=>{autoMode=false;restartTimer();if(!isAfter)transitionToAfter();};
-    if(bAuto)bAuto.onclick=()=>{autoMode=!autoMode;restartTimer();updateUI();};
+    if(bb){
+      bb.setAttribute('aria-pressed','true');
+      bb.onclick=()=>{autoMode=false;stopAuto();if(isAfter)transitionToBefore();else updateUI();};
+    }
+    if(ba){
+      ba.setAttribute('aria-pressed','false');
+      ba.onclick=()=>{autoMode=false;stopAuto();if(!isAfter)transitionToAfter();else updateUI();};
+    }
+    if(bAuto){
+      bAuto.setAttribute('aria-pressed','false');
+      bAuto.onclick=()=>{
+        if(reduceMotion)return;
+        autoMode=!autoMode;
+        updateUI();
+        if(autoMode)restartAuto();else stopAuto();
+      };
+    }
+    // Pause Auto when diagram leaves viewport
+    const target=$('hubSpokeUI')||$('hs-diagram');
+    if(target&&typeof IntersectionObserver==='function'){
+      const io=new IntersectionObserver(entries=>{
+        entries.forEach(en=>{
+          inView=en.isIntersecting&&en.intersectionRatio>0.15;
+          if(!inView)stopAuto();
+          else if(autoMode)restartAuto();
+        });
+      },{threshold:[0,0.15,0.5]});
+      io.observe(target);
+    }
+    // Product demo opens in hub-spoke by default
+    if($('hubSpokeUI')&&$('hubSpokeUI').classList.contains('hs-open')){
+      hsShow();
+    }
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',wireButtons);}
   else{wireButtons();}
