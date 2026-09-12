@@ -1409,15 +1409,15 @@ switchToResearch = function() {
 (function(){
   const W=860,H=640,CX=430,CY=320,R=25,RHUB=46,RING=226,SPREAD=50;
   const swatch={
-    investor:'#3d8dbc',distributor:'#5a7fa8',
-    fundmanager:'#2ea39b',transferagent:'#1c4d6a',custodian:'#56a773',
+    erp:'#3d8dbc',crm:'#5a7fa8',
+    projectmgmt:'#2ea39b',financial:'#1c4d6a',hr:'#56a773',
   };
   const GROUPS=[
-    {role:'investor',     label:'Investors',       angle:-90, lx:0,   ly:-64, anchor:'middle'},
-    {role:'fundmanager',  label:'Fund Managers',   angle:-18, lx:66,  ly:0,   anchor:'start' },
-    {role:'transferagent',label:'Transfer Agents', angle:54,  lx:26,  ly:62,  anchor:'middle'},
-    {role:'custodian',    label:'Custodians',      angle:126, lx:-26, ly:62,  anchor:'middle'},
-    {role:'distributor',  label:'Distributors',    angle:198, lx:-66, ly:0,   anchor:'end'   },
+    {role:'erp',         label:'ERP',                    angle:-90, lx:0,   ly:-64, anchor:'middle'},
+    {role:'crm',         label:'CRM',                    angle:-18, lx:66,  ly:0,   anchor:'start' },
+    {role:'projectmgmt', label:'Project Management',     angle:54,  lx:26,  ly:62,  anchor:'middle'},
+    {role:'financial',   label:'Financial Performance',  angle:126, lx:-26, ly:62,  anchor:'middle'},
+    {role:'hr',          label:'HR',                     angle:198, lx:-66, ly:0,   anchor:'end'   },
   ];
   const rad=d=>(d*Math.PI)/180;
   GROUPS.forEach(g=>{
@@ -1707,7 +1707,7 @@ switchToResearch = function() {
 
   function updateUI(){
     if($('hs-stage-eyebrow'))$('hs-stage-eyebrow').textContent=isAfter?'After · one connection':'Before · point-to-point';
-    if($('hs-side-eyebrow'))$('hs-side-eyebrow').textContent=isAfter?'After · fund distribution':'Before · the problem';
+    if($('hs-side-eyebrow'))$('hs-side-eyebrow').textContent=isAfter?'After · connected systems':'Before · the problem';
     if($('hs-side-before'))$('hs-side-before').style.display=isAfter?'none':'block';
     if($('hs-side-after'))$('hs-side-after').style.display=isAfter?'block':'none';
     const bb=$('hs-btn-before'),ba=$('hs-btn-after');

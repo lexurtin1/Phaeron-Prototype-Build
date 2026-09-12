@@ -104,6 +104,12 @@ Object.assign(__ds_scope, { Logo });
 // components/brand/ParticipantNode.jsx
 try { (() => {
 const ROLE_COLORS = {
+  erp: 'var(--role-erp)',
+  crm: 'var(--role-crm)',
+  projectmgmt: 'var(--role-projectmgmt)',
+  financial: 'var(--role-financial)',
+  hr: 'var(--role-hr)',
+  // legacy aliases (Order Routing lanes still use these)
   investor: 'var(--role-investor)',
   distributor: 'var(--role-distributor)',
   fundmanager: 'var(--role-fundmanager)',
@@ -114,14 +120,14 @@ const ROLE_COLORS = {
 
 /** A labelled network participant — hexagon node + role label, as on the network map. */
 function ParticipantNode({
-  role = 'investor',
+  role = 'erp',
   label,
   size = 64,
   labelBelow = true,
   glow = false,
   style
 }) {
-  const fill = ROLE_COLORS[role] || 'var(--role-investor)';
+  const fill = ROLE_COLORS[role] || 'var(--role-erp)';
   const text = label || role.charAt(0).toUpperCase() + role.slice(1);
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -777,11 +783,11 @@ const {
   Hexagon
 } = window.CalastoneDesignSystem_d5328f;
 const ROLE_FILL = {
-  investor: 'var(--role-investor)',
-  distributor: 'var(--role-distributor)',
-  fundmanager: 'var(--role-fundmanager)',
-  transferagent: 'var(--role-transferagent)',
-  custodian: 'var(--role-custodian)'
+  erp: 'var(--role-erp)',
+  crm: 'var(--role-crm)',
+  projectmgmt: 'var(--role-projectmgmt)',
+  financial: 'var(--role-financial)',
+  hr: 'var(--role-hr)'
 };
 
 // Five groups around a ring; each group is a cluster of 3 nodes.
@@ -790,32 +796,32 @@ const W = 720,
   CX = 360,
   CY = 280;
 const GROUPS = [{
-  role: 'investor',
-  label: 'Investors',
+  role: 'erp',
+  label: 'ERP',
   angle: -90,
   labelDx: 0,
   labelDy: -54
 }, {
-  role: 'fundmanager',
-  label: 'Fund Managers',
+  role: 'crm',
+  label: 'CRM',
   angle: -18,
   labelDx: 64,
   labelDy: 0
 }, {
-  role: 'transferagent',
-  label: 'Transfer Agents',
+  role: 'projectmgmt',
+  label: 'Project Management',
   angle: 54,
   labelDx: 40,
   labelDy: 44
 }, {
-  role: 'custodian',
-  label: 'Custodians',
+  role: 'financial',
+  label: 'Financial Performance',
   angle: 126,
   labelDx: -40,
   labelDy: 44
 }, {
-  role: 'distributor',
-  label: 'Distributors',
+  role: 'hr',
+  label: 'HR',
   angle: 198,
   labelDx: -64,
   labelDy: 0

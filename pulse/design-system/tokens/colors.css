@@ -71,13 +71,19 @@
   --grad-brand-soft: linear-gradient(135deg, #1B3A6B 0%, #2F5285 78%, #BE123C 100%); /* @kind color */
   --grad-accent-rule: linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 70%, #2F5285 90%, #9F1239 100%); /* @kind color */
 
-  /* ---- Participant palette (network roles) ---- */
-  --role-investor:      #2F5285;  /* Investors / Distributors */
-  --role-distributor:   #2F5285;
-  --role-fundmanager:   #1B3A6B;  /* Fund Managers */
-  --role-transferagent: #0C1A2E;  /* Transfer Agents */
-  --role-custodian:     #BE123C;  /* Custodians */
+  /* ---- System palette (hub-and-spoke enterprise systems) ---- */
+  --role-erp:           #2F5285;  /* ERP */
+  --role-crm:           #2F5285;  /* CRM */
+  --role-projectmgmt:   #1B3A6B;  /* Project Management */
+  --role-financial:     #0C1A2E;  /* Financial Performance */
+  --role-hr:            #BE123C;  /* HR */
   --role-calastone:     #1B3A6B;  /* the hub */
+  /* legacy aliases (Order Routing / older kits) */
+  --role-investor:      var(--role-erp);
+  --role-distributor:   var(--role-crm);
+  --role-fundmanager:   var(--role-projectmgmt);
+  --role-transferagent: var(--role-financial);
+  --role-custodian:     var(--role-hr);
 
   /* ---- Semantic status (true meaning colors — not brand) ---- */
   --status-success:    #2F9B63;
