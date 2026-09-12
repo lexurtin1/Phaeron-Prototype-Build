@@ -1,4 +1,8 @@
 {
+  "framework": null,
+  "installCommand": "npm install && npm install --prefix pulse-ui",
+  "buildCommand": "npm run build:ui",
+  "outputDirectory": ".",
   "functions": {
     "api/claude.js": {
       "maxDuration": 300,

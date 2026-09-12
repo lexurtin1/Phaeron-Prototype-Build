@@ -7,7 +7,6 @@
     "dev": "node scripts/local-pulse-server.js",
     "dev:ui": "npm --prefix pulse-ui run dev",
     "build:ui": "npm --prefix pulse-ui run build",
-    "build": "npm install --prefix pulse-ui && npm run build:ui",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed-atlas.js",
     "db:setup": "npm run migrate && npm run seed",
