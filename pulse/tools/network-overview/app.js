@@ -1408,7 +1408,7 @@ switchToResearch = function() {
    ================================================================ */
 (function(){
   const W=860,H=640,CX=430,CY=320,R=25,RHUB=46,RING=226,SPREAD=50;
-  const ISLAND_OP_BEFORE=0.14,ISLAND_OP_AFTER=0.05;
+  const ISLAND_OP_BEFORE=0.22,ISLAND_OP_AFTER=0.04;
   const CAPTION_BEFORE='Valuable information sits across separate systems, formats and teams.';
   const CAPTION_AFTER='Connect every internal system through Phaeron — <b>one hub, any format</b> — removing complexity, cost and risk.';
   const reduceMotion=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1494,6 +1494,33 @@ switchToResearch = function() {
     parent.appendChild(pg);
   }
 
+  function ellipseLoop(rx,ry,rev){
+    const sweep=rev?0:1;
+    return `M ${-rx} 0 A ${rx} ${ry} 0 1 ${sweep} ${rx} 0 A ${rx} ${ry} 0 1 ${sweep} ${-rx} 0`;
+  }
+
+  function addOrbitToken(parent,pathD,col,dur,begin,maxOp){
+    const pg=ns('g',{opacity:'0'});
+    const mot=document.createElementNS(svgNS,'animateMotion');
+    mot.setAttribute('path',pathD);
+    mot.setAttribute('dur',`${dur}s`);
+    mot.setAttribute('repeatCount','indefinite');
+    mot.setAttribute('begin',`${begin}s`);
+    mot.setAttribute('rotate','0');
+    pg.appendChild(mot);
+    pg.appendChild(ns('circle',{r:'6.5',fill:col}));
+    pg.appendChild(ns('circle',{r:'2.4',fill:'#fff',opacity:'0.95'}));
+    const opA=document.createElementNS(svgNS,'animate');
+    opA.setAttribute('attributeName','opacity');
+    opA.setAttribute('values',`0;${maxOp};${maxOp};0`);
+    opA.setAttribute('keyTimes','0;0.08;0.9;1');
+    opA.setAttribute('dur',`${dur}s`);
+    opA.setAttribute('repeatCount','indefinite');
+    opA.setAttribute('begin',`${begin}s`);
+    pg.appendChild(opA);
+    parent.appendChild(pg);
+  }
+
   function startSpokeTokens(){
     clearSpokeTokens();
     if(reduceMotion||!isAfter)return;
@@ -1560,7 +1587,7 @@ switchToResearch = function() {
     GROUPS.forEach(g=>{
       const halo=ns('ellipse',{
         id:`hs-island-${g.role}`,
-        cx:g.gx,cy:g.gy,rx:88,ry:72,
+        cx:g.gx,cy:g.gy,rx:108,ry:82,
         fill:`url(#hs-island-${g.role}-grad)`,
       });
       halo.style.opacity=String(ISLAND_OP_BEFORE);
@@ -1568,37 +1595,46 @@ switchToResearch = function() {
     });
     svg.appendChild(islandG);
 
-    // Faint intra-group connectors (local only)
-    const intraG=ns('g',{id:'hs-intra-g'});
-    INTRA.forEach(([a,b],i)=>{
-      const ln=ns('line',{
-        id:`hs-i${i}`,x1:a.x,y1:a.y,x2:b.x,y2:b.y,
-        'data-role':a.role,stroke:swatch[a.role],'stroke-width':'1',
-      });
-      ln.style.opacity='0.22';
-      intraG.appendChild(ln);
-    });
-    svg.appendChild(intraG);
+    // Closed data ecosystems built here; appended after nodes so rings/tokens stay visible
+    const ecoG=ns('g',{id:'hs-eco-g'});
+    ecoG.style.cssText='pointer-events:none;opacity:1';
+    GROUPS.forEach((g,gi)=>{
+      const col=swatch[g.role];
+      const rot=g.angle+90;
+      const eco=ns('g',{id:`hs-eco-${g.role}`,'data-role':g.role,transform:`translate(${g.gx},${g.gy}) rotate(${rot})`});
 
-    // Local-only activity tokens (skipped when reduceMotion)
-    const localPulseG=ns('g',{id:'hs-local-pulse-g'});
-    localPulseG.style.cssText='pointer-events:none;opacity:1';
-    if(!reduceMotion){
-      GROUPS.forEach((g,gi)=>{
-        const edges=[[g.nodes[0],g.nodes[1]],[g.nodes[1],g.nodes[2]]];
-        const count=1+(gi%2); // 1–2 tokens per group
-        for(let t=0;t<count;t++){
-          const [a,b]=edges[t%edges.length];
-          const reverse=t%2===1;
-          const fx=reverse?b.x:a.x,fy=reverse?b.y:a.y;
-          const tx=reverse?a.x:b.x,ty=reverse?a.y:b.y;
-          const dur=(3.2+((gi*0.37+t*0.55)%1.6)).toFixed(2);
-          const begin=((gi*0.7+t*1.1)%2.8).toFixed(2);
-          addSmilToken(localPulseG,fx,fy,tx,ty,swatch[g.role],dur,begin,0.5);
+      eco.appendChild(ns('ellipse',{
+        rx:'90',ry:'56',fill:col,'fill-opacity':'0.06',stroke:col,'stroke-width':'7',opacity:'0.2',
+      }));
+      eco.appendChild(ns('ellipse',{
+        id:`hs-orbit-${g.role}`,
+        rx:'90',ry:'56',fill:'none',stroke:col,'stroke-width':'2.4',
+        'stroke-dasharray':'7 9','stroke-linecap':'round',opacity:'0.82',
+      }));
+      eco.appendChild(ns('ellipse',{
+        rx:'64',ry:'38',fill:'none',stroke:col,'stroke-width':'1.6',
+        'stroke-dasharray':'4 7','stroke-linecap':'round',opacity:'0.5',
+      }));
+
+      const xs=[-SPREAD,0,SPREAD];
+      for(let i=0;i<2;i++){
+        const ln=ns('line',{x1:xs[i],y1:0,x2:xs[i+1],y2:0,stroke:col,'stroke-width':'2',opacity:'0.45'});
+        eco.appendChild(ln);
+      }
+
+      if(!reduceMotion){
+        const outer=ellipseLoop(90,56,false);
+        const inner=ellipseLoop(64,38,true);
+        const outerDur=3.4+gi*0.28;
+        const innerDur=4.6+gi*0.2;
+        for(let t=0;t<3;t++){
+          addOrbitToken(eco,outer,col,outerDur.toFixed(2),(t*outerDur/3).toFixed(2),0.95);
         }
-      });
-    }
-    svg.appendChild(localPulseG);
+        addOrbitToken(eco,inner,col,innerDur.toFixed(2),'0.35',0.8);
+      }
+
+      ecoG.appendChild(eco);
+    });
 
     // hub glow — hidden initially
     const glow=ns('circle',{id:'hs-hub-glow',cx:CX,cy:CY,r:145,fill:'url(#hg-bg-glow)'});
@@ -1633,6 +1669,7 @@ switchToResearch = function() {
       nodeG.appendChild(g);
     });
     svg.appendChild(nodeG);
+    svg.appendChild(ecoG); // orbits + tokens above nodes so ecosystems read clearly
 
     // labels
     const labelG=ns('g');
@@ -1688,12 +1725,12 @@ switchToResearch = function() {
   function applyStaticState(after){
     isAfter=after;
     clearSpokeTokens();
-    const hubInner=$('hs-hub-inner'),hubGlow=$('hs-hub-glow'),localPg=$('hs-local-pulse-g');
+    const hubInner=$('hs-hub-inner'),hubGlow=$('hs-hub-glow'),ecoPg=$('hs-eco-g');
     GROUPS.forEach(g=>{
       const el=$(`hs-island-${g.role}`);
       if(el)el.style.opacity=String(after?ISLAND_OP_AFTER:ISLAND_OP_BEFORE);
     });
-    if(localPg)localPg.style.opacity=after?'0':'1';
+    if(ecoPg)ecoPg.style.opacity=after?'0':'1';
     if(hubGlow)hubGlow.style.opacity=after?'0.9':'0';
     if(hubInner){
       hubInner.style.transform=after?'scale(1)':'scale(0)';
@@ -1719,11 +1756,11 @@ switchToResearch = function() {
 
     const hubInner=$('hs-hub-inner');
     const hubGlow=$('hs-hub-glow');
-    const localPg=$('hs-local-pulse-g');
+    const ecoPg=$('hs-eco-g');
 
-    if(localPg){
-      const ps={op:parseFloat(localPg.style.opacity||'1')};
-      anim(ps,{op:0,duration:320,ease:'outQuad',onUpdate:()=>localPg.style.opacity=ps.op,onComplete:()=>localPg.style.opacity='0'});
+    if(ecoPg){
+      const ps={op:parseFloat(ecoPg.style.opacity||'1')};
+      anim(ps,{op:0,duration:320,ease:'outQuad',onUpdate:()=>ecoPg.style.opacity=ps.op,onComplete:()=>ecoPg.style.opacity='0'});
     }
     setIslandOpacity(ISLAND_OP_AFTER,500,0);
 
@@ -1762,7 +1799,7 @@ switchToResearch = function() {
 
     const hubInner=$('hs-hub-inner');
     const hubGlow=$('hs-hub-glow');
-    const localPg=$('hs-local-pulse-g');
+    const ecoPg=$('hs-eco-g');
 
     NODES.forEach((n,i)=>{
       const el=$(`hs-s${i}`);if(!el)return;
@@ -1789,11 +1826,11 @@ switchToResearch = function() {
 
     setIslandOpacity(ISLAND_OP_BEFORE,480,420);
 
-    if(localPg){
+    if(ecoPg){
       const ps={op:0};
       anim(ps,{op:1,duration:420,delay:520,ease:'outQuad',
-        onUpdate:()=>localPg.style.opacity=ps.op,
-        onComplete:()=>localPg.style.opacity='1'});
+        onUpdate:()=>ecoPg.style.opacity=ps.op,
+        onComplete:()=>ecoPg.style.opacity='1'});
     }
 
     updateUI();
@@ -1804,12 +1841,12 @@ switchToResearch = function() {
       const el=$(`hs-island-${g.role}`);if(!el)return;
       const base=isAfter?ISLAND_OP_AFTER:ISLAND_OP_BEFORE;
       if(!hovered)el.style.opacity=String(base);
-      else el.style.opacity=String(hovered===g.role?Math.min(base+0.1,0.28):base*0.35);
+      else el.style.opacity=String(hovered===g.role?Math.min(base+0.12,0.34):base*0.3);
     });
-    INTRA.forEach(([a],i)=>{
-      const ln=$(`hs-i${i}`);if(!ln)return;
-      const hit=!hovered||hovered===a.role;
-      ln.style.opacity=hovered?(hit?'0.4':'0.06'):'0.22';
+    GROUPS.forEach(g=>{
+      const eco=$(`hs-eco-${g.role}`);if(!eco||isAfter)return;
+      if(!hovered)eco.style.opacity='1';
+      else eco.style.opacity=hovered===g.role?'1':'0.22';
     });
     NODES.forEach((n,i)=>{
       const ln=$(`hs-s${i}`);if(!ln)return;
@@ -1956,6 +1993,8 @@ switchToResearch = function() {
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',wireButtons);}
   else{wireButtons();}
 })();
+
+
 
 
 
