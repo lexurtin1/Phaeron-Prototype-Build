@@ -774,11 +774,13 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 </style>
 </head>
 <body>
+<div id="pulse-react-nav"></div>
+<script src="/ui/islands/load-nav.js"></script>
 <div class="app">
 
   <!-- ════ TOP BAR (light, consistent with Pulse design system) ════ -->
   <header class="topbar">
-    <a href="../../index.html" class="home-btn" aria-label="Back to Pulse">
+    <a href="/ui/" class="home-btn" aria-label="Back to Pulse">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       ← Pulse Home
     </a>
@@ -856,6 +858,9 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
               <!-- empty state -->
               <div class="empty-chat" id="emptyChat">
                 <div class="proto-badge"><span class="proto-dot"></span>Internal Prototype · Commercial Preview</div>
+
+                <div id="pulse-react-intelligence"></div>
+                <script src="/ui/islands/load-intelligence.js"></script>
 
                 <!-- animated data connectivity network -->
                 <div class="network-vis" id="networkVis" aria-hidden="true">

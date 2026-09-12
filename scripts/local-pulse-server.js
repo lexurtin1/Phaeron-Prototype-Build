@@ -126,7 +126,14 @@ async function handleApi(req, res, pathname) {
 
 function resolveStatic(urlPath) {
   let p = decodeURIComponent(urlPath.split('?')[0]);
-  if (p === '/') p = '/pulse/index.html';
+  if (p === '/') p = '/pulse/ui/index.html';
+  if (
+    p === '/tools/agent-marketplace' ||
+    p === '/tools/agent-marketplace/' ||
+    p === '/tools/agent-marketplace/index.html'
+  ) {
+    p = '/pulse/ui/marketplace.html';
+  }
   if (!p.startsWith('/api/') && !p.startsWith('/pulse/') && !p.startsWith('/config.js') && !p.startsWith('/Order') && !p.startsWith('/node_modules')) {
     const pulseCandidate = path.join(ROOT, 'pulse', p.replace(/^\//, ''));
     if (

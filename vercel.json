@@ -16,7 +16,19 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/pulse/index.html"
+      "destination": "/pulse/ui/index.html"
+    },
+    {
+      "source": "/tools/agent-marketplace",
+      "destination": "/pulse/ui/marketplace.html"
+    },
+    {
+      "source": "/tools/agent-marketplace/",
+      "destination": "/pulse/ui/marketplace.html"
+    },
+    {
+      "source": "/tools/agent-marketplace/index.html",
+      "destination": "/pulse/ui/marketplace.html"
     },
     {
       "source": "/((?!api/|config\\.js|Order).*)",

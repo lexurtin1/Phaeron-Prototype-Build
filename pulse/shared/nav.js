@@ -11,7 +11,7 @@
     /* Highlight the current tool's card on the home page if navigated back */
     const homeBtn = document.querySelector('.home-btn');
     if (homeBtn && !homeBtn.getAttribute('href')) {
-      homeBtn.setAttribute('href', '../../index.html');
+      homeBtn.setAttribute('href', '/ui/');
     }
   });
 })();

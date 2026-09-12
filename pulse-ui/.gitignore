@@ -1,0 +1,5 @@
+# React Bits / Vite app
+node_modules/
+dist/
+*.local
+.DS_Store
