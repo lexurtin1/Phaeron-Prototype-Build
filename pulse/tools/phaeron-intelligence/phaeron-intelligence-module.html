@@ -1,33 +1,45 @@
 <!DOCTYPE html>
+<!--
+  Phaeron Intelligence Module — internal Pulse chat + data analysis interface.
+  Single self-contained HTML file. CDN deps: Lucide (icons), Chart.js (charts).
+
+  DESIGN SYSTEM derived from Phaeron_Design_System.pptx (exact tokens):
+    Brand teal:        #2D9A8E (primary), #26867D (hover/deep), #2ECBB1 (bright accent)
+    Deep navy/ink:     #22323D (headers/primary text), #0D1418 (near-black surfaces)
+    Slate/muted:       #9AA6B0, #7D9097, #566571
+    Tint surfaces:     #EEF8F6, #DCEFEC, #B3DDD7
+    Support green:     #35B57E
+  TYPEFACE: deck uses Arial (clean geometric sans). On web we substitute the closest
+    freely-available geometric sans (Inter via Google Fonts) with Arial fallback,
+    matching the deck's letterspaced uppercase eyebrow/label treatment.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calastone · Intelligence Module</title>
+<title>Phaeron Intelligence Module</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- Relationship Snapshot feature styles (scoped to .rs-root / .rs-*) -->
-<link rel="stylesheet" href="./relationship-snapshot/snapshot.css">
-
 <style>
 :root{
-  --c-teal:        #2D9A8E;
+  /* ── Phaeron palette (exact, from deck) ─────────────────── */
+  --c-teal:        #2D9A8E;   /* PRIMARY brand teal */
   --c-teal-hover:  #26867D;
-  --c-teal-bright: #2ECBB1;
+  --c-teal-bright: #2ECBB1;   /* accent highlight */
   --c-teal-soft:   rgba(45,154,142,0.08);
   --c-teal-soft-2: rgba(45,154,142,0.14);
 
-  --c-navy:        #22323D;
-  --c-ink:         #0D1418;
+  --c-navy:        #22323D;   /* headers / primary text */
+  --c-ink:         #0D1418;   /* near-black surfaces */
   --c-green:       #35B57E;
 
   --c-surface:     #FFFFFF;
   --c-surface-2:   #F6F8F8;
   --c-surface-3:   #EDF1F1;
-  --c-tint:        #EEF8F6;
+  --c-tint:        #EEF8F6;   /* teal-tinted surface */
   --c-tint-2:      #DCEFEC;
 
   --c-border:      rgba(34,50,61,0.12);
@@ -87,94 +99,47 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* ══════════ APP SHELL ══════════ */
 .app{display:flex;flex-direction:column;height:100vh}
 
-/* ── entrance animations (CSS — work in headless + real browsers) ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-@keyframes fadeScaleUp{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:none}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideInLeft{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
-
-/* Respect prefers-reduced-motion for the page's own entrance keyframes.
-   Content still reaches its final state — `both` fill would otherwise leave
-   elements stuck at opacity 0 if we merely disabled the animation. */
-@media (prefers-reduced-motion: reduce){
-  .nav-item,.proto-badge,.network-vis,#emptyChat h1,#emptyChat .lead,
-  .suggest-chip:nth-child(1),.suggest-chip:nth-child(2),.chip-more-btn{
-    animation:none!important;opacity:1!important;transform:none!important;
-  }
-  *,*::before,*::after{
-    animation-duration:.001ms!important;animation-iteration-count:1!important;
-    transition-duration:.001ms!important;scroll-behavior:auto!important;
-  }
-}
-
-.nav-item{animation:slideInLeft .35s cubic-bezier(.23,1,.32,1) both}
-.nav-item:nth-child(1){animation-delay:.1s}
-.nav-item:nth-child(2){animation-delay:.16s}
-
-.proto-badge{animation:fadeDown .5s cubic-bezier(.23,1,.32,1) .3s both}
-.network-vis{animation:fadeScaleUp .7s cubic-bezier(.34,1.56,.64,1) .42s both}
-#emptyChat h1{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .7s both}
-#emptyChat .lead{animation:fadeUp .5s cubic-bezier(.23,1,.32,1) .8s both}
-.suggest-chip:nth-child(1){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .9s both}
-.suggest-chip:nth-child(2){animation:fadeUp .45s cubic-bezier(.23,1,.32,1) .97s both}
-.chip-more-btn{animation:fadeUp .45s cubic-bezier(.23,1,.32,1) 1.04s both}
-
-/* ── Top bar (light, consistent with Pulse design system) ── */
+/* ── Top bar ── */
 .topbar{
   height:var(--topbar-h);flex:0 0 auto;
-  background:rgba(255,255,255,0.94);
-  backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
-  border-bottom:1px solid rgba(226,232,238,0.85);
-  box-shadow:0 1px 0 rgba(255,255,255,.8),0 4px 20px -8px rgba(15,34,48,.07);
-  display:flex;align-items:center;gap:12px;
-  padding:0 20px;z-index:30;
+  background:var(--c-ink);color:var(--c-text-inverse);
+  display:flex;align-items:center;gap:16px;
+  padding:0 18px;z-index:30;
 }
-.home-btn{
-  display:inline-flex;align-items:center;gap:7px;
-  font-size:12px;font-weight:600;color:var(--c-text-muted);
-  padding:7px 13px;border-radius:8px;
-  background:var(--c-surface-2);border:1px solid var(--c-border);
-  cursor:pointer;text-decoration:none;
-  transition:border-color .18s,color .18s,box-shadow .18s;
-  white-space:nowrap;flex-shrink:0;
+.topbar .logo{display:flex;align-items:center;gap:0;height:100%}
+.wordmark{
+  display:flex;align-items:center;font-weight:700;font-size:16px;
+  letter-spacing:.04em;color:#fff;user-select:none;
 }
-.home-btn svg{width:14px;height:14px;stroke:currentColor;flex-shrink:0}
-.home-btn:hover{border-color:var(--c-teal);color:var(--c-navy)}
-.topbar-divider{width:1px;height:22px;background:var(--c-border);flex-shrink:0}
-.brand{display:flex;flex-direction:column;line-height:1;flex-shrink:0}
-.brand img{height:30px;width:auto;display:block;mix-blend-mode:multiply}
-.gradline{height:3px;border-radius:3px;background:linear-gradient(90deg,#0082C4,#2D9A8E,#64B066);margin-top:4px}
-.topbar .module-name{font-size:13px;font-weight:500;color:var(--c-text-muted)}
+.wordmark .mark{
+  display:inline-flex;width:18px;height:18px;margin:0 1px;
+  align-items:center;justify-content:center;
+}
+.wordmark .mark svg{width:15px;height:15px}
+.topbar .pulse-tag{
+  font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--c-teal-bright);border:1px solid rgba(46,203,177,0.4);
+  padding:2px 7px;border-radius:20px;margin-left:9px;
+}
+.topbar .divider-v{width:1px;height:22px;background:rgba(255,255,255,0.14)}
+.topbar .module-name{
+  font-size:13px;font-weight:500;color:rgba(255,255,255,0.92);
+}
 .topbar .spacer{flex:1}
-.topbar .live-indicator{
-  display:flex;align-items:center;gap:7px;
-  font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--c-green);padding:5px 12px;border-radius:20px;
-  background:rgba(53,181,126,0.08);border:1px solid rgba(53,181,126,0.22);
-  flex-shrink:0;
-}
-.topbar .live-dot{
-  width:7px;height:7px;border-radius:50%;background:var(--c-green);
-  animation:livePulse 2.4s ease-in-out infinite;
-}
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.35}}
-.topbar .user{display:flex;align-items:center;gap:9px;flex-shrink:0}
-.topbar .user .user-meta{text-align:right}
-.topbar .user .name{font-size:12.5px;color:var(--c-text);font-weight:600;line-height:1.3}
-.topbar .user .role{font-size:10.5px;color:var(--c-text-muted)}
+.topbar .user{display:flex;align-items:center;gap:9px}
+.topbar .user .name{font-size:12.5px;color:rgba(255,255,255,0.9);font-weight:500}
+.topbar .user .role{font-size:10.5px;color:rgba(255,255,255,0.45)}
 .avatar{
-  width:32px;height:32px;border-radius:50%;flex:0 0 auto;
-  background:var(--c-tint-2);color:var(--c-teal-hover);font-weight:700;font-size:12px;
+  width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+  background:var(--c-teal);color:#fff;font-weight:700;font-size:12px;
   display:flex;align-items:center;justify-content:center;letter-spacing:.02em;
-  border:1.5px solid rgba(45,154,142,0.22);
 }
 .icon-btn{
   width:34px;height:34px;border-radius:var(--radius-sm);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--c-text-muted);transition:background .15s;
+  display:flex;align-items:center;justify-content:center;color:inherit;
+  transition:background .15s;
 }
-.icon-btn:hover{background:var(--c-surface-3)}
+.topbar .icon-btn:hover{background:rgba(255,255,255,0.1)}
 .icon-btn svg{width:18px;height:18px}
 
 /* ── Body row ── */
@@ -185,7 +150,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   width:var(--sidebar-w);flex:0 0 auto;
   background:var(--c-surface-2);border-right:1px solid var(--c-border);
   display:flex;flex-direction:column;
-  transition:width .22s ease;z-index:20;
+  transition:width .2s ease;z-index:20;
 }
 .sidebar.collapsed{width:var(--sidebar-collapsed-w)}
 .sidebar-top{padding:12px 10px 4px;display:flex;justify-content:flex-end}
@@ -230,7 +195,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .recent-item svg{width:14px;height:14px;flex:0 0 auto;color:var(--c-text-faint);stroke-width:1.8}
 .recent-item span{overflow:hidden;text-overflow:ellipsis}
 .recent-item:hover{background:var(--c-surface-3);color:var(--c-text)}
-.recent-item.active{background:var(--c-tint);color:var(--c-teal-hover);font-weight:500}
 
 .sidebar-foot{margin-top:auto;border-top:1px solid var(--c-border);padding:10px}
 .user-mini{display:flex;align-items:center;gap:10px;padding:6px 7px;border-radius:var(--radius-sm)}
@@ -245,6 +209,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .settings-link svg{width:17px;height:17px;flex:0 0 auto;stroke-width:1.8}
 .settings-link:hover{background:var(--c-surface-3);color:var(--c-text)}
 
+/* collapsed state hides labels */
 .sidebar.collapsed .nav-item span,
 .sidebar.collapsed .settings-link span,
 .sidebar.collapsed .recent,
@@ -257,8 +222,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 /* ── Main ── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--c-surface)}
-/* subtle diagonal gradient on empty state background */
-.empty-chat{background:linear-gradient(145deg,#f8fafb 0%,#ffffff 50%,#f0f9f7 100%)}
 .view{flex:1;min-height:0;display:none;flex-direction:column}
 .view.active{display:flex}
 
@@ -266,123 +229,33 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .chat-cols{flex:1;display:flex;min-height:0}
 .chat-left{flex:1 1 65%;display:flex;flex-direction:column;min-width:0;min-height:0}
 .chat-thread{flex:1;overflow-y:auto;padding:26px 30px 18px;min-height:0}
-/* ── Module load failure banner ──
-   Without this the failure is silent: the page looks perfect and snapshot
-   prompts quietly fall through to the canned answers, which is impossible to
-   tell apart from "the feature does not recognise my wording". */
-#moduleWarning:empty{display:none}
-#moduleWarning{
-  flex:0 0 auto;padding:11px 30px;background:var(--c-amber-bg);
-  border-bottom:1px solid rgba(245,158,11,.35);font-size:13px;line-height:1.55;color:#8A5604;
-}
-#moduleWarning strong{font-weight:700}
-#moduleWarning code{
-  font-family:var(--font-mono);font-size:12px;background:rgba(255,255,255,.6);
-  padding:1px 6px;border-radius:4px;
-}
+.thread-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 
-.thread-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px;
-  transition:max-width .34s cubic-bezier(.23,1,.32,1)}
-/* A relationship snapshot needs more room than a paragraph does. When one is in
-   the thread the column widens, and ordinary messages keep their 760px measure
-   centred inside it — so nothing already on screen shifts position. */
-.thread-inner.has-wide{max-width:min(1560px,100%)}
-.thread-inner.has-wide>.msg:not(.msg-wide){width:100%;max-width:760px;align-self:center}
-.msg-wide{width:100%}
-
-/* ── Empty state ── */
+/* empty state */
 .empty-chat{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:24px 30px 30px;gap:0;
+  text-align:center;padding:30px;gap:0;
 }
-.proto-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:5px 14px;border-radius:999px;margin-bottom:14px;
-  background:rgba(45,154,142,0.07);border:1px solid rgba(45,154,142,0.18);
-  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--c-teal-hover);
+.empty-chat .mark-lg{
+  width:54px;height:54px;border-radius:14px;background:var(--c-tint);
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
 }
-.proto-dot{
-  width:6px;height:6px;border-radius:50%;background:var(--c-teal);
-  animation:livePulse 2.4s ease-in-out infinite;
-}
-#emptyChat h1{font-size:23px;font-weight:800;color:var(--c-navy);letter-spacing:-0.015em;margin-top:12px}
-#emptyChat .lead{font-size:13.5px;color:var(--c-text-muted);margin-top:7px;max-width:380px;line-height:1.6}
-
-/* network visualization */
-.network-vis{
-  width:100%;max-width:480px;margin:0 auto;
-}
-.network-vis svg{width:100%;height:auto;overflow:visible}
-.net-line{
-  fill:none;stroke:var(--c-teal);stroke-width:1.4;opacity:0;
-  stroke-dasharray:1;stroke-dashoffset:1;
-}
-/* node base styles */
-.nn-circle{fill:rgba(255,255,255,0.9);stroke-width:1.8}
-.nn-abbr{font-family:'Inter','Arial',sans-serif;font-size:8.5px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
-.nn-label{font-family:'Inter','Arial',sans-serif;font-size:9px;font-weight:600;text-anchor:middle}
-/* per-source colour coding */
-#nn-0 .nn-circle{stroke:#0082C4;fill:rgba(0,130,196,0.08)}    /* Salesforce – Calastone blue */
-#nn-1 .nn-circle{stroke:#22323D;fill:rgba(34,50,61,0.08)}     /* Contracts  – Navy */
-#nn-2 .nn-circle{stroke:#3B6FCC;fill:rgba(59,111,204,0.08)}   /* Jira       – Cobalt */
-#nn-3 .nn-circle{stroke:#2D9A8E;fill:rgba(45,154,142,0.08)}   /* PowerBI    – Teal */
-#nn-4 .nn-circle{stroke:#35B57E;fill:rgba(53,181,126,0.08)}   /* Billing    – Green */
-#nn-5 .nn-circle{stroke:#566571;fill:rgba(86,101,113,0.08)}   /* Procedures – Slate */
-#nn-0 .nn-abbr,#nn-0 .nn-label{fill:#0082C4}
-#nn-1 .nn-abbr,#nn-1 .nn-label{fill:#22323D}
-#nn-2 .nn-abbr,#nn-2 .nn-label{fill:#3B6FCC}
-#nn-3 .nn-abbr,#nn-3 .nn-label{fill:#2D9A8E}
-#nn-4 .nn-abbr,#nn-4 .nn-label{fill:#35B57E}
-#nn-5 .nn-abbr,#nn-5 .nn-label{fill:#566571}
-/* hex centre */
-#hexCenter{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .52s both}
-/* source toggle colour coding (matches nodes) */
-.ctx-toggle[data-ctx="Salesforce"].on{background:#0082C4;border-color:#0082C4}
-.ctx-toggle[data-ctx="Contracts"].on{background:#22323D;border-color:#22323D}
-.ctx-toggle[data-ctx="Jira"].on{background:#3B6FCC;border-color:#3B6FCC}
-.ctx-toggle[data-ctx="PowerBI"].on{background:#2D9A8E;border-color:#2D9A8E}
-.ctx-toggle[data-ctx="Billing"].on{background:#35B57E;border-color:#35B57E}
-.ctx-toggle[data-ctx="Procedures"].on{background:#566571;border-color:#566571}
-.net-line{animation:fadeIn .8s ease .58s both}
-#nn-0{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .66s both}
-#nn-1{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .74s both}
-#nn-2{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .82s both}
-#nn-3{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .9s both}
-#nn-4{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .98s both}
-#nn-5{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) 1.06s both}
-.net-node{opacity:0}
-
-/* suggest chips */
-.chips-area{width:100%;max-width:540px;margin-top:20px}
+.empty-chat .mark-lg svg{width:30px;height:30px}
+.empty-chat h1{font-size:23px;font-weight:700;color:var(--c-navy);letter-spacing:-0.01em}
+.empty-chat p{font-size:14px;color:var(--c-text-muted);margin-top:7px;max-width:430px}
 .chips-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:9px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px;
+  width:100%;max-width:560px;
 }
 .suggest-chip{
-  display:flex;align-items:flex-start;gap:10px;text-align:left;
-  background:var(--c-surface);
-  border:1px solid var(--c-border-soft);border-left:3px solid var(--c-teal);
-  border-radius:var(--radius-md);padding:12px 14px 12px 13px;
-  font-size:13px;color:var(--c-text);font-weight:500;line-height:1.4;
-  transition:background .15s,box-shadow .15s,color .15s;min-height:48px;
-  will-change:transform;
+  display:flex;align-items:center;gap:10px;text-align:left;
+  background:var(--c-surface);border:1px solid var(--c-border);
+  border-radius:var(--radius-md);padding:13px 15px;
+  font-size:13px;color:var(--c-text);font-weight:500;
+  transition:border-color .15s,box-shadow .15s,color .15s;min-height:48px;
 }
-.suggest-chip svg{width:15px;height:15px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8;margin-top:1px}
-.suggest-chip:hover{background:var(--c-tint);color:var(--c-teal-hover);box-shadow:var(--shadow-sm)}
-.chip-more-btn{
-  width:100%;margin-top:9px;padding:9px 14px;
-  background:none;border:1px dashed var(--c-border);border-radius:var(--radius-md);
-  font-size:12px;font-weight:600;color:var(--c-text-muted);text-align:center;
-  transition:border-color .15s,color .15s,background .15s;cursor:pointer;
-}
-.chip-more-btn:hover{border-color:var(--c-teal);color:var(--c-teal);background:var(--c-tint)}
-.chip-extra{display:none}
-.chip-extra.visible{display:flex}
-
-/* source querying animation — flash on submit */
-@keyframes nodeFlash{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-.net-node.querying .nn-circle{animation:nodeFlash .6s ease-in-out}
-.net-node.querying .nn-center-circle{animation:nodeFlash .6s ease-in-out}
+.suggest-chip svg{width:16px;height:16px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8}
+.suggest-chip:hover{border-color:var(--c-teal);color:var(--c-teal);box-shadow:var(--shadow-sm)}
 
 /* messages */
 .msg{display:flex;flex-direction:column}
@@ -428,11 +301,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .assistant-body td{padding:8px 10px;border-bottom:1px solid var(--c-border-soft);font-variant-numeric:tabular-nums}
 .assistant-body tr:last-child td{border-bottom:none}
 
-/* info card */
+/* info card inside answer */
 .info-card{
   border:1px solid var(--c-border);border-radius:var(--radius-lg);
   background:var(--c-surface);box-shadow:var(--shadow-sm);overflow:hidden;margin:4px 0 12px;
-  will-change:transform,opacity;
 }
 .info-card .ic-head{
   padding:13px 16px;border-bottom:1px solid var(--c-border-soft);
@@ -485,20 +357,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .src-chip svg{width:12px;height:12px;stroke-width:2}
 .src-chip:hover{border-color:var(--c-teal);color:var(--c-teal);background:var(--c-tint)}
 .src-chip.active{border-color:var(--c-teal);color:var(--c-teal);background:var(--c-tint)}
-/* inline suggestions in fallback response */
-.dev-note{background:rgba(249,250,251,0.9);border:1px dashed var(--c-border);border-radius:var(--radius-md);padding:12px 14px;margin:10px 0 4px;font-size:12.5px;color:var(--c-text-muted)}
-.dev-note strong{color:var(--c-text)}
-.inline-suggests{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.inline-suggest{display:flex;align-items:center;gap:10px;text-align:left;background:var(--c-surface);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-teal);border-radius:var(--radius-sm);padding:9px 13px;font-size:13px;color:var(--c-text);font-weight:500;cursor:pointer;transition:background .14s,color .14s,box-shadow .14s}
-.inline-suggest:hover{background:var(--c-tint);color:var(--c-teal-hover);box-shadow:var(--shadow-sm)}
-.inline-suggest svg{width:14px;height:14px;color:var(--c-teal);flex:0 0 auto;stroke-width:1.8}
 
 /* typing */
 .typing{display:flex;gap:5px;align-items:center;padding:4px 0}
-.typing .dot{width:7px;height:7px;border-radius:50%;background:var(--c-teal);animation:dotPulse 1.3s infinite ease-in-out}
+.typing .dot{width:7px;height:7px;border-radius:50%;background:var(--c-teal);animation:pulse 1.3s infinite ease-in-out}
 .typing .dot:nth-child(2){animation-delay:.18s}
 .typing .dot:nth-child(3){animation-delay:.36s}
-@keyframes dotPulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
 
 /* ── input bar ── */
 .input-wrap{flex:0 0 auto;border-top:1px solid var(--c-border);background:var(--c-surface);padding:10px 30px 14px}
@@ -509,7 +374,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   display:inline-flex;align-items:center;gap:6px;
   border:1px solid var(--c-border);border-radius:20px;padding:4px 11px;
   font-size:11.5px;font-weight:500;color:var(--c-text-muted);background:var(--c-surface-3);
-  transition:all .14s;will-change:transform;
+  transition:all .14s;
 }
 .ctx-toggle svg{width:12px;height:12px;stroke-width:2}
 .ctx-toggle.on{background:var(--c-teal);color:#fff;border-color:var(--c-teal)}
@@ -552,7 +417,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .source-card{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);
   padding:12px 13px;transition:box-shadow .15s,border-color .15s;cursor:default;
-  will-change:transform,opacity;
 }
 .source-card:hover{box-shadow:var(--shadow-sm);border-color:var(--c-tint-2)}
 .source-card.flash{border-color:var(--c-teal);box-shadow:0 0 0 2px var(--c-teal-soft)}
@@ -684,7 +548,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .kpi{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);
-  padding:14px 15px;box-shadow:var(--shadow-sm);will-change:transform,opacity;
+  padding:14px 15px;box-shadow:var(--shadow-sm);
 }
 .kpi .k-val{font-size:24px;font-weight:800;color:var(--c-navy);letter-spacing:-0.02em;line-height:1.1;font-variant-numeric:tabular-nums}
 .kpi .k-lbl{font-size:11.5px;color:var(--c-text-muted);margin-top:5px;font-weight:500}
@@ -695,7 +559,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 .chart-card,.table-card{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);
-  padding:16px 18px;box-shadow:var(--shadow-sm);will-change:transform,opacity;
+  padding:16px 18px;box-shadow:var(--shadow-sm);
 }
 .chart-wrap{position:relative;width:100%;height:280px;max-height:280px}
 .chart-wrap.short{height:230px}
@@ -722,7 +586,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 .prob-bar .track{width:48px;height:5px;border-radius:3px;background:var(--c-surface-3);overflow:hidden}
 .prob-bar .fill{height:100%;background:var(--c-teal);border-radius:3px}
 
-.flags-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);overflow:hidden;will-change:transform,opacity}
+.flags-card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);overflow:hidden}
 .flag-row{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--c-border-soft)}
 .flag-row:last-child{border-bottom:none}
 .flag-row .fl-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
@@ -734,7 +598,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 
 .commentary{
   background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--radius-md);padding:16px 18px;
-  will-change:transform,opacity;
 }
 .commentary .cm-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .commentary .cm-av{width:26px;height:26px;border-radius:50%;background:var(--c-teal);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
@@ -764,6 +627,8 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
   .kpi-strip,.sk-kpis{grid-template-columns:1fr 1fr}
   .chat-thread,.input-wrap{padding-left:16px;padding-right:16px}
 }
+
+/* print */
 @media print{
   .topbar,.sidebar,.da-left,.da-head .da-actions,.rep-actions{display:none!important}
   body,.app,.main,.view,.da-cols,.da-right{overflow:visible!important;height:auto!important;display:block!important}
@@ -776,30 +641,26 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 <body>
 <div class="app">
 
-  <!-- ════ TOP BAR (light, consistent with Pulse design system) ════ -->
+  <!-- ════ TOP BAR ════ -->
   <header class="topbar">
-    <a href="../../index.html" class="home-btn" aria-label="Back to Pulse">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-      ← Pulse Home
-    </a>
-    <div class="topbar-divider"></div>
-    <div class="brand">
-      <img src="../../assets/calastone-wordmark-black.png" alt="Calastone">
-      <div class="gradline"></div>
+    <button class="icon-btn" id="mobileMenu" aria-label="Toggle menu" style="display:none"><i data-lucide="menu"></i></button>
+    <div class="logo">
+      <span class="wordmark" aria-label="Phaeron Pulse">
+        CAL<span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2ECBB1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
+        </span>STONE
+      </span>
+      <span class="pulse-tag">Pulse</span>
     </div>
-    <div class="topbar-divider"></div>
+    <span class="divider-v"></span>
     <span class="module-name">Intelligence Module</span>
     <span class="spacer"></span>
-    <div class="live-indicator">
-      <span class="live-dot"></span>
-      6 sources live
-    </div>
     <div class="user">
-      <div class="user-meta">
-        <div class="name">Alex Curtin</div>
-        <div class="role">Sales · EMEA</div>
+      <div style="text-align:right">
+        <div class="name">Alex Hartley</div>
+        <div class="role">Commercial Analyst</div>
       </div>
-      <div class="avatar" aria-label="Alex Curtin">AC</div>
+      <div class="avatar" aria-label="Alex Hartley">AH</div>
     </div>
   </header>
 
@@ -821,19 +682,19 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <span class="chev"><i data-lucide="chevron-down"></i></span>
         </button>
         <div class="recent-list" id="recentList">
-          <button class="recent-item" data-hist="digitalTA"><i data-lucide="message-square"></i><span>Digital TA rollout status</span></button>
-          <button class="recent-item" data-hist="blackrock"><i data-lucide="message-square"></i><span>BlackRock billing &amp; renewal</span></button>
-          <button class="recent-item" data-hist="lng"><i data-lucide="message-square"></i><span>L&amp;G relationship review</span></button>
-          <button class="recent-item" data-hist="pipeline"><i data-lucide="message-square"></i><span>Q3 ETF pipeline weighting</span></button>
-          <button class="recent-item" data-hist="thailand"><i data-lucide="message-square"></i><span>Thailand network presence</span></button>
+          <button class="recent-item"><i data-lucide="message-square"></i><span>Digital TA rollout status</span></button>
+          <button class="recent-item"><i data-lucide="message-square"></i><span>BlackRock billing &amp; renewal</span></button>
+          <button class="recent-item"><i data-lucide="message-square"></i><span>L&amp;G relationship review</span></button>
+          <button class="recent-item"><i data-lucide="message-square"></i><span>Q3 ETF pipeline weighting</span></button>
+          <button class="recent-item"><i data-lucide="message-square"></i><span>Thailand network presence</span></button>
         </div>
       </div>
       <div class="sidebar-foot">
         <div class="user-mini">
-          <div class="avatar" style="width:32px;height:32px">AC</div>
+          <div class="avatar" style="width:32px;height:32px">AH</div>
           <div class="meta">
-            <div class="n">Alex Curtin</div>
-            <div class="r">Sales · EMEA</div>
+            <div class="n">Alex Hartley</div>
+            <div class="r">Commercial Analyst · CoS</div>
           </div>
         </div>
         <button class="settings-link"><i data-lucide="settings"></i><span>Settings</span></button>
@@ -843,11 +704,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
     <!-- ════ MAIN ════ -->
     <main class="main">
 
-      <!-- Filled in by the load check at the foot of this file when the
-           Relationship Snapshot module fails to register. Empty otherwise. -->
-      <div id="moduleWarning" role="alert"></div>
-
-
       <!-- ─── VIEW 1: CHAT ─── -->
       <section class="view active" id="view-chat">
         <div class="chat-cols">
@@ -855,77 +711,16 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
             <div class="chat-thread" id="chatThread">
               <!-- empty state -->
               <div class="empty-chat" id="emptyChat">
-                <div class="proto-badge"><span class="proto-dot"></span>Internal Prototype · Commercial Preview</div>
-
-                <!-- animated data connectivity network -->
-                <div class="network-vis" id="networkVis" aria-hidden="true">
-                  <svg viewBox="0 -22 440 284" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%"   stop-color="#0082C4"/>
-                        <stop offset="50%"  stop-color="#2D9A8E"/>
-                        <stop offset="100%" stop-color="#35B57E"/>
-                      </linearGradient>
-                    </defs>
-                    <!-- lines stop at circle edge (r=22) so they never cross labels -->
-                    <path class="net-line" id="nl-0" d="M220,120 L88,61"   pathLength="1" style="stroke:#0082C4"/>
-                    <path class="net-line" id="nl-1" d="M220,120 L220,46"  pathLength="1" style="stroke:#22323D"/>
-                    <path class="net-line" id="nl-2" d="M220,120 L352,61"  pathLength="1" style="stroke:#3B6FCC"/>
-                    <path class="net-line" id="nl-3" d="M220,120 L352,179" pathLength="1" style="stroke:#2D9A8E"/>
-                    <path class="net-line" id="nl-4" d="M220,120 L220,194" pathLength="1" style="stroke:#35B57E"/>
-                    <path class="net-line" id="nl-5" d="M220,120 L88,179"  pathLength="1" style="stroke:#566571"/>
-                    <!-- Calastone hexagon centre -->
-                    <g id="hexCenter">
-                      <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="url(#hexGrad)"/>
-                      <path id="hexTrace" d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(180,240,230,0.85)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24 168"/>
-                      <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
-                    </g>
-                    <!-- source nodes -->
-                    <g class="net-node" id="nn-0">
-                      <circle class="nn-circle" cx="68" cy="52" r="22"/>
-                      <text class="nn-abbr" x="68" y="52">SF</text>
-                      <text class="nn-label" x="68" y="82">Salesforce</text>
-                    </g>
-                    <g class="net-node" id="nn-1">
-                      <circle class="nn-circle" cx="220" cy="24" r="22"/>
-                      <text class="nn-abbr" x="220" y="24">CT</text>
-                      <text class="nn-label" x="220" y="-4">Contracts</text>
-                    </g>
-                    <g class="net-node" id="nn-2">
-                      <circle class="nn-circle" cx="372" cy="52" r="22"/>
-                      <text class="nn-abbr" x="372" y="52">JR</text>
-                      <text class="nn-label" x="372" y="82">Jira</text>
-                    </g>
-                    <g class="net-node" id="nn-3">
-                      <circle class="nn-circle" cx="372" cy="188" r="22"/>
-                      <text class="nn-abbr" x="372" y="188">BI</text>
-                      <text class="nn-label" x="372" y="158">PowerBI</text>
-                    </g>
-                    <g class="net-node" id="nn-4">
-                      <circle class="nn-circle" cx="220" cy="216" r="22"/>
-                      <text class="nn-abbr" x="220" y="216">BL</text>
-                      <text class="nn-label" x="220" y="248">Billing</text>
-                    </g>
-                    <g class="net-node" id="nn-5">
-                      <circle class="nn-circle" cx="68" cy="188" r="22"/>
-                      <text class="nn-abbr" x="68" y="188">PR</text>
-                      <text class="nn-label" x="68" y="158">Procedures</text>
-                    </g>
-                  </svg>
+                <div class="mark-lg" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#2D9A8E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
                 </div>
-
                 <h1>What would you like to know?</h1>
-                <p class="lead">Your AI analyst — pulling live answers from contracts, billing, Jira, PowerBI, Salesforce and procedures.</p>
-
-                <div class="chips-area">
-                  <div class="chips-grid">
-                    <button class="suggest-chip" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
-                    <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
-                    <button class="suggest-chip chip-extra" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
-                    <button class="suggest-chip chip-extra" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this ISIN?</button>
-                    <button class="suggest-chip chip-extra" data-q="Give me a relationship snapshot for CTN 303"><i data-lucide="contact-round"></i>Relationship snapshot for CTN 303</button>
-                  </div>
-                  <button class="chip-more-btn" id="chipMoreBtn">More examples →</button>
+                <p>Ask about clients, contracts, products, projects, or fund operations.</p>
+                <div class="chips-grid">
+                  <button class="suggest-chip" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
+                  <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
+                  <button class="suggest-chip" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
+                  <button class="suggest-chip" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this ISIN?</button>
                 </div>
               </div>
               <div class="thread-inner" id="threadInner" style="display:none"></div>
@@ -945,7 +740,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
                 </div>
                 <div class="input-box">
                   <button class="attach-btn" aria-label="Attach file"><i data-lucide="paperclip"></i></button>
-                  <textarea id="chatInput" rows="1" placeholder="Ask anything about Calastone…" aria-label="Message"></textarea>
+                  <textarea id="chatInput" rows="1" placeholder="Ask anything about Phaeron…" aria-label="Message"></textarea>
                   <button class="send-btn" id="sendBtn" aria-label="Send" disabled><i data-lucide="arrow-up"></i></button>
                 </div>
                 <div class="input-hint"><kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> for new line</div>
@@ -957,7 +752,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <aside class="chat-right hidden" id="sourcePanel" aria-label="Sources">
             <div class="src-panel-head">
               <span class="eyebrow">Sources</span>
-              <button class="icon-btn close-src" id="closeSrc" aria-label="Close sources"><i data-lucide="x"></i></button>
+              <button class="icon-btn close-src" id="closeSrc" aria-label="Close sources" style="color:var(--c-text-muted)"><i data-lucide="x"></i></button>
             </div>
             <div class="src-list" id="srcList"></div>
           </aside>
@@ -971,6 +766,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <p>Generate structured reports from Salesforce exports and internal data files</p>
         </div>
         <div class="da-cols">
+          <!-- template selector -->
           <div class="da-left">
             <span class="eyebrow">Report Templates</span>
             <div id="tplList"></div>
@@ -993,6 +789,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
             </div>
           </div>
 
+          <!-- report output -->
           <div class="da-right" id="reportOutput">
             <div class="report-empty" id="reportEmpty">
               <div class="re-ico"><i data-lucide="bar-chart-big"></i></div>
@@ -1002,10 +799,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
         </div>
       </section>
 
-      <!-- A relationship snapshot has no view of its own. It is recognised from
-           the chat and rendered inside its own assistant message by
-           ./relationship-snapshot/index.js. -->
-
     </main>
   </div>
 </div>
@@ -1014,11 +807,6 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
-<!-- ECharts powers the Relationship Snapshot charts only; Chart.js above still
-     serves the Data Analysis view. UMD build, so it lands on window.echarts. -->
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
-<script src="../../favicon-pulse.js"></script>
 <script>
 /* ───────────────────── helpers ───────────────────── */
 const $ = (s,r=document)=>r.querySelector(s);
@@ -1029,123 +817,19 @@ icons();
 let toastTimer;
 function toast(msg){
   $('#toastMsg').textContent = msg;
-  const el = $('#toast');
-  el.classList.add('show');
+  $('#toast').classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+  toastTimer = setTimeout(()=>$('#toast').classList.remove('show'),2200);
 }
 const now = ()=> new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-
-/* entrance animations handled via CSS @keyframes above */
-
-/* ───────────────────── network visualization ───────────────────── */
-function animateNetwork(){
-  /* lines draw outward from center */
-  anime({
-    targets:'.net-line',
-    strokeDashoffset:[1,0],
-    opacity:[0,0.45],
-    delay:anime.stagger(110,{start:520}),
-    duration:480,
-    easing:'easeOutCubic'
-  });
-  /* nodes pop in after their line */
-  anime({
-    targets:'.net-node',
-    opacity:[0,1],
-    scale:[0.55,1],
-    delay:anime.stagger(110,{start:640}),
-    duration:380,
-    easing:'easeOutBack'
-  });
-  /* hex centre scales up on network entrance */
-  anime({targets:'#hexCenter', scale:[0.7,1], opacity:[0,1], duration:500, delay:520, easing:'easeOutBack'});
-}
-animateNetwork();
-
-/* ───────────────────── hex border trace ───────────────────── */
-function animateHexBorder(){
-  anime({targets:'#hexTrace', strokeDashoffset:[192,0], duration:2400, easing:'linear', loop:true});
-}
-animateHexBorder();
-
-/* source ctx → network node mapping (for submit flash) */
-const CTX_NODE = {
-  'salesforce':'#nn-0','contracts':'#nn-1','jira':'#nn-2',
-  'powerbi':'#nn-3','billing':'#nn-4','procedures':'#nn-5'
-};
-
-function flashNodes(){
-  const activeCtx = $$('.ctx-toggle.on').map(b=>b.dataset.ctx.toLowerCase());
-  const targets = activeCtx.map(c=>CTX_NODE[c]).filter(Boolean);
-  if(!targets.length) return;
-  anime.timeline({easing:'easeInOutSine'})
-    .add({targets:'#hexCenter', scale:[1,1.1,1], duration:500})
-    .add({targets:targets.join(','), scale:[1,1.18,1], delay:anime.stagger(90), duration:480}, '-=300');
-}
-
-/* ───────────────────── chip expand ───────────────────── */
-let chipsExpanded = false;
-$('#chipMoreBtn').addEventListener('click',()=>{
-  chipsExpanded = !chipsExpanded;
-  $$('.chip-extra').forEach(c=>{
-    if(chipsExpanded){ c.classList.add('visible'); }
-    else { c.classList.remove('visible'); }
-  });
-  $('#chipMoreBtn').textContent = chipsExpanded ? 'Fewer examples ↑' : 'More examples →';
-  if(chipsExpanded){
-    anime({targets:$$('.chip-extra'), opacity:[0,1], translateY:[8,0], delay:anime.stagger(60), duration:300, easing:'easeOutCubic'});
-    wireChipHover();
-    wireChips();
-  }
-});
-
-/* ───────────────────── suggest chip hover ───────────────────── */
-function wireChipHover(){
-  $$('.suggest-chip').forEach(chip => {
-    chip.addEventListener('mouseenter', () =>
-      anime({targets:chip, translateY:-2, scale:1.015, duration:180, easing:'easeOutQuad'}));
-    chip.addEventListener('mouseleave', () =>
-      anime({targets:chip, translateY:0, scale:1, duration:220, easing:'easeOutQuad'}));
-  });
-}
-wireChipHover();
 
 /* ───────────────────── view switching ───────────────────── */
 $$('.nav-item').forEach(b=>b.addEventListener('click',()=>{
   $$('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  anime({targets:b, scale:[0.96,1], duration:200, easing:'easeOutBack'});
-
-  const vKey = b.dataset.view;
-  const outView = $('.view.active');
-  // Views are addressed by their data-view key so new views (e.g. snapshot)
-  // need no change here.
-  const inView = $('#view-'+vKey) || $('#view-chat');
-  const isChatRoute = vKey === 'chat';
-
-  if(isChatRoute){
-    thread.innerHTML = '';
-    emptyChat.style.display = 'flex';
-    thread.style.display = 'none';
-    srcPanel.classList.add('hidden');
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-    $$('.recent-item').forEach(item => item.classList.remove('active'));
-  }
-
-  if(outView === inView && isChatRoute){
-    return;
-  }
-
-  if(outView === inView) return;
-
-  anime({targets:outView, opacity:[1,0], duration:160, easing:'easeInQuad', complete:()=>{
-    outView.classList.remove('active');
-    inView.classList.add('active');
-    anime({targets:inView, opacity:[0,1], translateY:[8,0], duration:320, easing:'easeOutCubic'});
-  }});
+  const v=b.dataset.view;
+  $$('.view').forEach(x=>x.classList.remove('active'));
+  $('#view-'+(v==='chat'?'chat':'data')).classList.add('active');
 }));
 
 /* sidebar collapse */
@@ -1157,63 +841,8 @@ $('#recentHead').addEventListener('click',()=>{
   $('#recentHead').setAttribute('aria-expanded', String(!r.classList.contains('collapsed-list')));
 });
 
-/* ───────────────────── historical chat loader ───────────────────── */
-const HISTORY = {
-  digitalTA:{ q:'What stage is Digital TA at?',          key:'digitalTA', stamp:'Yesterday, 14:32' },
-  blackrock: { q:'How are we charging BlackRock?',        key:'blackrock',  stamp:'Monday, 09:18'   },
-  lng:       { q:'Relationship status with Legal &amp; General', key:'lng', stamp:'Tuesday, 11:04' },
-  pipeline:  { q:'Q3 ETF pipeline weighting',             key:'pipeline',   stamp:'Wednesday, 16:51'},
-  thailand:  { q:'Thailand network presence',             key:'thailand',   stamp:'Thursday, 10:27' }
-};
-
-function loadChat(histKey){
-  const hist = HISTORY[histKey];
-  if(!hist) return;
-  const r = resolve(hist.q.replace(/&amp;/g,'&'));
-
-  /* reset view */
-  emptyChat.style.display = 'none';
-  thread.style.display = 'flex';
-  thread.innerHTML = '';
-
-  /* question bubble */
-  thread.insertAdjacentHTML('beforeend',
-    `<div class="msg user"><div class="bubble">${hist.q}</div><div class="stamp">${hist.stamp}</div></div>`);
-
-  /* answer */
-  const tid = 't'+Date.now();
-  thread.insertAdjacentHTML('beforeend',
-    `<div class="msg assistant" id="${tid}">
-      <div class="assistant-row"><div class="av">C</div>
-      <div class="assistant-body">${r.html}</div></div>
-    </div>`);
-  const node = $('#'+tid);
-  if(r.sources&&r.sources.length) node.insertAdjacentHTML('beforeend', sourceChipsHTML(r.sources));
-  node.insertAdjacentHTML('beforeend',
-    `<div class="msg-actions">
-      <button class="act-btn" title="Copy" data-act="copy"><i data-lucide="copy"></i></button>
-      <button class="act-btn" title="Good response" data-act="up"><i data-lucide="thumbs-up"></i></button>
-      <button class="act-btn" title="Bad response" data-act="down"><i data-lucide="thumbs-down"></i></button>
-    </div>`);
-  wireActions(node, r);
-  if(r.sources&&r.sources.length){ renderSources(r.sources); openSourcePanel(); }
-  icons();
-  scrollBottom();
-  anime({targets:thread, opacity:[0,1], duration:280, easing:'easeOutCubic'});
-
-  /* mark active in sidebar */
-  $$('.recent-item').forEach(b=>b.classList.remove('active'));
-  const btn = $(`.recent-item[data-hist="${histKey}"]`);
-  if(btn) btn.classList.add('active');
-}
-
-$$('.recent-item').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.hist) loadChat(b.dataset.hist); }));
-
 /* ───────────────────── context toggles ───────────────────── */
-$$('.ctx-toggle').forEach(b=>b.addEventListener('click',()=>{
-  b.classList.toggle('on');
-  anime({targets:b, scale:[0.88,1], duration:280, easing:'spring(1,80,12,0)'});
-}));
+$$('.ctx-toggle').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
 
 /* ───────────────────── chat ───────────────────── */
 const input = $('#chatInput');
@@ -1232,54 +861,30 @@ input.addEventListener('keydown',e=>{
   if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); if(input.value.trim()) submit(); }
 });
 sendBtn.addEventListener('click',()=>{ if(input.value.trim()) submit(); });
-function wireChips(){
-  $$('.suggest-chip').forEach(c=>c.addEventListener('click',()=>{
-    input.value=c.dataset.q; input.dispatchEvent(new Event('input')); submit();
-  }));
-}
-wireChips();
-$('#closeSrc').addEventListener('click',()=>{
-  anime({targets:'#sourcePanel', translateX:[0,20], opacity:[1,0], duration:250, easing:'easeInQuad', complete:()=>srcPanel.classList.add('hidden')});
-});
+$$('.suggest-chip').forEach(c=>c.addEventListener('click',()=>{
+  input.value=c.dataset.q; input.dispatchEvent(new Event('input')); submit();
+}));
+$('#closeSrc').addEventListener('click',()=>srcPanel.classList.add('hidden'));
 
 function esc(s){return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
 
 function submit(){
   const text = input.value.trim();
   if(!text) return;
-
-  if(emptyChat.style.display!=='none' || !emptyChat.classList.contains('hidden-chat')){
-    anime({targets:emptyChat, opacity:[1,0], translateY:[0,-12], duration:280, easing:'easeInQuad', complete:()=>{
-      emptyChat.style.display='none'; thread.style.display='flex';
-      anime({targets:thread, opacity:[0,1], duration:200});
-    }});
-  }
-
+  if(emptyChat.style.display!=='none'){ emptyChat.style.display='none'; thread.style.display='flex'; }
+  // user bubble
   thread.insertAdjacentHTML('beforeend',
-    `<div class="msg user" style="opacity:0"><div class="bubble">${esc(text)}</div><div class="stamp">${now()}</div></div>`);
-  const userMsg = thread.lastElementChild;
-  anime({targets:userMsg, opacity:[0,1], translateY:[14,0], duration:320, easing:'easeOutCubic'});
-
+    `<div class="msg user"><div class="bubble">${esc(text)}</div><div class="stamp">${now()}</div></div>`);
   input.value=''; input.style.height='auto'; sendBtn.disabled=true;
-  flashNodes();
   scrollBottom();
-
+  // typing
   const tid='t'+Date.now();
   thread.insertAdjacentHTML('beforeend',
-    `<div class="msg assistant" id="${tid}" style="opacity:0"><div class="assistant-row"><div class="av">C</div><div class="assistant-body"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div></div>`);
-  const typingEl = $('#'+tid);
-  anime({targets:typingEl, opacity:[0,1], translateY:[10,0], duration:280, easing:'easeOutCubic'});
+    `<div class="msg assistant" id="${tid}"><div class="assistant-row"><div class="av">C</div><div class="assistant-body"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div></div>`);
   scrollBottom();
-
   setTimeout(()=>{
-    const node = $('#'+tid);
-
-    /* Relationship Snapshot gets first refusal on the prompt. If it claims the
-       turn it owns this assistant node from here; otherwise the canned-answer
-       path below runs exactly as before. */
-    if(window.RelationshipSnapshot && window.RelationshipSnapshot.tryHandle(text, node)) return;
-
     const r = resolve(text);
+    const node = $('#'+tid);
     node.querySelector('.assistant-body').innerHTML = r.html;
     if(r.sources && r.sources.length){
       node.insertAdjacentHTML('beforeend', sourceChipsHTML(r.sources));
@@ -1291,29 +896,10 @@ function submit(){
         <button class="act-btn" title="Bad response" data-act="down"><i data-lucide="thumbs-down"></i></button>
       </div>`);
     wireActions(node, r);
-
-    /* animate the response in */
-    anime({targets:node, opacity:[0,1], translateY:[12,0], duration:380, easing:'easeOutCubic'});
-    const infoCards = node.querySelectorAll('.info-card');
-    if(infoCards.length) anime({targets:infoCards, opacity:[0,1], translateY:[10,0], scale:[0.97,1], delay:anime.stagger(80), duration:420, easing:'easeOutCubic'});
-    const chips = node.querySelectorAll('.src-chip');
-    if(chips.length) anime({targets:chips, opacity:[0,1], translateX:[-8,0], delay:anime.stagger(55,{start:200}), duration:320, easing:'easeOutCubic'});
-
-    if(r.sources && r.sources.length){ renderSources(r.sources); openSourcePanel(); }
-    /* wire inline-suggest buttons in fallback response */
-    $$('.inline-suggest', node).forEach(btn=>btn.addEventListener('click',()=>{
-      input.value = btn.dataset.q; input.dispatchEvent(new Event('input')); submit();
-    }));
+    if(r.sources && r.sources.length){ renderSources(r.sources); srcPanel.classList.remove('hidden'); }
     icons();
     scrollBottom();
-  }, 900 + Math.random()*500);
-}
-
-function openSourcePanel(){
-  if(srcPanel.classList.contains('hidden')){
-    srcPanel.classList.remove('hidden');
-    anime({targets:'#sourcePanel', translateX:[20,0], opacity:[0,1], duration:320, easing:'easeOutCubic'});
-  }
+  }, 950 + Math.random()*500);
 }
 
 function scrollBottom(){ const t=$('#chatThread'); t.scrollTop=t.scrollHeight; }
@@ -1327,7 +913,7 @@ function wireActions(node,r){
   $$('.src-chip',node).forEach(chip=>chip.addEventListener('click',()=>{
     $$('.src-chip',node).forEach(c=>c.classList.remove('active'));
     chip.classList.add('active');
-    openSourcePanel();
+    srcPanel.classList.remove('hidden');
     const card = srcList.children[+chip.dataset.idx];
     if(card){ $$('.source-card').forEach(c=>c.classList.remove('flash')); card.classList.add('flash'); card.scrollIntoView({block:'nearest',behavior:'smooth'}); }
   }));
@@ -1340,7 +926,7 @@ function wireActions(node,r){
 }
 function renderSources(sources){
   srcList.innerHTML = sources.map(s=>`
-    <div class="source-card" style="opacity:0">
+    <div class="source-card">
       <div class="sc-head">
         <div class="sc-ico"><i data-lucide="${s.icon}"></i></div>
         <div class="sc-title">${s.title}</div>
@@ -1350,36 +936,29 @@ function renderSources(sources){
       <div class="sc-meta"><span class="tag">${s.system}</span><span>${s.time}</span></div>
     </div>`).join('');
   icons();
-  anime({targets:'.source-card', opacity:[0,1], translateY:[12,0], delay:anime.stagger(70,{start:120}), duration:380, easing:'easeOutCubic'});
 }
 
-/* ───────────── answer resolution ───────────── */
-/* Which prepared answer, if any, covers this question. Split out of resolve()
-   so other features can ask the same question: Relationship Snapshot uses it to
-   stay off prompts this module already answers well. Exposed on window because
-   it is a classic script and the feature is a module. */
-function cannedKey(q){
-  const t = q.toLowerCase();
-  if(/digital ta/.test(t)) return 'digitalTA';
-  if(/blackrock/.test(t)) return 'blackrock';
-  if(/legal and general|legal & general|l&g|l & g/.test(t)) return 'lng';
-  if(/thailand/.test(t)) return 'thailand';
-  if(/goldman|isin/.test(t)) return 'isin';
-  if(/pipeline|etf/.test(t)) return 'pipeline';
-  return null;
-}
-window.cannedKey = cannedKey;
-
+/* ───────── simulated answer resolution ───────── */
 function resolve(q){
-  const key = cannedKey(q);
-  return key ? ANS[key] : ANS.generic(q);
+  const t = q.toLowerCase();
+  if(/digital ta/.test(t)) return ANS.digitalTA;
+  if(/blackrock/.test(t)) return ANS.blackrock;
+  if(/legal and general|legal & general|l&g|l & g/.test(t)) return ANS.lng;
+  if(/thailand/.test(t)) return ANS.thailand;
+  if(/goldman|isin/.test(t)) return ANS.isin;
+  if(/pipeline|etf/.test(t)) return ANS.pipeline;
+  return ANS.generic(q);
 }
 
 const ANS = {
-  digitalTA:{
-    html:`<p>Here's the current status of <strong>Digital TA</strong>, pulled from the live Jira board and the latest product update.</p>
+  digitalTA: {
+    html: `<p>Here's the current status of <strong>Digital TA</strong>, pulled from the live Jira board and the latest product update.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="git-branch"></i></div><div class="ic-titles"><div class="t">Digital TA</div><div class="s">Product · Transfer Agency modernisation</div></div><span class="pill green">In Build</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="git-branch"></i></div>
+        <div class="ic-titles"><div class="t">Digital TA</div><div class="s">Product · Transfer Agency modernisation</div></div>
+        <span class="pill green">In Build</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Stage</div><div class="val">Phase 2 — Build &amp; Integration</div></div>
         <div class="ic-cell"><div class="lbl">Owner</div><div class="val">David McGuiness (Product)</div></div>
@@ -1395,10 +974,14 @@ const ANS = {
       {system:'Salesforce',icon:'cloud',title:'Digital TA Pilot — Opportunities',snippet:'3 linked opportunities tagged "DTA Pilot". 2 at Closed Won, 1 at Negotiation.',time:'4 days ago'}
     ]
   },
-  blackrock:{
-    html:`<p>Here's how <strong>BlackRock</strong> is currently being charged, from the active contract and the latest billing run.</p>
+  blackrock: {
+    html: `<p>Here's how <strong>BlackRock</strong> is currently being charged, from the active contract and the latest billing run.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="receipt"></i></div><div class="ic-titles"><div class="t">BlackRock</div><div class="s">Billing · Enterprise tier</div></div><span class="pill green">Current</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="receipt"></i></div>
+        <div class="ic-titles"><div class="t">BlackRock</div><div class="s">Billing · Enterprise tier</div></div>
+        <span class="pill green">Current</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Contract Tier</div><div class="val">Enterprise — Network + Data</div></div>
         <div class="ic-cell"><div class="lbl">Pricing Model</div><div class="val">Per-message + annual platform fee</div></div>
@@ -1414,10 +997,14 @@ const ANS = {
       {system:'Salesforce',icon:'cloud',title:'BlackRock — Account record',snippet:'Renewal 31 Mar 2027. Account Owner: Ben Carew Gibbs. Health: Green.',time:'Updated weekly'}
     ]
   },
-  lng:{
-    html:`<p>Here's the relationship picture for <strong>Legal &amp; General Investment Management</strong>, combining CRM activity and the latest meeting notes.</p>
+  lng: {
+    html: `<p>Here's the relationship picture for <strong>Legal &amp; General Investment Management</strong>, combining CRM activity and the latest meeting notes.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="handshake"></i></div><div class="ic-titles"><div class="t">Legal &amp; General (LGIM)</div><div class="s">Relationship · Strategic account</div></div><span class="pill amber">Watch</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="handshake"></i></div>
+        <div class="ic-titles"><div class="t">Legal &amp; General (LGIM)</div><div class="s">Relationship · Strategic account</div></div>
+        <span class="pill amber">Watch</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Relationship Manager</div><div class="val">Scott Maxam</div></div>
         <div class="ic-cell"><div class="lbl">Last Meeting</div><div class="val">12 days ago — QBR</div></div>
@@ -1426,17 +1013,21 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="clipboard-list"></i>QBR notes · 3 open actions · next review scheduled</div>
     </div>
-    <p>The relationship is solid but flagged <strong>Watch</strong> this quarter: LGIM raised latency concerns on cross-border corridors at the last QBR, and a competitor approached them on data services. Worth a proactive check-in before the next review.</p>`,
+    <p>The relationship is solid but flagged <strong>Watch</strong> this quarter: LGIM raised latency concerns on cross-border corridors at the last QBR, and a competitor approached them on data services. Our two open actions are the corridor latency analysis (due this week) and a Data Services proposal. Worth a proactive check-in before the next review.</p>`,
     sources:[
       {system:'Salesforce',icon:'cloud',title:'LGIM — Account & activity',snippet:'Last activity QBR 12 days ago. 3 open tasks. Engagement score trending down from 81 to 72.',time:'Updated daily'},
-      {system:'Procedures',icon:'book-open',title:'LGIM QBR — Meeting notes',snippet:'Client raised latency on APAC corridors. Action: latency analysis owed by Calastone this week.',time:'12 days ago'},
+      {system:'Procedures',icon:'book-open',title:'LGIM QBR — Meeting notes',snippet:'Client raised latency on APAC corridors. Action: latency analysis owed by Phaeron this week.',time:'12 days ago'},
       {system:'Contracts',icon:'file-text',title:'LGIM — Master Services Agreement',snippet:'Network + Transaction Management. Renewal Sept 2026.',time:'Signed 2022'}
     ]
   },
-  thailand:{
-    html:`<p>Here's Calastone's <strong>Thailand</strong> presence, drawn from the network registry and partnerships log.</p>
+  thailand: {
+    html: `<p>Here's Phaeron's <strong>Thailand</strong> presence, drawn from the network registry and partnerships log.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="map-pin"></i></div><div class="ic-titles"><div class="t">Thailand</div><div class="s">Geographic presence · APAC</div></div><span class="pill green">Live</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="map-pin"></i></div>
+        <div class="ic-titles"><div class="t">Thailand</div><div class="s">Geographic presence · APAC</div></div>
+        <span class="pill green">Live</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Live Products</div><div class="val">Order Routing, Settlements</div></div>
         <div class="ic-cell"><div class="lbl">Local Headcount</div><div class="val">4 (Singapore-supported)</div></div>
@@ -1445,16 +1036,20 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="network"></i>7 live corridors · APAC cluster · SG hub coverage</div>
     </div>
-    <p>Thailand runs through the Singapore hub rather than a standalone office, with Order Routing and Settlements live across 7 corridors. There's an open opportunity to extend Data Services, contingent on local regulatory clarity around cross-border distribution.</p>`,
+    <p>Thailand runs through the Singapore hub rather than a standalone office, with Order Routing and Settlements live across 7 corridors. There's an open opportunity to extend Data Services into the market, contingent on local regulatory clarity around cross-border distribution.</p>`,
     sources:[
       {system:'PowerBI',icon:'bar-chart-3',title:'APAC Network — Corridor registry',snippet:'Thailand: 7 active corridors, 2 connected transfer agents, products Order Routing + Settlements.',time:'Updated monthly'},
       {system:'Procedures',icon:'book-open',title:'APAC partnerships — Thailand',snippet:'Coverage provided from Singapore hub. Two local TA partners onboarded.',time:'2 months ago'}
     ]
   },
-  isin:{
-    html:`<p>Here's the fund / ISIN summary for the <strong>Goldman Sachs</strong> record matched to your query.</p>
+  isin: {
+    html: `<p>Here's the fund / ISIN summary for the <strong>Goldman Sachs</strong> record matched to your query.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="fingerprint"></i></div><div class="ic-titles"><div class="t">GS Global Equity Fund</div><div class="s">ISIN · LU1234567890</div></div><span class="pill green">Active</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="fingerprint"></i></div>
+        <div class="ic-titles"><div class="t">GS Global Equity Fund</div><div class="s">ISIN · LU1234567890</div></div>
+        <span class="pill green">Active</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Relationship Manager</div><div class="val">Luke May</div></div>
         <div class="ic-cell"><div class="lbl">Counterparties</div><div class="val">14 distributors</div></div>
@@ -1469,10 +1064,14 @@ const ANS = {
       {system:'PowerBI',icon:'bar-chart-3',title:'ISIN LU1234567890 — Flow',snippet:'30-day routed volume 38,200 orders. No settlement exceptions.',time:'Updated hourly'}
     ]
   },
-  pipeline:{
-    html:`<p>I've pulled the <strong>ETF pipeline</strong> from the latest Salesforce opportunity export. Here's the headline; the full breakdown is best viewed as a report.</p>
+  pipeline: {
+    html: `<p>I've pulled the <strong>ETF pipeline</strong> from the latest Salesforce opportunity export. Here's the headline; the full breakdown is best viewed as a report.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="bar-chart-2"></i></div><div class="ic-titles"><div class="t">ETF Servicing Pipeline</div><div class="s">Salesforce · 9 open opportunities</div></div><span class="pill green">Q3 FY26</span></div>
+      <div class="ic-head">
+        <div class="ic-ico"><i data-lucide="bar-chart-2"></i></div>
+        <div class="ic-titles"><div class="t">ETF Servicing Pipeline</div><div class="s">Salesforce · 9 open opportunities</div></div>
+        <span class="pill green">Q3 FY26</span>
+      </div>
       <div class="ic-grid">
         <div class="ic-cell"><div class="lbl">Total Pipeline</div><div class="val lg">£4.62m</div></div>
         <div class="ic-cell"><div class="lbl">Weighted</div><div class="val lg">£2.18m</div></div>
@@ -1481,25 +1080,19 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="arrow-right"></i>Open Data Analysis → ETF Pipeline Analysis for the full report</div>
     </div>
-    <p>ETF Servicing remains the dominant line at roughly <strong>48% of weighted pipeline</strong>. Switch to <strong>Data Analysis</strong> and run the ETF Pipeline Analysis template to see the full stage breakdown with probability-weighted revenue.</p>`,
+    <p>ETF Servicing remains the dominant line at roughly <strong>48% of weighted pipeline</strong>. To see the stage breakdown, probability-weighted revenue and predicted close timeline, switch to <strong>Data Analysis</strong> and run the ETF Pipeline Analysis template — I've pre-loaded the sample export there.</p>`,
     sources:[
       {system:'Salesforce',icon:'cloud',title:'SFDC Opportunity Export — Q3',snippet:'9 open ETF opportunities. Total £4.62m, weighted £2.18m across 5 stages.',time:'Exported today'},
       {system:'PowerBI',icon:'bar-chart-3',title:'Pipeline dashboard — ETF',snippet:'ETF Servicing ≈48% of weighted pipeline; Order Routing ≈26%.',time:'Updated daily'}
     ]
   },
-  generic:(q)=>({
-    html:`<p>I searched across all connected sources for <strong>"${esc(q)}"</strong> but couldn't pull a definitive answer yet.</p>
-    <div class="dev-note"><strong>Still in development</strong> — live query coverage is expanding. Right now I can answer a growing set of topics; anything outside that returns here for now.</div>
-    <p style="margin-top:12px;font-size:13px;color:var(--c-text-muted)">Try one of these questions I can answer today:</p>
-    <div class="inline-suggests">
-      <button class="inline-suggest" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
-      <button class="inline-suggest" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
-      <button class="inline-suggest" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
-      <button class="inline-suggest" data-q="Thailand network presence"><i data-lucide="map-pin"></i>Thailand network presence</button>
-      <button class="inline-suggest" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this Goldman ISIN?</button>
-      <button class="inline-suggest" data-q="Q3 ETF pipeline weighting"><i data-lucide="bar-chart-2"></i>Q3 ETF pipeline weighting</button>
-    </div>`,
-    sources:[]
+  generic: (q)=>({
+    html: `<p>Searching across Phaeron data sources for <strong>"${esc(q)}"</strong>…</p>
+    <p>I found a few related records but nothing with a definitive single answer. Based on the available data, the most relevant items sit in Salesforce and the procedures library. The closest match suggests this relates to an active account, but I'd recommend narrowing the query — for example by client name, ISIN, product, or project — so I can return a precise record rather than a broad search.</p>
+    <p>Try mentioning a specific client (e.g. <strong>BlackRock</strong>, <strong>L&amp;G</strong>), a product (<strong>Digital TA</strong>), a market (<strong>Thailand</strong>), or the <strong>ETF pipeline</strong>.</p>`,
+    sources:[
+      {system:'Salesforce',icon:'cloud',title:'Search results — partial match',snippet:'Several account and opportunity records partially matched the query terms.',time:'Just now'}
+    ]
   })
 };
 
@@ -1541,6 +1134,7 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');fi
 
 $('#analyseBtn').addEventListener('click',runAnalysis);
 
+/* sample ETF pipeline data */
 const PIPELINE = [
   {name:'Vanguard — ETF Servicing EU',fund:'Equity',aum:920,stage:'Closing/Won',prob:90,value:840,close:'2026-07-18'},
   {name:'iShares — APAC Settlement',fund:'Equity',aum:1340,stage:'Negotiation',prob:65,value:710,close:'2026-08-30'},
@@ -1556,6 +1150,7 @@ const PIPELINE = [
 let charts={};
 function runAnalysis(){
   const out=$('#reportOutput');
+  // skeleton
   out.innerHTML = `
     <div class="report-skeleton">
       <div class="sk-label"><span class="sp"></span>Analysing your data…</div>
@@ -1563,7 +1158,7 @@ function runAnalysis(){
       <div class="sk-kpis"><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div><div class="sk sk-kpi"></div></div>
       <div class="sk sk-chart"></div>
     </div>`;
-  setTimeout(renderReport, 1600);
+  setTimeout(renderReport, 1500);
 }
 
 function fmtGBP(k){ return k>=1000 ? '£'+(k/1000).toFixed(2)+'m' : '£'+k+'k'; }
@@ -1574,12 +1169,15 @@ function renderReport(){
   const weighted = Math.round(PIPELINE.reduce((a,b)=>a+b.value*b.prob/100,0));
   const avgProb = Math.round(PIPELINE.reduce((a,b)=>a+b.prob,0)/PIPELINE.length);
   const won = PIPELINE.filter(p=>p.stage==='Closing/Won').reduce((a,b)=>a+b.value,0);
+
   const stages=['Discovery','Proposal','Negotiation','Closing/Won'];
   const stageW = stages.map(s=> Math.round(PIPELINE.filter(p=>p.stage===s).reduce((a,b)=>a+b.value*b.prob/100,0)));
+  const funds=[...new Set(PIPELINE.map(p=>p.fund))];
+  const fundW = funds.map(f=> Math.round(PIPELINE.filter(p=>p.fund===f).reduce((a,b)=>a+b.value*b.prob/100,0)));
 
   out.innerHTML = `
   <div class="report" id="report">
-    <div class="rep-header" style="opacity:0">
+    <div class="rep-header">
       <div class="rh-meta">
         <div class="rh-title">ETF Pipeline Analysis</div>
         <div class="rh-sub">${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}<span class="sep">·</span>SFDC_Opportunity_Export_Q3.xlsx<span class="sep">·</span>9 opportunities</div>
@@ -1591,113 +1189,85 @@ function renderReport(){
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
-      <div class="exec-summary">The Q3 ETF pipeline holds <strong>${fmtGBP(total)}</strong> across 9 open opportunities, with a probability-weighted value of <strong>${fmtGBP(weighted)}</strong>. ETF Servicing on equity funds dominates, and two late-stage deals (Vanguard, L&amp;G) account for the bulk of near-term expected revenue. Average win probability sits at <strong>${avgProb}%</strong>.</div>
+    <div class="rep-section">
+      <div class="exec-summary">The Q3 ETF pipeline holds <strong>${fmtGBP(total)}</strong> across 9 open opportunities, with a probability-weighted value of <strong>${fmtGBP(weighted)}</strong>. ETF Servicing on equity funds dominates, and two late-stage deals (Vanguard, L&amp;G) account for the bulk of near-term expected revenue. Average win probability sits at <strong>${avgProb}%</strong>, with the pipeline weighted toward the back half of the quarter.</div>
     </div>
 
     <div class="rep-section">
       <div class="rs-title">Headline Metrics</div>
       <div class="kpi-strip">
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${total}" data-fmt="gbp">${fmtGBP(total)}</div><div class="k-lbl">Total Pipeline</div><div class="k-delta up"><i data-lucide="arrow-up"></i>12%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${weighted}" data-fmt="gbp">${fmtGBP(weighted)}</div><div class="k-lbl">Weighted Value</div><div class="k-delta up"><i data-lucide="arrow-up"></i>8%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${avgProb}" data-fmt="pct">${avgProb}%</div><div class="k-lbl">Avg Probability</div><div class="k-delta down"><i data-lucide="arrow-down"></i>3%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${won}" data-fmt="gbp">${fmtGBP(won)}</div><div class="k-lbl">Near-Term (Won)</div><div class="k-delta up"><i data-lucide="arrow-up"></i>21%</div></div>
+        <div class="kpi"><div class="k-val">${fmtGBP(total)}</div><div class="k-lbl">Total Pipeline</div><div class="k-delta up"><i data-lucide="arrow-up"></i>12%</div></div>
+        <div class="kpi"><div class="k-val">${fmtGBP(weighted)}</div><div class="k-lbl">Weighted Value</div><div class="k-delta up"><i data-lucide="arrow-up"></i>8%</div></div>
+        <div class="kpi"><div class="k-val">${avgProb}%</div><div class="k-lbl">Avg Probability</div><div class="k-delta down"><i data-lucide="arrow-down"></i>3%</div></div>
+        <div class="kpi"><div class="k-val">${fmtGBP(won)}</div><div class="k-lbl">Near-Term (Won)</div><div class="k-delta up"><i data-lucide="arrow-up"></i>21%</div></div>
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">Weighted Pipeline by Stage</div>
       <div class="chart-card"><div class="chart-wrap"><canvas id="stageChart"></canvas></div></div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">Opportunities</div>
       <div class="table-card">
         <table class="rep-table" id="oppTable">
           <thead><tr>
-            <th data-k="name" data-t="str"><span class="th-in">Opportunity<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="fund" data-t="str"><span class="th-in">Fund Type<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="stage" data-t="str"><span class="th-in">Stage<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="aum" data-t="num" class="num"><span class="th-in">AUM (£m)<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="prob" data-t="num" class="num"><span class="th-in">Prob.<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="value" data-t="num" class="num"><span class="th-in">Value (£k)<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="close" data-t="str" class="num"><span class="th-in">Close<i data-lucide="chevrons-up-down"></i></span></th>
+            <th data-k="name" data-t="str">Opportunity</th>
+            <th data-k="fund" data-t="str">Fund Type</th>
+            <th data-k="stage" data-t="str">Stage</th>
+            <th data-k="aum" data-t="num" class="num">AUM (£m)</th>
+            <th data-k="prob" data-t="num" class="num">Prob.</th>
+            <th data-k="value" data-t="num" class="num">Value (£k)</th>
+            <th data-k="close" data-t="str" class="num">Close</th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">Flags &amp; Alerts</div>
       <div class="flags-card">
-        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Two Discovery-stage deals close this quarter</div><div class="fl-d">DWS Xtrackers and WisdomTree are at Discovery (20–25%) but carry close dates inside Q3 — timelines look optimistic.</div></div></div>
-        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Concentration risk in late stage</div><div class="fl-d">68% of near-term weighted value sits in just two opportunities (Vanguard, L&amp;G). Slippage on either materially moves the quarter.</div></div></div>
-        <div class="flag-row crit"><div class="fl-ic"><i data-lucide="octagon-alert"></i></div><div class="fl-txt"><div class="fl-h">Stale probability on Amundi</div><div class="fl-d">Amundi Fixed Income ETF probability unchanged for 6 weeks despite an advanced proposal — likely under-scored. Confirm with the RM.</div></div></div>
+        <div class="flag-row warn">
+          <div class="fl-ic"><i data-lucide="alert-triangle"></i></div>
+          <div class="fl-txt"><div class="fl-h">Two Discovery-stage deals close this quarter</div><div class="fl-d">DWS Xtrackers and WisdomTree are at Discovery (20–25%) but carry close dates inside Q3 — timelines look optimistic and should be re-baselined.</div></div>
+        </div>
+        <div class="flag-row warn">
+          <div class="fl-ic"><i data-lucide="alert-triangle"></i></div>
+          <div class="fl-txt"><div class="fl-h">Concentration risk in late stage</div><div class="fl-d">68% of near-term weighted value sits in just two opportunities (Vanguard, L&amp;G). Slippage on either materially moves the quarter.</div></div>
+        </div>
+        <div class="flag-row crit">
+          <div class="fl-ic"><i data-lucide="octagon-alert"></i></div>
+          <div class="fl-txt"><div class="fl-h">Stale probability on Amundi</div><div class="fl-d">Amundi Fixed Income ETF probability unchanged for 6 weeks despite an advanced proposal — likely under-scored. Confirm with the RM.</div></div>
+        </div>
       </div>
     </div>
 
-    <div class="rep-section" style="opacity:0">
+    <div class="rep-section">
       <div class="rs-title">AI Commentary</div>
       <div class="commentary">
-        <div class="cm-head"><div class="cm-av">C</div><div class="cm-who">Calastone Intelligence</div></div>
-        <p>The shape of this pipeline is healthy but <strong>top-heavy</strong>. Equity ETF Servicing is doing the heavy lifting, which is consistent with where Calastone's volume-weighted share is strongest, but it also means the quarter's outcome hinges on a small number of late-stage deals converting on schedule.</p>
-        <p>The clearest action is to <strong>re-baseline the two Discovery-stage deals</strong> with Q3 close dates. Separately, Amundi looks under-scored: lifting it to a realistic probability would add roughly £100k of weighted value.</p>
+        <div class="cm-head"><div class="cm-av">C</div><div class="cm-who">Phaeron Intelligence</div></div>
+        <p>The shape of this pipeline is healthy but <strong>top-heavy</strong>. Equity ETF Servicing is doing the heavy lifting, which is consistent with where Phaeron's volume-weighted share is strongest, but it also means the quarter's outcome hinges on a small number of late-stage deals converting on schedule.</p>
+        <p>The clearest action is to <strong>re-baseline the two Discovery-stage deals</strong> with Q3 close dates — they're inflating the unweighted total without realistically contributing this quarter. Separately, Amundi looks under-scored: if the proposal is as advanced as the notes suggest, lifting it to a realistic probability would add roughly £100k of weighted value and change the stage distribution.</p>
         <p>If Vanguard and L&amp;G both land on time, the quarter clears comfortably; the risk is timing, not demand.</p>
       </div>
     </div>
   </div>`;
-
   icons();
+  buildStageChart(stages,stageW);
   buildOppTable();
   wireReportButtons();
-  animateReport(stages, stageW);
 }
 
-function animateReport(stages, stageW){
-  const sections = $$('#report .rep-section, #report .rep-header');
-  const tl = anime.timeline({easing:'easeOutCubic'});
-
-  /* header + exec summary */
-  tl.add({targets:[sections[0], sections[1]], opacity:[0,1], translateY:[10,0], delay:anime.stagger(80), duration:450})
-  /* kpi cards */
-  .add({targets:'.kpi', opacity:[0,1], translateY:[16,0], delay:anime.stagger(80), duration:500}, '-=200')
-  /* chart section */
-  .add({targets:sections[2], opacity:[0,1], translateY:[12,0], duration:450, complete:()=>buildStageChart(stages,stageW)}, '-=300')
-  /* table section */
-  .add({targets:sections[3], opacity:[0,1], translateY:[12,0], duration:450}, '-=300')
-  /* flags */
-  .add({targets:sections[4], opacity:[0,1], translateY:[10,0], duration:420}, '-=300')
-  /* commentary */
-  .add({targets:sections[5], opacity:[0,1], translateY:[10,0], duration:420}, '-=300');
-
-  /* KPI number count-up */
-  setTimeout(()=>{
-    $$('.kpi .k-val').forEach(el=>{
-      const raw = parseFloat(el.dataset.raw||'0');
-      const fmt = el.dataset.fmt||'num';
-      const obj = {v:0};
-      anime({targets:obj, v:raw, duration:1100, easing:'easeOutExpo',
-        update:()=>{
-          if(fmt==='gbp') el.textContent = obj.v>=1000 ? '£'+(obj.v/1000).toFixed(2)+'m' : '£'+Math.round(obj.v)+'k';
-          else if(fmt==='pct') el.textContent = Math.round(obj.v)+'%';
-          else el.textContent = Math.round(obj.v).toLocaleString();
-        }
-      });
-    });
-  }, 600);
-}
-
-function buildStageChart(stages, stageW){
+function buildStageChart(stages,stageW){
   const ctx=document.getElementById('stageChart');
-  if(!ctx) return;
   if(charts.stage) charts.stage.destroy();
   charts.stage=new Chart(ctx,{
     type:'bar',
-    data:{labels:stages,datasets:[{label:'Weighted Value (£k)',data:stageW,backgroundColor:'#2D9A8E',hoverBackgroundColor:'#26867D',borderRadius:6,maxBarThickness:64}]},
+    data:{labels:stages,datasets:[{label:'Weighted Value (£k)',data:stageW,backgroundColor:'#2D9A8E',hoverBackgroundColor:'#26867D',borderRadius:5,maxBarThickness:64}]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      animation:{duration:800,easing:'easeOutQuart'},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' £'+c.parsed.y+'k weighted'}}},
       scales:{
         y:{beginAtZero:true,ticks:{font:{size:12,family:'Inter'},color:'#566571',callback:v=>'£'+v+'k'},grid:{color:'rgba(34,50,61,0.07)'}},
@@ -1713,24 +1283,35 @@ function buildOppTable(){
   let rows=[...PIPELINE];
   if(sortState.k){
     const {k,dir}=sortState;
-    rows.sort((a,b)=>typeof a[k]==='string'?dir*a[k].localeCompare(b[k]):dir*(a[k]-b[k]));
+    rows.sort((a,b)=>{
+      let av=a[k],bv=b[k];
+      if(typeof av==='string'){return dir*av.localeCompare(bv);}
+      return dir*(av-bv);
+    });
   }
   const stageClass={'Discovery':'stage-disc','Proposal':'stage-prop','Negotiation':'stage-neg','Closing/Won':'stage-cw'};
   tb.innerHTML=rows.map(r=>`
-    <tr style="opacity:0">
-      <td>${r.name}</td><td>${r.fund}</td>
+    <tr>
+      <td>${r.name}</td>
+      <td>${r.fund}</td>
       <td><span class="stage-pill ${stageClass[r.stage]}">${r.stage}</span></td>
       <td class="num">${r.aum.toLocaleString()}</td>
       <td class="num"><div class="prob-bar"><div class="track"><div class="fill" style="width:${r.prob}%"></div></div>${r.prob}%</div></td>
       <td class="num">${r.value}</td>
       <td class="num">${new Date(r.close).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</td>
     </tr>`).join('');
-  setTimeout(()=>{
-    anime({targets:'#oppTable tbody tr', opacity:[0,1], translateX:[-6,0], delay:anime.stagger(35), duration:350, easing:'easeOutCubic'});
-  }, 900);
+  // header sort indicators
+  $$('#oppTable th').forEach(th=>{
+    const sorted = th.dataset.k===sortState.k && sortState.dir!==0;
+    th.classList.toggle('sorted', sorted);
+    const ico = sorted ? (sortState.dir===1?'arrow-up':'arrow-down') : 'chevrons-up-down';
+    const label = th.dataset.label || (th.dataset.label = th.querySelector('.th-in') ? th.querySelector('.th-in').childNodes[0].textContent.trim() : th.textContent.trim());
+    th.innerHTML = `<span class="th-in">${label}<i data-lucide="${ico}"></i></span>`;
+  });
+  icons();
   $$('#oppTable th').forEach(th=>{
     th.onclick=()=>{
-      if(sortState.k===th.dataset.k){ sortState.dir=sortState.dir===1?-1:(sortState.dir===-1?0:1); }
+      if(sortState.k===th.dataset.k){ sortState.dir = sortState.dir===1?-1:(sortState.dir===-1?0:1); }
       else { sortState={k:th.dataset.k,dir:1}; }
       if(sortState.dir===0) sortState.k=null;
       buildOppTable();
@@ -1741,56 +1322,26 @@ function buildOppTable(){
 function wireReportButtons(){
   $('#expCsv').onclick=()=>{
     const header=['Opportunity','Fund Type','Stage','AUM_m','Probability_pct','Value_k','Close Date'];
-    const lines=[header.join(',')].concat(PIPELINE.map(p=>[`"${p.name}"`,p.fund,`"${p.stage}"`,p.aum,p.prob,p.value,p.close].join(',')));
+    const lines=[header.join(',')].concat(PIPELINE.map(p=>
+      [`"${p.name}"`,p.fund,`"${p.stage}"`,p.aum,p.prob,p.value,p.close].join(',')));
     const blob=new Blob([lines.join('\n')],{type:'text/csv'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ETF_Pipeline_Analysis.csv'; a.click(); URL.revokeObjectURL(a.href);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='ETF_Pipeline_Analysis.csv';
+    a.click(); URL.revokeObjectURL(a.href);
     toast('CSV exported');
   };
   $('#expPdf').onclick=()=>{ toast('Opening print dialog…'); setTimeout(()=>window.print(),300); };
-  $('#cpLink').onclick=()=>{ navigator.clipboard?.writeText(location.href).catch(()=>{}); toast('Report link copied'); };
+  $('#cpLink').onclick=()=>{ navigator.clipboard?.writeText('https://pulse.phaeron.internal/report/etf-q3-fy26').catch(()=>{}); toast('Report link copied'); };
 }
 
+/* keyboard: Escape closes source / collapses */
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape' && !srcPanel.classList.contains('hidden')){
-    anime({targets:'#sourcePanel', translateX:[0,20], opacity:[1,0], duration:250, easing:'easeInQuad', complete:()=>srcPanel.classList.add('hidden')});
-  }
+  if(e.key==='Escape'){ if(!srcPanel.classList.contains('hidden')) srcPanel.classList.add('hidden'); }
 });
 
 icons();
 </script>
-
-<!-- Relationship Snapshot feature. ES module, so it is deferred and registers
-     window.RelationshipSnapshot after the classic script above has defined
-     submit(); the hook inside submit() guards with a truthiness check for the
-     brief window before that happens. -->
-<script type="module" src="./relationship-snapshot/index.js"></script>
-
-<!-- Say so when the module did not load, instead of failing silently.
-
-     The usual cause is opening this file from disk: Chrome refuses module
-     scripts from a file:// origin, so window.RelationshipSnapshot never
-     registers, every snapshot prompt falls through to the canned answers, and
-     the page gives no hint that anything is missing. Any other cause — a 404,
-     a syntax error — surfaces here too. -->
-<script>
-window.addEventListener('load', function(){
-  if(window.RelationshipSnapshot) return;
-
-  var host = document.getElementById('moduleWarning');
-  if(!host) return;
-
-  var isFile = location.protocol === 'file:';
-  var path = location.pathname.replace(/^.*?(\/pulse\/.*)$/, '$1');
-
-  host.innerHTML = isFile
-    ? '<strong>Relationship Snapshot is not loaded.</strong> This page is open from the '
-      + 'filesystem, and browsers block module scripts on <code>file://</code>. Snapshot '
-      + 'requests will fall through to the canned answers. Run <code>npm run dev</code> and '
-      + 'open <code>http://localhost:4173' + (path.indexOf('/pulse/') === 0 ? path : '') + '</code>.'
-    : '<strong>Relationship Snapshot is not loaded.</strong> The feature module failed to '
-      + 'register, so snapshot requests will fall through to the canned answers. Check the '
-      + 'browser console for the error.';
-});
-</script>
+<script src="../../favicon-pulse.js"></script>
 </body>
 </html>

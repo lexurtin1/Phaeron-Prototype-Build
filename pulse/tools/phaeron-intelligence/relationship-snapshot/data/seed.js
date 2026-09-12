@@ -37,7 +37,7 @@ export function mulberry32(a) {
  * @param {string} ctn three-digit CTN, e.g. "303"
  */
 export function createRng(ctn) {
-  const seedFn = xmur3(`calastone-relationship-snapshot:${ctn}`);
+  const seedFn = xmur3(`phaeron-relationship-snapshot:${ctn}`);
   const rand = mulberry32(seedFn());
 
   /** Float in [min, max). */

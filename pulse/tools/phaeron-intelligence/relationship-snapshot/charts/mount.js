@@ -9,7 +9,7 @@
  * `window.echarts` rather than through an import.
  */
 
-import { registerCalastoneTheme, THEME_NAME } from './theme.js';
+import { registerPhaeronTheme, THEME_NAME } from './theme.js';
 import { prefersReducedMotion } from '../motion/motion.js';
 
 /** Live instances, so a re-render or a viewport change can dispose/resize them. */
@@ -134,7 +134,7 @@ function bindResize() {
 }
 
 /**
- * Create an ECharts instance on `el` with the Calastone theme applied.
+ * Create an ECharts instance on `el` with the Phaeron theme applied.
  *
  * @param {HTMLElement} el
  * @param {object} option
@@ -157,7 +157,7 @@ export function mountChart(el, option, opts = {}) {
     return null;
   }
 
-  registerCalastoneTheme(echarts);
+  registerPhaeronTheme(echarts);
   bindResize();
 
   const existing = echarts.getInstanceByDom(el);

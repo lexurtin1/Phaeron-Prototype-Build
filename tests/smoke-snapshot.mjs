@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const BASE = process.argv[2] || 'http://localhost:3111';
-const URL = `${BASE}/pulse/tools/calastone-intelligence/index.html`;
+const URL = `${BASE}/pulse/tools/phaeron-intelligence/index.html`;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHOTS = path.join(ROOT, 'tests', 'screenshots');
 

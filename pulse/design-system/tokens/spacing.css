@@ -1,5 +1,5 @@
 /* ============================================================
-   CALASTONE · SPACING, RADII, LAYOUT
+   PHAERON · SPACING, RADII, LAYOUT
    8px base grid (--space-1 = 4px for fine-grained control).
    ============================================================ */
 :root {
@@ -17,7 +17,7 @@
   --space-20: 80px;
   --space-24: 96px;
 
-  /* ---- Radii ---- (Calastone UI is gently rounded; pills for toggles/tabs) */
+  /* ---- Radii ---- (Phaeron UI is gently rounded; pills for toggles/tabs) */
   --radius-xs:   3px;
   --radius-sm:   6px;
   --radius-md:   10px;

@@ -1,6 +1,6 @@
-# Calastone Pulse Prototype — AI Brief
+# Phaeron Pulse Prototype — AI Brief
 
-This repository contains a prototype of the Calastone Pulse platform. It is a working concept for a global order-routing intelligence workspace, not a finished product. The system combines interactive product demos, market research tooling, CRM account intelligence, and a set of planned AI-native experiences.
+This repository contains a prototype of the Phaeron Pulse platform. It is a working concept for a global order-routing intelligence workspace, not a finished product. The system combines interactive product demos, market research tooling, CRM account intelligence, and a set of planned AI-native experiences.
 
 ## Purpose
 
@@ -13,7 +13,7 @@ This file is written to brief an AI system on what the prototype does today and 
 3. Product Demo
 4. Account Tracker
 5. Agent Marketplace (Coming Soon)
-6. Calastone Intelligence (Coming Soon)
+6. Phaeron Intelligence (Coming Soon)
 7. Market Movement (Coming Soon)
 
 ## Prototype Status
@@ -39,7 +39,7 @@ Network Overview is a globe-based analytics experience for global mutual fund or
   - Network flows mode: visualizes order corridors, nodes, and cross-border routes.
   - Settlements mode: visualizes settlement corridors, trade volume, and positions.
 - Uses `COUNTRY_DATA` and `COUNTRY_MARKDOWN` from `data/countries.js` to show country research snapshots.
-- Stores user edits and note data in browser localStorage under `calastone_atlas_v1` and supports export/import of JSON backups.
+- Stores user edits and note data in browser localStorage under `phaeron_atlas_v1` and supports export/import of JSON backups.
 - Provides a research drawer that allows drop-zone file upload for AI note creation/editing.
 - Uses a configurable Anthropics Claude API key loaded from `config.js`.
 - Contains a chat assistant styled as the "Atlas Assistant" with Claude prompt wiring for conversational market insight.
@@ -67,7 +67,7 @@ Market Research is the AI-driven country research environment. It is built to he
 
 ### Holistic description
 
-Product Demo is a visual explanation of the Calastone network proposition. It shows how a hub-and-spoke network can replace point-to-point connectivity and includes an order routing mode that is conceptually meant to illustrate full routing flow.
+Product Demo is a visual explanation of the Phaeron network proposition. It shows how a hub-and-spoke network can replace point-to-point connectivity and includes an order routing mode that is conceptually meant to illustrate full routing flow.
 
 ### Technical description
 
@@ -78,7 +78,7 @@ Product Demo is a visual explanation of the Calastone network proposition. It sh
 - Includes animation and state transition logic using Anime.js for UI motion.
 - The hub & spoke diagram is built entirely in client-side SVG with groups of participants, pulsating mesh lines, and toggled before/after states.
 - The order routing flow uses an iframe loader with a loading spinner and mode strip for route/settlement controls.
-- The product demo is intended as a pitch surface for how Calastone can abstract complexity and make any message type interoperable.
+- The product demo is intended as a pitch surface for how Phaeron can abstract complexity and make any message type interoperable.
 
 ## 4. Account Tracker
 
@@ -108,15 +108,15 @@ Agent Marketplace is planned as an AI agent discovery and deployment marketplace
 - The page is currently a prototype shell; the mechanics of browsing agents, composing prompts, or deploying agents are not yet implemented.
 - It is included to represent a future direction for AI-driven automation within the Pulse ecosystem.
 
-## 6. Calastone Intelligence (Coming Soon)
+## 6. Phaeron Intelligence (Coming Soon)
 
 ### Holistic description
 
-Calastone Intelligence is intended to be the core AI insight layer for the platform. It will let users ask natural language questions about products, market conditions, and network opportunities.
+Phaeron Intelligence is intended to be the core AI insight layer for the platform. It will let users ask natural language questions about products, market conditions, and network opportunities.
 
 ### Technical description
 
-- Implemented today as a placeholder page in `pulse/tools/calastone-intelligence/index.html`.
+- Implemented today as a placeholder page in `pulse/tools/phaeron-intelligence/index.html`.
 - Contains a static hero with a "Coming Soon" badge and conceptual product description.
 - The future implementation is expected to connect a conversational AI frontend with the same Claude integration patterns used elsewhere.
 - For now, it exists to show the future product roadmap and to reserve the UI surface in the prototype.

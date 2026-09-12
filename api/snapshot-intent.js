@@ -40,7 +40,7 @@ const MAX_FIELD_CHARS = 120;
 const PERIOD_VALUES = ['ytd', 'last_6_months', 'last_3_months', 'current_month'];
 const WORKFLOWS = ['relationship_snapshot', 'other'];
 
-const SYSTEM_PROMPT = `You classify internal account queries for Calastone's Intelligence Module.
+const SYSTEM_PROMPT = `You classify internal account queries for Phaeron's Intelligence Module.
 
 Return ONLY a JSON object matching this shape, with no prose and no code fences:
 {

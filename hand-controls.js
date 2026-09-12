@@ -1,5 +1,5 @@
 /**
- * hand-controls.js — MediaPipe hand gesture navigation for Calastone Globe
+ * hand-controls.js — MediaPipe hand gesture navigation for Phaeron Globe
  *
  * Loaded as <script type="module"> — falls back gracefully if camera is denied.
  * Mouse/touch controls remain active at all times.
@@ -395,7 +395,7 @@ function updateGestureHover() {
     if (!cals.length && !sscs.length) { _hideGestPanel(); return; }
     let h = '<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7b8a97;font-weight:700;margin-bottom:8px">Offices nearby</div>';
     cals.forEach(o => {
-      h += `<div style="font-size:13px;font-weight:600;color:#2D9A8E;margin:3px 0">${o.city} <span style="color:#a7b3bd;font-size:11px;font-weight:400">· Calastone</span></div>`;
+      h += `<div style="font-size:13px;font-weight:600;color:#2D9A8E;margin:3px 0">${o.city} <span style="color:#a7b3bd;font-size:11px;font-weight:400">· Phaeron</span></div>`;
     });
     sscs.forEach(o => {
       h += `<div style="font-size:13px;font-weight:600;color:#1b7fc4;margin:3px 0">${o.city} <span style="color:#a7b3bd;font-size:11px;font-weight:400">· SS&C</span></div>`;

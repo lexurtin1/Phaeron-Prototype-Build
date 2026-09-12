@@ -1,4 +1,4 @@
-// Calastone Pulse — local API config template (optional fallback)
+// Phaeron Pulse — local API config template (optional fallback)
 // Preferred: set ANTHROPIC_API_KEY in .env.local (then `npm run dev`)
 // or in Vercel Project Settings so /api/claude proxies without exposing the key.
 //

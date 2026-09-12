@@ -71,18 +71,18 @@ const COUNTRY_DATA = {
   "GBR": {
     country:"United Kingdom", iso3:"GBR", region:"Europe", subregion:"Northern Europe",
     market_classification:"Developed",
-    central_hub_status:"Full hub", hub_name:"Calastone Network", operator:"Calastone",
+    central_hub_status:"Full hub", hub_name:"Phaeron Network", operator:"Phaeron",
     opportunity_score:0, automation_rate_estimate:95,
     priority_tier:"Tier 1", existing_network_presence:"Established",
     market_aum_band:"£1.5T+ funds under routing",
     mutual_fund_relevance:"Largest retail and platform fund-flow pool in Europe.",
     growth_signal:"Mature and stable; incremental growth in ETF and tokenised-fund rails.",
     dominant_order_model:"Centralised automated order routing.",
-    current_order_channels:"Calastone network and EMX/Euroclear; residual legacy fax tail.",
+    current_order_channels:"Phaeron network and EMX/Euroclear; residual legacy fax tail.",
     manuality_snapshot:"~95% of order routing automated; manual processing minimal.",
     regulatory_openness:"High — FCA supportive of infrastructure modernisation.",
     risks_or_barriers:"Market saturation; volume growth limited; EMX/Euroclear contest the margin tail.",
-    // Calastone home market + EMX/Euroclear; UK Accelerated Settlement
+    // Phaeron home market + EMX/Euroclear; UK Accelerated Settlement
     // Taskforce has confirmed T+1 for 11 October 2027. Re-registration and
     // ISA/pension transfers remain the manual tail.
     indicators_basis:"estimate",
@@ -99,7 +99,7 @@ const COUNTRY_DATA = {
     flow_diagram:[
       {label:"Investor / Adviser", mode:"auto"},
       {label:"Platform", mode:"auto"},
-      {label:"Calastone Network", mode:"auto"},
+      {label:"Phaeron Network", mode:"auto"},
       {label:"Transfer Agent", mode:"auto"},
       {label:"Fund Manager", mode:"auto"}
     ],
@@ -109,18 +109,18 @@ const COUNTRY_DATA = {
   "AUS": {
     country:"Australia", iso3:"AUS", region:"Oceania", subregion:"Australia & NZ",
     market_classification:"Developed",
-    central_hub_status:"Full hub", hub_name:"Calastone Network", operator:"Calastone",
+    central_hub_status:"Full hub", hub_name:"Phaeron Network", operator:"Phaeron",
     opportunity_score:0, automation_rate_estimate:100,
     priority_tier:"Tier 3", existing_network_presence:"Established",
     market_aum_band:"A$3.9T+ superannuation & managed funds",
-    mutual_fund_relevance:"Large managed-funds and superannuation market already covered by Calastone.",
-    growth_signal:"Superannuation system compounding within an already mature Calastone footprint.",
-    dominant_order_model:"Calastone-led automated order routing.",
-    current_order_channels:"Calastone Network provides near-complete market coverage.",
-    manuality_snapshot:"Approximately 100% of the addressable market is controlled through Calastone coverage.",
+    mutual_fund_relevance:"Large managed-funds and superannuation market already covered by Phaeron.",
+    growth_signal:"Superannuation system compounding within an already mature Phaeron footprint.",
+    dominant_order_model:"Phaeron-led automated order routing.",
+    current_order_channels:"Phaeron Network provides near-complete market coverage.",
+    manuality_snapshot:"Approximately 100% of the addressable market is controlled through Phaeron coverage.",
     regulatory_openness:"Moderate-high — efficiency agenda politically supported.",
-    risks_or_barriers:"Market is already fully covered by Calastone, leaving little incremental routing opportunity.",
-    // Calastone provides near-complete coverage; superannuation flows are
+    risks_or_barriers:"Market is already fully covered by Phaeron, leaving little incremental routing opportunity.",
+    // Phaeron provides near-complete coverage; superannuation flows are
     // already straight-through. No settlement-compression mandate in train.
     indicators_basis:"estimate",
     indicators:{ stp_rate_pct:98, manual_transfer_pct:15, legacy_instruction_pct:3,
@@ -135,7 +135,7 @@ const COUNTRY_DATA = {
     flow_diagram:[
       {label:"Investor", mode:"auto"},
       {label:"Platform / Adviser", mode:"auto"},
-      {label:"Calastone Network", mode:"auto"},
+      {label:"Phaeron Network", mode:"auto"},
       {label:"Fund Administrator", mode:"auto"},
       {label:"Fund Manager", mode:"auto"}
     ],
@@ -482,7 +482,7 @@ const COUNTRY_DATA = {
     current_order_channels:"Vestima (international), DIFC private banks, GCC bank platforms (bilateral), IFAs, insurers.",
     manuality_snapshot:"Hub-to-international automated via Vestima; domestic-to-hub layer largely manual.",
     regulatory_openness:"Very high — DFSA and FSRA actively court infrastructure; 0% corporate/income/CGT.",
-    risks_or_barriers:"GCC-wide domestic routing layer missing; no confirmed Calastone DIFC anchor client.",
+    risks_or_barriers:"GCC-wide domestic routing layer missing; no confirmed Phaeron DIFC anchor client.",
     // From the note: DIFC/ADGM mature and internationally connected, Vestima
     // covers UAE funds from Dec 2025, 0% corporate/income/CGT, GCC bridge missing.
     indicators:{ message_standard:"Mixed", cross_border_regime:"Partial",
@@ -612,7 +612,7 @@ const COUNTRY_DATA = {
     current_order_channels:"TEFAS (domestic retail via banks/brokers); bilateral institutional and cross-border.",
     manuality_snapshot:"TEFAS centralises retail trading but is not a full order-routing utility; cross-border fully bilateral.",
     regulatory_openness:"Moderate-high — SPK active; government-backed wealth-fund routing project discussed.",
-    risks_or_barriers:"No fund routing in IFC zone yet; no confirmed Calastone presence; small domestic AUM.",
+    risks_or_barriers:"No fund routing in IFC zone yet; no confirmed Phaeron presence; small domestic AUM.",
     // From the note: small domestic fund market, TEFAS covers domestic retail
     // only with bilateral institutional/cross-border flow, IFC Istanbul early-stage.
     indicators:{ message_standard:"Mixed", cross_border_regime:"Restricted",
@@ -751,7 +751,7 @@ const COUNTRY_MARKDOWN = {
 
 > **ISO3:** BRA | **Region:** Latin America | **Market Classification:** Emerging
 > **Hub Status:** No Central Hub — bilateral/manual dominant; CVM 175 opens cross-border
-> **Opportunity Score:** 5/5 | **Calastone Presence:** Active campaign underway
+> **Opportunity Score:** 5/5 | **Phaeron Presence:** Active campaign underway
 
 ---
 
@@ -768,7 +768,7 @@ const COUNTRY_MARKDOWN = {
 | Automation Estimate | Low-moderate: high within large bank platforms, very low for cross-border and IFA flows |
 | Regulatory Body | CVM (Comissão de Valores Mobiliários — Brazilian Securities and Exchange Commission) |
 | Self-Regulatory Body | ANBIMA (Associação Brasileira das Entidades dos Mercados Financeiro e de Capitais — Brazilian Association of Financial and Capital Market Entities) |
-| Global Network Presence | Calastone (active campaign); no confirmed Vestima/Clearstream domestic presence |
+| Global Network Presence | Phaeron (active campaign); no confirmed Vestima/Clearstream domestic presence |
 
 ---
 
@@ -841,9 +841,9 @@ SWIFT connectivity exists among major custodian banks for cross-border securitie
 
 ---
 
-## Calastone Presence and Opportunity
+## Phaeron Presence and Opportunity
 
-Calastone has been actively campaigning in Brazil, positioning its DMI (Distributed Market Infrastructure) network as the neutral connectivity layer for cross-border and domestic fund order flows. The firm's focus is the cross-border connectivity challenge created by CVM 175: Brazilian distributors offering foreign funds and foreign managers seeking Brazilian investor access now face a bilateral connection problem that a global network can solve.
+Phaeron has been actively campaigning in Brazil, positioning its DMI (Distributed Market Infrastructure) network as the neutral connectivity layer for cross-border and domestic fund order flows. The firm's focus is the cross-border connectivity challenge created by CVM 175: Brazilian distributors offering foreign funds and foreign managers seeking Brazilian investor access now face a bilateral connection problem that a global network can solve.
 
 ---
 
@@ -869,7 +869,7 @@ Calastone has been actively campaigning in Brazil, positioning its DMI (Distribu
 | Order Routing Gap | 5 | Fax/email still prevalent; bilateral only |
 | Regulatory Push | 5 | CVM 175 mandate with June 2025 deadline |
 | Cross-Border Flow Need | 4 | CVM 175 opens foreign fund access |
-| Calastone Adjacency | 4 | Active campaign underway |
+| Phaeron Adjacency | 4 | Active campaign underway |
 
 ---
 
@@ -879,7 +879,7 @@ Calastone has been actively campaigning in Brazil, positioning its DMI (Distribu
 - [ ] What percentage of Brazilian fund orders still processed via fax/email vs portal?
 - [ ] What is the current bilateral connection count between XP and fund administrators?
 - [ ] Has CVM issued any guidance on standardised messaging for cross-border fund orders post-CVM 175?
-- [ ] What is Calastone's current client list in Brazil? Which Brazilian AMCs have connected?
+- [ ] What is Phaeron's current client list in Brazil? Which Brazilian AMCs have connected?
 - [ ] Are any Brazilian custodian banks processing cross-border fund orders via SWIFT MT or ISO 20022 SETR?
 
 ---
@@ -889,7 +889,7 @@ Calastone has been actively campaigning in Brazil, positioning its DMI (Distribu
 - ANBIMA: https://international.anbima.com.br
 - CVM Resolution 175 (English): https://www.gov.br/cvm/en/
 - FSB (Financial Stability Board) Peer Review of Brazil, November 2024
-- Calastone Brazil insights: https://www.calastone.com/insights/unlocking-growth-in-the-brazilian-funds-market/
+- Phaeron Brazil insights: https://www.phaeron.com/insights/unlocking-growth-in-the-brazilian-funds-market/
 - Mayer Brown — Funds in Transformation: The Legacy of RCVM 175, October 2025
 
 ---
@@ -901,7 +901,7 @@ Calastone has been actively campaigning in Brazil, positioning its DMI (Distribu
 
 > **ISO3:** IDN | **Region:** Asia — Southeast Asia | **Market Classification:** Emerging
 > **Hub Status:** Full Domestic Hub — S-INVEST mandatory since 2016/2017; no cross-border routing layer
-> **Opportunity Score:** 3/5 domestic (hub exists); higher for cross-border layer | **Calastone Presence:** Adjacent (Singapore regional HQ)
+> **Opportunity Score:** 3/5 domestic (hub exists); higher for cross-border layer | **Phaeron Presence:** Adjacent (Singapore regional HQ)
 
 ---
 
@@ -916,7 +916,7 @@ Calastone has been actively campaigning in Brazil, positioning its DMI (Distribu
 | Hub Operator | KSEI (PT Kustodian Sentral Efek Indonesia — Indonesian Central Securities Depository) |
 | Regulator | OJK (Otoritas Jasa Keuangan — Financial Services Authority of Indonesia) |
 | Cross-Border Gap | S-INVEST is domestic only; no cross-border routing layer exists |
-| Global Network Presence | Calastone present in Singapore, Malaysia, Philippines — not confirmed in Indonesian domestic market |
+| Global Network Presence | Phaeron present in Singapore, Malaysia, Philippines — not confirmed in Indonesian domestic market |
 
 ---
 
@@ -1063,7 +1063,7 @@ Attribution of all growth to S-INVEST alone would be an overstatement, but the d
 | Order Routing Gap | 4 | S-INVEST exists domestically but no cross-border layer; bilateral fintech channels growing |
 | Regulatory Push | 4 | OJK active; KSEI upgrading; new SPRINT/SPEK Dec 2025 |
 | Cross-Border Flow Need | 3 | Offshore access limited; fintech distribution growing |
-| Calastone Adjacency | 3 | Calastone in SG/MY/PH — not confirmed in IDN domestic market |
+| Phaeron Adjacency | 3 | Phaeron in SG/MY/PH — not confirmed in IDN domestic market |
 
 ---
 
@@ -1095,7 +1095,7 @@ Attribution of all growth to S-INVEST alone would be an overstatement, but the d
 
 > **ISO3:** SAU | **Region:** Middle East | **Market Classification:** Emerging
 > **Hub Status:** Partial Hub — Edaa Connect launched Feb 2025, domestic only, no international bridge
-> **Opportunity Score:** 4/5 | **Calastone Presence:** Not confirmed in Saudi domestic market
+> **Opportunity Score:** 4/5 | **Phaeron Presence:** Not confirmed in Saudi domestic market
 
 ---
 
@@ -1111,7 +1111,7 @@ Attribution of all growth to S-INVEST alone would be an overstatement, but the d
 | Dominant Order Channels | Bank platforms; Edaa Connect for some domestic funds; bilateral for institutional and cross-border |
 | Regulatory Body | CMA (Capital Market Authority — هيئة السوق المالية) |
 | Market Infrastructure | Saudi Tadawul Group: Tadawul (exchange), Muqassa (clearing), Edaa (CSD — Central Securities Depository) |
-| Global Network Presence | No confirmed Calastone presence; Clearstream Vestima does not yet cover Saudi domestic funds |
+| Global Network Presence | No confirmed Phaeron presence; Clearstream Vestima does not yet cover Saudi domestic funds |
 
 ---
 
@@ -1211,7 +1211,7 @@ Saudi Arabia's Vision 2030 (رؤية 2030) includes a FSDP (Financial Sector Dev
 | Order Routing Gap | 4 | Edaa Connect just launched; no international bridge |
 | Regulatory Push | 5 | CMA July 2025 fintech/digital reforms |
 | Cross-Border Flow Need | 5 | QFI restriction removal creates cross-border order flow |
-| Calastone Adjacency | 3 | No confirmed presence in Saudi domestic market |
+| Phaeron Adjacency | 3 | No confirmed presence in Saudi domestic market |
 
 ---
 
@@ -1219,7 +1219,7 @@ Saudi Arabia's Vision 2030 (رؤية 2030) includes a FSDP (Financial Sector Dev
 
 - [ ] How many fund managers and distributors have connected to Edaa Connect since February 2025?
 - [ ] Is Edaa / Saudi Tadawul Group planning a cross-border routing bridge connecting Edaa Connect to international fund networks?
-- [ ] Are any Saudi AMCs connected to Clearstream Vestima or Calastone for international distribution?
+- [ ] Are any Saudi AMCs connected to Clearstream Vestima or Phaeron for international distribution?
 - [ ] What is the ISO 20022 adoption status within the Edaa infrastructure?
 - [ ] How does the Muqassa clearing layer interact with Edaa Connect for fund settlement?
 - [ ] What percentage of QFI orders are currently processed bilaterally vs any standardised channel?
@@ -1243,7 +1243,7 @@ Saudi Arabia's Vision 2030 (رؤية 2030) includes a FSDP (Financial Sector Dev
 
 > **ISO3:** ARE | **Region:** Middle East | **Market Classification:** Developed (offshore IFC zones)
 > **Hub Status:** Full Offshore Hub — DIFC and ADGM are fully realised fund domicile and routing hubs; gap is the domestic GCC bridge
-> **Opportunity Score:** 4/5 | **Calastone Presence:** Adjacent — active in Middle East activity from DIFC base
+> **Opportunity Score:** 4/5 | **Phaeron Presence:** Adjacent — active in Middle East activity from DIFC base
 
 ---
 
@@ -1256,7 +1256,7 @@ Saudi Arabia's Vision 2030 (رؤية 2030) includes a FSDP (Financial Sector Dev
 | Vestima Coverage | UAE-domiciled funds added to Clearstream Vestima execution processing — December 2025 |
 | Key Regulation | DFSA (Dubai Financial Services Authority) for DIFC; FSRA (Financial Services Regulatory Authority) for ADGM |
 | Order Gap | Bilateral between DIFC/ADGM and domestic GCC/MENA markets; no GCC-wide fund routing layer |
-| Global Network Presence | Clearstream Vestima (UAE funds added Dec 2025); Calastone active in ME from DIFC base |
+| Global Network Presence | Clearstream Vestima (UAE funds added Dec 2025); Phaeron active in ME from DIFC base |
 | Tax Environment | 0% corporate tax, 0% personal income tax, 0% capital gains tax in both DIFC and ADGM |
 
 ---
@@ -1384,7 +1384,7 @@ There is no GCC-wide fund order routing utility equivalent to Europe's FundHub o
 | Order Routing Gap | 4 | Bilateral between hubs and domestic GCC markets; Vestima covers hub-to-international |
 | Regulatory Push | 4 | DFSA/FSRA active innovation push |
 | Cross-Border Flow Need | 5 | Regional routing hub role — connects GCC to international |
-| Calastone Adjacency | 3 | Adjacent to Calastone's ME activity; no confirmed DIFC anchor client |
+| Phaeron Adjacency | 3 | Adjacent to Phaeron's ME activity; no confirmed DIFC anchor client |
 
 ---
 
@@ -1392,7 +1392,7 @@ There is no GCC-wide fund order routing utility equivalent to Europe's FundHub o
 
 - [ ] How many UAE-domiciled funds are now live on Vestima following the December 2025 integration?
 - [ ] Is there any initiative within DIFC or ADGM to build a GCC-wide fund routing utility?
-- [ ] Does Calastone have any DIFC-based fund manager or distributor clients?
+- [ ] Does Phaeron have any DIFC-based fund manager or distributor clients?
 - [ ] What is the current volume of GCC-to-DIFC bilateral fund orders and what percentage is manual?
 - [ ] Are hybrid Cayman/DIFC or Cayman/ADGM structures using Vestima for global distribution?
 - [ ] Is there any CMA (Saudi) or CBB (Central Bank of Bahrain) initiative to connect domestic distributors to DIFC/ADGM infrastructure in a standardised way?
@@ -1416,7 +1416,7 @@ There is no GCC-wide fund order routing utility equivalent to Europe's FundHub o
 
 > **ISO3:** TUR | **Region:** Eastern Europe / Middle East crossover | **Market Classification:** Emerging
 > **Hub Status:** Partial Hub — TEFAS electronic trading platform exists; IFC Istanbul legally distinct zone; no dedicated fund order-routing utility yet
-> **Opportunity Score:** 4/5 | **Calastone Presence:** No confirmed presence
+> **Opportunity Score:** 4/5 | **Phaeron Presence:** No confirmed presence
 
 ---
 
@@ -1432,7 +1432,7 @@ There is no GCC-wide fund order routing utility equivalent to Europe's FundHub o
 | Key Regulator | SPK (Sermaye Piyasası Kurulu — Capital Markets Board of Turkey) |
 | Cross-Border Potential | MENA (Middle East and North Africa) / Central Asia corridor; strategic positioning via IFC |
 | Dominant Order Channels | TEFAS for domestic retail; bilateral for institutional and cross-border |
-| Global Network Presence | No confirmed Calastone; no Vestima/Clearstream domestic Turkey presence |
+| Global Network Presence | No confirmed Phaeron; no Vestima/Clearstream domestic Turkey presence |
 
 ---
 
@@ -1562,7 +1562,7 @@ This is a medium-term opportunity, not a near-term reality. No specific cross-bo
 | Order Routing Gap | 5 | No fund routing infrastructure exists yet |
 | Regulatory Push | 4 | Government-backed TVF project; SPK active |
 | Cross-Border Flow Need | 3 | MENA / Central Asia corridor potential |
-| Calastone Adjacency | 1 | No current presence |
+| Phaeron Adjacency | 1 | No current presence |
 
 ---
 
@@ -1572,7 +1572,7 @@ This is a medium-term opportunity, not a near-term reality. No specific cross-bo
 - [ ] What is the current number of AMCs licensed to operate within IFC Istanbul?
 - [ ] Is there any IFC Istanbul working group on financial market infrastructure for funds?
 - [ ] How does TEFAS compare to a full hub in terms of order standardisation and STP (Straight-Through Processing) rates?
-- [ ] Are any international fund networks (Calastone, Vestima, Allfunds) in dialogue with Turkish authorities or IFC Istanbul?
+- [ ] Are any international fund networks (Phaeron, Vestima, Allfunds) in dialogue with Turkish authorities or IFC Istanbul?
 - [ ] What is the current AUM of domestically distributed Turkish mutual funds?
 
 ---
@@ -1595,7 +1595,7 @@ This is a medium-term opportunity, not a near-term reality. No specific cross-bo
 
 > **ISO3:** VNM | **Region:** Asia — Southeast Asia | **Market Classification:** Frontier → Secondary Emerging (FTSE upgrade effective September 2026)
 > **Hub Status:** No Central Hub — no standard domestic fund order-routing utility; VSD (Vietnam Securities Depository and Clearing Corporation) handles equities not fund orders
-> **Opportunity Score:** 4/5 | **Calastone Presence:** Active in SG/MY/PH — adjacent; Vietnam not confirmed
+> **Opportunity Score:** 4/5 | **Phaeron Presence:** Active in SG/MY/PH — adjacent; Vietnam not confirmed
 
 ---
 
@@ -1611,7 +1611,7 @@ This is a medium-term opportunity, not a near-term reality. No specific cross-bo
 | CSD | VSDC (Vietnam Securities Depository and Clearing Corporation — Tổng công ty Lưu ký và Bù trừ chứng khoán Việt Nam); covers equities settlement, not fund orders |
 | Dominant Order Channels | No standard; bilateral between distributors and AMCs; limited electronic channel |
 | Cross-Border Status | ASEAN RPC (Regional Payment Connectivity) building; Nexus connectivity initiative; ASEAN+3 CIS cross-border framework in development |
-| Global Network Presence | Calastone in Singapore, Malaysia, Philippines — Vietnam not confirmed domestic |
+| Global Network Presence | Phaeron in Singapore, Malaysia, Philippines — Vietnam not confirmed domestic |
 
 ---
 
@@ -1737,7 +1737,7 @@ These frameworks create medium-term demand for fund order routing standardisatio
 | Order Routing Gap | 4 | No standard; domestic payments efficient but cross-border fund routing absent |
 | Regulatory Push | 3 | SSC (State Securities Commission) active but slower than peers on fund-specific infrastructure |
 | Cross-Border Flow Need | 3 | Nexus connectivity building; ASEAN+3 CIS framework developing |
-| Calastone Adjacency | 5 | Calastone in SG/MY/PH — very adjacent; Vietnam natural next step |
+| Phaeron Adjacency | 5 | Phaeron in SG/MY/PH — very adjacent; Vietnam natural next step |
 
 ---
 
@@ -1748,7 +1748,7 @@ These frameworks create medium-term demand for fund order routing standardisatio
 - [ ] Is SSC or VSDC consulting on any central fund order-routing utility?
 - [ ] How does VSDC's fund unit registration process interact with bilateral distributor-AMC order flows?
 - [ ] Which Vietnamese banks have the largest fund distribution volumes?
-- [ ] Is Calastone in active dialogue with Vietnamese fund managers or distributors?
+- [ ] Is Phaeron in active dialogue with Vietnamese fund managers or distributors?
 - [ ] What is the timeline for Vietnam's potential MSCI Emerging Market upgrade?
 - [ ] Is Vietnam participating in the ASEAN+3 CIS (Collective Investment Scheme) working group on cross-border fund distribution infrastructure?
 
@@ -1761,7 +1761,7 @@ These frameworks create medium-term demand for fund order routing standardisatio
 - VanEck: "Why Vietnam Stands Out in EM Right Now", April 2026
 - World Bank: "Unlocking the Potential of Vietnam's Capital Markets" report
 - SSIAM Annual Report 2024
-- Calastone SEA expansion: Singapore HQ announcement, August 2022
+- Phaeron SEA expansion: Singapore HQ announcement, August 2022
 
 ---
 
@@ -1821,8 +1821,8 @@ The **Mutual Recognition of Funds (MRF)** scheme links Mainland China and Hong K
 2. Distributor submits order via CMU OmniClear, which routes to the Mainland side.
 3. Mainland TA / Fund House (including ChinaClear where applicable) processes and confirms.
 
-**Calastone's position** in this flow is upstream of CMU OmniClear on the Hong Kong side:
-- Global/HK distributor → Calastone (normalises formats, routes to correct TA or CMU) → CMU OmniClear (for MRF orders needing cross-border routing) → Mainland TA / ChinaClear.
+**Phaeron's position** in this flow is upstream of CMU OmniClear on the Hong Kong side:
+- Global/HK distributor → Phaeron (normalises formats, routes to correct TA or CMU) → CMU OmniClear (for MRF orders needing cross-border routing) → Mainland TA / ChinaClear.
 
 ### MRF 2.0 Update (January 2025) — Infrastructure Implications
 
@@ -1894,7 +1894,7 @@ Domestic subscription and redemption channels — via CSDC, via banks, and via d
 
 ## Sources
 
-- China Market Research Framework – Calastone internal dossier (PDF)
+- China Market Research Framework – Phaeron internal dossier (PDF)
 - Goldman Sachs raises China stocks forecast after Beijing's stimulus pledge
 - China's Economy is Expected to Grow 4.8% in 2026 Amid Surging Exports
 - MERICS (Mercator Institute for China Studies) capital account liberalisation data

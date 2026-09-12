@@ -15,7 +15,7 @@ const EDIT_MODE = false; // set true to console.log clicked records
    If browser storage is blocked (e.g. some shared-link contexts),
    auto-save is disabled and a banner tells you to use Export. */
 
-const STORAGE_KEY = 'calastone_atlas_v1';
+const STORAGE_KEY = 'phaeron_atlas_v1';
 let STORAGE_OK = true;
 
 // Detect whether localStorage is usable in this context.
@@ -58,7 +58,7 @@ function exportData(){
   }, null, 2)], {type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download='calastone-atlas-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.href=url; a.download='phaeron-atlas-backup-'+new Date().toISOString().slice(0,10)+'.json';
   a.click(); URL.revokeObjectURL(url);
 }
 
@@ -1030,7 +1030,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('
    It is given a compact summary of all country data as context so it
    can answer questions about your research, plus general questions. */
 
-const CHAT_SYSTEM_PROMPT = `You are the Atlas Assistant inside Calastone's Global Order-Routing Atlas, a tool about mutual fund order-routing infrastructure by country.
+const CHAT_SYSTEM_PROMPT = `You are the Atlas Assistant inside Phaeron's Global Order-Routing Atlas, a tool about mutual fund order-routing infrastructure by country.
 
 You may be given a CONTEXT block summarising the countries currently profiled in the app (hub status, scores, key facts). Use it when the user asks about specific markets or comparisons. You can also answer general questions using your own knowledge.
 
@@ -1157,7 +1157,7 @@ const NAME_TO_ISO={
 init();
 
 /* ================================================================
-   OFFICE LAYER — Calastone & SS&C switchable globe overlays
+   OFFICE LAYER — Phaeron & SS&C switchable globe overlays
    ================================================================
    To update office data: edit CALASTONE_OFFICES or SSC_OFFICES below.
    Each entry: { company, name, city, country, address, lat, lng }
@@ -1165,21 +1165,21 @@ init();
    ================================================================ */
 
 const CALASTONE_OFFICES = [
-  {company:'Calastone',name:'London HQ',city:'London',country:'United Kingdom',
+  {company:'Phaeron',name:'London HQ',city:'London',country:'United Kingdom',
    address:'Level 6, Citypoint, 1 Ropemaker Street, London EC2Y 9AW',lat:51.5190,lng:-0.0937},
-  {company:'Calastone',name:'Luxembourg office',city:'Bertrange',country:'Luxembourg',
+  {company:'Phaeron',name:'Luxembourg office',city:'Bertrange',country:'Luxembourg',
    address:'33 Rue du puits Romain, Bertrange',lat:49.6166,lng:6.0972},
-  {company:'Calastone',name:'New York office',city:'New York',country:'United States',
+  {company:'Phaeron',name:'New York office',city:'New York',country:'United States',
    address:'590 Madison Ave, New York, NY',lat:40.7617,lng:-73.9717},
-  {company:'Calastone',name:'Singapore office',city:'Singapore',country:'Singapore',
+  {company:'Phaeron',name:'Singapore office',city:'Singapore',country:'Singapore',
    address:'8 Marina View, Singapore',lat:1.2800,lng:103.8509},
-  {company:'Calastone',name:'Hong Kong office',city:'Hong Kong',country:'Hong Kong',
+  {company:'Phaeron',name:'Hong Kong office',city:'Hong Kong',country:'Hong Kong',
    address:'Unit 1001, 10/F Lippo Centre, Tower 2, 89 Queensway',lat:22.2769,lng:114.1718},
-  {company:'Calastone',name:'Taipei office',city:'Taipei',country:'Taiwan',
+  {company:'Phaeron',name:'Taipei office',city:'Taipei',country:'Taiwan',
    address:'Walsin Xinyi Building 11/F, No. 1, Songzhi Road, Taipei',lat:25.0337,lng:121.5630},
-  {company:'Calastone',name:'Sydney office',city:'Sydney',country:'Australia',
+  {company:'Phaeron',name:'Sydney office',city:'Sydney',country:'Australia',
    address:'301/45 Lime St, Sydney NSW',lat:-33.8697,lng:151.2001},
-  {company:'Calastone',name:'Denver office',city:'Denver',country:'United States',
+  {company:'Phaeron',name:'Denver office',city:'Denver',country:'United States',
    lat:39.7392,lng:-104.9903},
 ];
 
@@ -1293,7 +1293,7 @@ SSC_ISO3 = new Set(SSC_OFFICES.map(o=>NAME_TO_ISO[o.country]).filter(Boolean));
 
 /* ---- marker element factory ---- */
 function createOfficePin(office) {
-  const isCal = office.company === 'Calastone';
+  const isCal = office.company === 'Phaeron';
   const el = document.createElement('div');
   el.className = 'office-pin ' + (isCal ? 'cal-pin' : 'ssc-pin');
   el.setAttribute('aria-label', office.name + ', ' + office.city);
@@ -1554,7 +1554,7 @@ switchToResearch = function() {
     hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#2d9a8e','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
     const hubT=ns('text',{x:0,y:0,'text-anchor':'middle','dominant-baseline':'middle'});
     hubT.style.cssText='font:800 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;letter-spacing:0.12em;fill:#fff;pointer-events:none';
-    hubT.textContent='CALASTONE';
+    hubT.textContent='PHAERON';
     hubInner.appendChild(hubT);
     hubOuter.appendChild(hubInner);
     svg.appendChild(hubOuter);

@@ -325,7 +325,7 @@ function buildRelationship(profile, rng, available) {
     openActions: actionsTotal === 0 ? { total: 0, byOwner: [] } : {
       total: actionsTotal,
       byOwner: [
-        { owner: 'Calastone', count: Math.ceil(actionsTotal / 2) },
+        { owner: 'Phaeron', count: Math.ceil(actionsTotal / 2) },
         { owner: 'Client', count: Math.floor(actionsTotal / 2) },
       ].filter((o) => o.count > 0),
     },

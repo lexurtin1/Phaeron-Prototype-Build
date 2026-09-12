@@ -1,5 +1,5 @@
 {
-  "name": "calastone-relationship-snapshot",
+  "name": "phaeron-relationship-snapshot",
   "private": true,
   "type": "module",
   "description": "Scopes ES module semantics to this feature folder only. The repository root stays CommonJS for api/*.js and scripts/*.js — adding \"type\": \"module\" there would break every serverless handler. Node resolves the nearest package.json, so this file lets `node --test` import these modules without the MODULE_TYPELESS_PACKAGE_JSON warning. It has no effect in the browser, which loads these files via <script type=\"module\">."

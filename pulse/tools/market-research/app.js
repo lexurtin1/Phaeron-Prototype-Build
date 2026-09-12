@@ -8,7 +8,7 @@ const EDIT_MODE = false; // set true to console.log clicked records
    localStorage is a cache only (offline / fast first paint).
    Export/Import still works; import writes through to Neon. */
 
-const STORAGE_KEY = 'calastone_atlas_v1';
+const STORAGE_KEY = 'phaeron_atlas_v1';
 let STORAGE_OK = true;
 let DB_OK = null; // null=unknown, true/false after first attempt
 
@@ -63,7 +63,7 @@ const CONFIDENCE_BY_SOURCE = Object.freeze({
    density, which stay high however saturated the market is — so the
    judgement is recorded here instead of being tuned into the inputs. */
 const OPPORTUNITY_SCORE_OVERRIDES = Object.freeze({
-  AUS:{ score:25, reason:'Calastone already provides near-complete coverage of this market — no incremental routing headroom.' },
+  AUS:{ score:25, reason:'Phaeron already provides near-complete coverage of this market — no incremental routing headroom.' },
   USA:{ score:22, reason:'DTCC/NSCC Fund/SERV is an entrenched universal domestic order-routing utility. Order flow is ~98% straight-through, so there is no addressable manual-processing gap despite the market being the largest in the world.' }
 });
 
@@ -192,7 +192,7 @@ function parseCagr(text){
 const CAGR_CURVE = [[0,0.05],[3,0.18],[7.5,0.5],[10.4,0.78],[14,1]];
 const HUB_GAP = { 'No central hub':1, 'Partial hub':0.62, 'Full hub':0.18 };
 const NETWORK_REACH = { 'Emerging':1, 'Established':0.68, 'None':0.45 };
-// Distance from a hub Calastone can already service the market from.
+// Distance from a hub Phaeron can already service the market from.
 const REGION_HUB_REACH = { 'Europe':0.9, 'Asia':0.8, 'Oceania':0.75, 'Americas':0.55, 'Africa':0.45 };
 
 /* Market scale is resolved once and reused: fund counts and counterparty
@@ -308,7 +308,7 @@ function indicatorPromptSpec(){
   }).join(',\n');
 }
 
-/* Every sub-indicator returns 0–1 where 1 = most attractive to Calastone.
+/* Every sub-indicator returns 0–1 where 1 = most attractive to Phaeron.
    Sub-weights within a category sum to 1. */
 const OPPORTUNITY_MODEL = Object.freeze([
   {
@@ -410,7 +410,7 @@ const OPPORTUNITY_MODEL = Object.freeze([
   },
   {
     key:'networkDensity', label:'Network density & reachability', weight:20,
-    blurb:'How many distinct counterparties a hub would connect, how fragmented their formats are, and whether Calastone can already reach them.',
+    blurb:'How many distinct counterparties a hub would connect, how fragmented their formats are, and whether Phaeron can already reach them.',
     parts:[
       { key:'counterpartyBreadth', label:'Managers, TAs, distributors & platforms', weight:0.40, resolve:c=>pick(
           stated(logScale(
@@ -441,7 +441,7 @@ const OPPORTUNITY_MODEL = Object.freeze([
           ]),
           0.4
         )},
-      { key:'reachability', label:'Existing Calastone footprint', weight:0.25, resolve:c=>pick(
+      { key:'reachability', label:'Existing Phaeron footprint', weight:0.25, resolve:c=>pick(
           // A foothold makes the rest of the market reachable; full coverage
           // leaves less to win, a cold start costs more to open.
           derived(NETWORK_REACH[c.profile.existing_network_presence], 'network presence')
@@ -750,7 +750,7 @@ function exportData(){
   }, null, 2)], {type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url; a.download='calastone-atlas-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.href=url; a.download='phaeron-atlas-backup-'+new Date().toISOString().slice(0,10)+'.json';
   a.click(); URL.revokeObjectURL(url);
 }
 
@@ -2346,7 +2346,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('
    It is given a compact summary of all country data as context so it
    can answer questions about your research, plus general questions. */
 
-const CHAT_SYSTEM_PROMPT = `You are the Atlas Assistant inside Calastone's Global Order-Routing Atlas, a tool about mutual fund order-routing infrastructure by country.
+const CHAT_SYSTEM_PROMPT = `You are the Atlas Assistant inside Phaeron's Global Order-Routing Atlas, a tool about mutual fund order-routing infrastructure by country.
 
 You may be given a CONTEXT block summarising the countries currently profiled in the app (hub status, scores, key facts). Use it when the user asks about specific markets or comparisons. You can also answer general questions using your own knowledge.
 

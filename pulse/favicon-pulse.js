@@ -1,5 +1,5 @@
 /**
- * Calastone Pulse — Animated ECG favicon + optional header logo
+ * Phaeron Pulse — Animated ECG favicon + optional header logo
  *
  * Design principles:
  *  • Phase is MONOTONICALLY INCREASING — never resets, so the loop is

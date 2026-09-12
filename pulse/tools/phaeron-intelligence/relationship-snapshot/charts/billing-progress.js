@@ -56,7 +56,7 @@ export function buildOption(billing) {
   return {
     animation: true,
     tooltip: { show: false },
-    // The Calastone theme styles a legend, and ECharts renders one for a pie as
+    // The Phaeron theme styles a legend, and ECharts renders one for a pie as
     // soon as the component exists. There is nothing to legend here: the arc is
     // the figure and the centre says what it means.
     legend: { show: false },

@@ -14,7 +14,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
-const FEATURE = '../pulse/tools/calastone-intelligence/relationship-snapshot';
+const FEATURE = '../pulse/tools/phaeron-intelligence/relationship-snapshot';
 
 const { extractCtn, hasValidCtn, classifyLocally, gate, CTN_PATTERN } = await import(`${FEATURE}/intent.js`);
 const { getSnapshot, loadSnapshot, sortTickets } = await import(`${FEATURE}/data/mock-repo.js`);
@@ -836,7 +836,7 @@ test('client contacts stay invented', () => {
   const staff = new Set(STAFF.map((p) => p.name));
   for (const ctn of ['101', '202', '303', '404', '505']) {
     for (const c of getSnapshot(ctn).relationship.contacts) {
-      assert.ok(!staff.has(c.name), `CTN ${ctn}: ${c.name} is Calastone staff, shown as a client contact`);
+      assert.ok(!staff.has(c.name), `CTN ${ctn}: ${c.name} is Phaeron staff, shown as a client contact`);
     }
   }
 });

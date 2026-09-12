@@ -1,4 +1,4 @@
-/* Calastone uses Open Sans as its standard typeface.
+/* Phaeron uses Open Sans as its standard typeface.
    Open Sans is the genuine brand font — no substitution. Served from Google Fonts. */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
 
@@ -6,8 +6,8 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 /* ============================================================
-   CALASTONE · TYPOGRAPHY TOKENS
-   Open Sans throughout. Calastone's voice leans on:
+   PHAERON · TYPOGRAPHY TOKENS
+   Open Sans throughout. Phaeron's voice leans on:
    · large, regular-weight headlines (not heavy)
    · WIDE letter-spaced uppercase for eyebrows / labels / the logo
    · big bold figures for stats
@@ -49,7 +49,7 @@
   --ls-normal:   0;      /* @kind font */
   --ls-wide:     0.04em; /* @kind font */
   --ls-eyebrow:  0.18em; /* the signature wide caps @kind font */
-  --ls-logo:     0.32em; /* CALASTONE wordmark spacing @kind font */
+  --ls-logo:     0.32em; /* PHAERON wordmark spacing @kind font */
 
   /* ---- Semantic roles ---- */
   --type-hero-size:    var(--text-display);

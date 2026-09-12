@@ -1,5 +1,5 @@
 /* ============================================================
-   CALASTONE · COLOR TOKENS
+   PHAERON · COLOR TOKENS
    Light + teal + black. The signature is a teal→green gradient
    and a six-colour participant palette (the network nodes).
    ============================================================ */
@@ -41,7 +41,7 @@
   --green-300: #8fce9f;
   --green-100: #e0f3e7;
 
-  /* ---- Signature brand gradient (teal → green, the Calastone hub) ---- */
+  /* ---- Signature brand gradient (teal → green, the Phaeron hub) ---- */
   --grad-brand: linear-gradient(135deg, #2d9a8e 0%, #35b57e 100%); /* @kind color */
   --grad-brand-soft: linear-gradient(135deg, #43a89c 0%, #5fc08c 100%); /* @kind color */
   --grad-accent-rule: linear-gradient(90deg, #2d9a8e 0%, #35b57e 100%); /* @kind color */

@@ -1,4 +1,4 @@
--- Calastone Pulse ontology (Neon)
+-- Phaeron Pulse ontology (Neon)
 -- Country is the hub entity for Market Research, Network Overview, Account Tracker.
 
 CREATE TABLE IF NOT EXISTS countries (

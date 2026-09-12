@@ -19,7 +19,7 @@ between one snapshot and the next is the data.
 > accounts it works with, and "Kestrel Fund Services" told them nothing. Every figure is generated
 > by `data/mock-repo.js`.
 
-> **The Calastone staff are real colleagues; the client contacts are not.** An account's
+> **The Phaeron staff are real colleagues; the client contacts are not.** An account's
 > relationship manager is decided by `rmFor()` in `data/scenarios.js` from the account's segment,
 > so the demo shows the right owner rather than a name drawn from a hat. The people shown as
 > working *at* the client — "Head of Fund Services, HSBC Asset Management" — stay invented, and
@@ -35,7 +35,7 @@ between one snapshot and the next is the data.
 
 ```sh
 npm run dev                  # http://localhost:4173
-# then open /pulse/tools/calastone-intelligence/index.html
+# then open /pulse/tools/phaeron-intelligence/index.html
 ```
 
 **It must be served over HTTP.** Opening `index.html` from the filesystem gets you a page that
@@ -184,7 +184,7 @@ blocks/
   chart-sections.js  the paired row — transaction volume + billing revenue
 
 charts/
-  theme.js         the Calastone ECharts theme + the brand ramp, registered once
+  theme.js         the Phaeron ECharts theme + the brand ramp, registered once
   mount.js         ECharts instance handling (kept apart so buildOption stays pure)
   transactions.js       the trend line
   billing-progress.js   the ring against last year
@@ -205,7 +205,7 @@ motion/
 
   vendor/            zod + motion, committed (see vendor/README.md)
 
-Colour comes from the Calastone mark: a black wordmark over a blue → teal → green sweep
+Colour comes from the Phaeron mark: a black wordmark over a blue → teal → green sweep
 (`--rs-blue` #1D7FB8 → `--rs-teal` #2D9A8E → `--rs-lime` #6BBF59). It appears as a rule along the top
 of every card and as the chart series palette. Status colours — amber for attention, red for
 severity — are deliberately **not** on that ramp, so a brand colour can never be read as a state.
@@ -340,7 +340,7 @@ Market Research module or its Claude integration is touched.
 ```
 
 Two measures, two shapes, because they answer different questions. **Transaction volume** is a
-trend — the shape of the year, a line along the Calastone ramp with last year dashed behind it.
+trend — the shape of the year, a line along the Phaeron ramp with last year dashed behind it.
 **Billing revenue** is a position — a ring showing how far through last year's full-year total this
 year has come, which is a question a line chart cannot answer at a glance.
 

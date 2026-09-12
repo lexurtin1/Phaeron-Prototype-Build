@@ -1,8 +1,8 @@
 {
-  "name": "calastone-pulse",
+  "name": "phaeron-pulse",
   "version": "1.0.0",
   "private": true,
-  "description": "Calastone Pulse — market research ontology on Neon",
+  "description": "Phaeron Pulse — market research ontology on Neon",
   "scripts": {
     "dev": "node scripts/local-pulse-server.js",
     "migrate": "node scripts/migrate.js",

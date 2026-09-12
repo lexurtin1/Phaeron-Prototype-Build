@@ -27,11 +27,11 @@ const companies = [
       {src:"stockdown",time:"3h ago",  headline:"Share price down 4.3% as FCA announces platform fee review",
        summary:"Regulator opens industry-wide review of platform charging models. <span class='sig-delta' style='color:var(--red)'>−4.3%</span> intraday on above-average volume. Creates urgency around operational cost efficiency — a direct hook for the routing pitch."},
       {src:"news",     time:"Today",   headline:"Hargreaves Lansdowne appoints new CEO following strategic review",
-       summary:"Dan Olley confirmed as permanent CEO after interim period. New leadership agenda expected to focus on cost reduction and technology modernisation — aligns with Calastone value proposition."},
+       summary:"Dan Olley confirmed as permanent CEO after interim period. New leadership agenda expected to focus on cost reduction and technology modernisation — aligns with Phaeron value proposition."},
       {src:"sf",       time:"3 days ago", headline:"Proposal Sent — £5.2m routing proposal delivered to COO",
        summary:"Full commercial proposal with volume-tiered pricing delivered to Sarah Hume (COO) and procurement team. Awaiting formal feedback within 10 working days."},
       {src:"granola",  time:"17 June", headline:"Granola meeting notes: Senior executive briefing with COO",
-       summary:"COO confirmed fund routing is a stated FY2025 strategic priority. Internal champion confirmed: Dan Fairley (Head of Platform Engineering). Key concern raised: T+1 settlement readiness — strong alignment with Calastone's real-time routing capability."},
+       summary:"COO confirmed fund routing is a stated FY2025 strategic priority. Internal champion confirmed: Dan Fairley (Head of Platform Engineering). Key concern raised: T+1 settlement readiness — strong alignment with Phaeron's real-time routing capability."},
     ],
     contacts:[
       {name:"Sarah Hume",      title:"Chief Operating Officer",       init:"SH", color:"#003366", last:"3 days",  rec:"g"},
@@ -52,11 +52,11 @@ const companies = [
       {src:"sf",      time:"Today",    headline:"Opportunity stage updated to Negotiation — commercial terms under review",
        summary:"A. Curtin progressed the opportunity to Negotiation following positive technical validation session. Close target set to end of Q3."},
       {src:"granola", time:"19 June",  headline:"Granola meeting notes: Settlement latency & T+1 migration session",
-       summary:"FNZ operations team (Mark Reid, Head of Settlement) flagged T+1 migration deadline as Q4 hard requirement. Calastone's real-time routing directly addresses this. Legal review of data-sharing agreement is the remaining open item."},
+       summary:"FNZ operations team (Mark Reid, Head of Settlement) flagged T+1 migration deadline as Q4 hard requirement. Phaeron's real-time routing directly addresses this. Legal review of data-sharing agreement is the remaining open item."},
       {src:"news",    time:"4 days ago", headline:"FNZ Group completes acquisition of SEI Investments' technology platform",
-       summary:"Acquisition significantly expands FNZ's managed platform footprint across UK and Australia. Increased fund routing volumes expected — strengthens the business case for a consolidated Calastone connection."},
+       summary:"Acquisition significantly expands FNZ's managed platform footprint across UK and Australia. Increased fund routing volumes expected — strengthens the business case for a consolidated Phaeron connection."},
       {src:"call",    time:"12 June",  headline:"Call Notes: ISO 20022 messaging format discussion with operations team",
-       summary:"FNZ confirmed preference for native ISO 20022 ingestion. Calastone's any-format ingestion confirmed as compatible. No technical blockers remaining post this call."},
+       summary:"FNZ confirmed preference for native ISO 20022 ingestion. Phaeron's any-format ingestion confirmed as compatible. No technical blockers remaining post this call."},
     ],
     contacts:[
       {name:"Mark Reid",        title:"Head of Settlement Operations", init:"MR", color:"#1A3A5C", last:"5 days",  rec:"g"},
@@ -77,7 +77,7 @@ const companies = [
       {src:"sf",      time:"2 days ago", headline:"Proposal Sent — routing proposal delivered to Operations & Technology teams",
        summary:"A. Curtin delivered full commercial proposal including volume-tiered pricing and SLA commitments. Procurement committee review expected within 15 working days."},
       {src:"call",    time:"16 June",  headline:"Call Notes: Operations review call — fund order routing requirements",
-       summary:"Head of Operations (Richard Blythe) confirmed current TA connectivity involves 14 separate point-to-point links. Consolidation is a stated efficiency priority. Estimated annual routing volume: 8.4m orders — well within Calastone network capacity."},
+       summary:"Head of Operations (Richard Blythe) confirmed current TA connectivity involves 14 separate point-to-point links. Consolidation is a stated efficiency priority. Estimated annual routing volume: 8.4m orders — well within Phaeron network capacity."},
       {src:"news",    time:"5 days ago", headline:"BNY Mellon (Pershing parent) reports record Q2 assets under custody",
        summary:"AuC grew 12% YoY to $47.8 trillion. Increased custody volumes drive higher fund transaction activity — the Pershing routing opportunity is structurally well-supported."},
       {src:"granola", time:"9 June",   headline:"Granola meeting notes: Initial technical architecture session",
@@ -102,13 +102,13 @@ const companies = [
     annot:{idx:19,label:"FUA growth +1.8%"},
     signals:[
       {src:"sf",   time:"Today",   headline:"New contact added in Salesforce — Head of Platform Technology confirmed",
-       summary:"Champion identified within the technology function: Kate Simmons (Head of Platform Technology). Warm introduction routed via existing Calastone network contact at IntegraFin."},
+       summary:"Champion identified within the technology function: Kate Simmons (Head of Platform Technology). Warm introduction routed via existing Phaeron network contact at IntegraFin."},
       {src:"granola", time:"10 June", headline:"Granola meeting notes: Intro call with Head of Platform Technology",
        summary:"Strong interest in reducing TA settlement latency. Transact currently operates 6 legacy direct connections to fund managers. Kate Simmons indicated appetite for a single network solution ahead of T+1 go-live. Follow-up workshop agreed."},
       {src:"news", time:"1 day ago", headline:"IntegraFin reports 8.4% FUA growth in Q2 trading update",
        summary:"Funds under administration reached £73.2bn. Growing platform volumes increase the addressable routing opportunity and make a commercial case easier to justify for procurement."},
       {src:"call", time:"3 June",  headline:"Call Notes: Initial discovery call — platform routing landscape mapped",
-       summary:"Mapped existing TA connections: 6 direct links across 4 transfer agents. Primary pain point is batch file processing causing end-of-day settlement delays. Aligns directly with Calastone's real-time routing capability."},
+       summary:"Mapped existing TA connections: 6 direct links across 4 transfer agents. Primary pain point is batch file processing causing end-of-day settlement delays. Aligns directly with Phaeron's real-time routing capability."},
     ],
     contacts:[
       {name:"Kate Simmons",   title:"Head of Platform Technology", init:"KS", color:"#C05A00", last:"Today",   rec:"g"},
@@ -309,7 +309,7 @@ function renderDetail(){
         </div>
         <div class="rel-side">
           <div class="rel-card">
-            <h4>Calastone Account Owner</h4>
+            <h4>Phaeron Account Owner</h4>
             <div class="owner-row">
               <div class="c-av" style="background:${c.owner.color}">${c.owner.init}</div>
               <div class="c-info"><div class="c-name">${c.owner.name}</div><div class="c-title">${c.owner.title}</div></div>

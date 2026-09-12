@@ -40,7 +40,7 @@ const TIMEOUT_MS = Number(process.env.SNAPSHOT_QA_TIMEOUT_MS || 60_000);
  * with something plausible, which is precisely the failure this feature exists
  * to avoid.
  */
-const SYSTEM_RULES = `You answer questions about a Calastone relationship snapshot for an internal sales audience.
+const SYSTEM_RULES = `You answer questions about a Phaeron relationship snapshot for an internal sales audience.
 
 You are given JSON: the account currently on screen in full, and a short digest of the other accounts in the simulation. That JSON is the only thing you know. Answer from it and nothing else.
 

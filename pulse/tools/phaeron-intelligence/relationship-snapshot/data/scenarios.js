@@ -10,7 +10,7 @@
  * billing, transaction or Jira system is contacted, and every surface that
  * shows a figure also says the data is simulated.
  *
- * The CALASTONE staff are real colleagues, named so the demo shows the right
+ * The PHAERON staff are real colleagues, named so the demo shows the right
  * owner for each account. The CLIENT contacts are not, and must not be: those
  * are individuals attributed to real firms, which is the one thing on this
  * page that should never look real.
@@ -21,7 +21,7 @@
  */
 
 /**
- * The Calastone relationship managers. Real colleagues.
+ * The Phaeron relationship managers. Real colleagues.
  *
  * `region` carries what each of them covers rather than where they sit: the
  * card prints it after the title, and a coverage line is both true and useful

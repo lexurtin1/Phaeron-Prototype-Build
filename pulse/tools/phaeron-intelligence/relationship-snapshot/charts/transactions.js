@@ -2,7 +2,7 @@
  * Transaction volume — a trend line, month by month.
  *
  * A trend, not a tally: the shape of the year is the point, so this is a line
- * along the Calastone ramp with a soft fill beneath it, and last year's line
+ * along the Phaeron ramp with a soft fill beneath it, and last year's line
  * behind it in dashed grey for reference.
  *
  * Deliberately a separate chart from billing revenue, on its own axis, with the

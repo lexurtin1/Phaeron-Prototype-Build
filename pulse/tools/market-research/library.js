@@ -11,7 +11,7 @@
    claudeComplete, assertClaudeProxyReady, fileToBase64, safeParseJSON,
    renderMarkdown, escapeHtml, callClaude, openModal, closeModal. */
 
-const LIBRARY_STORAGE_KEY = 'calastone_library_v1';
+const LIBRARY_STORAGE_KEY = 'phaeron_library_v1';
 const LIBRARY_MAX_TOKENS = 8000;
 // Full text of matched documents injected into a chat turn.
 const LIBRARY_CHAR_BUDGET = 60000;
@@ -117,7 +117,7 @@ async function deleteDoc(id){
 
 /* ---------------- upload → Claude ---------------- */
 
-const LIBRARY_SYSTEM_PROMPT = `You catalogue market-intelligence documents for Calastone's Global Order-Routing Atlas.
+const LIBRARY_SYSTEM_PROMPT = `You catalogue market-intelligence documents for Phaeron's Global Order-Routing Atlas.
 
 You receive one document: a research report, platform study, regulatory article, news piece or internal note. It is GLOBAL or CROSS-MARKET material — it is not filed against a single country.
 

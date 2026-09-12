@@ -1,5 +1,5 @@
 ﻿/* ================================================================
-   CALASTONE PRODUCT DEMO — standalone app.js
+   PHAERON PRODUCT DEMO — standalone app.js
    Hub & Spoke visualization + Products Navigation + Order Routing
    ================================================================ */
 
@@ -296,7 +296,7 @@ function switchToOrderRouting() {
     hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#2d9a8e','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
     const hubT=ns('text',{x:0,y:0,'text-anchor':'middle','dominant-baseline':'middle'});
     hubT.style.cssText='font:800 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;letter-spacing:0.12em;fill:#fff;pointer-events:none';
-    hubT.textContent='CALASTONE';
+    hubT.textContent='PHAERON';
     hubInner.appendChild(hubT);
     hubOuter.appendChild(hubInner);
     svg.appendChild(hubOuter);

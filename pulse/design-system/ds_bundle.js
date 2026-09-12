@@ -12,7 +12,7 @@ const __ds_scope = {};
 try { (() => {
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /**
- * Hexagon — the core Calastone brand shape. Pointy-top hex, used for
+ * Hexagon — the core Phaeron brand shape. Pointy-top hex, used for
  * network nodes, the hub, and decorative geometry.
  */
 function Hexagon({
@@ -60,7 +60,7 @@ Object.assign(__ds_scope, { Hexagon });
 // components/brand/Logo.jsx
 try { (() => {
 /**
- * Calastone logo lockup. Uses the real wordmark asset; `assetBase`
+ * Phaeron logo lockup. Uses the real wordmark asset; `assetBase`
  * points at the design-system root (where /assets lives).
  */
 function Logo({
@@ -70,7 +70,7 @@ function Logo({
   assetBase = '..',
   style
 }) {
-  const src = `${assetBase}/assets/logos/calastone-wordmark-${variant === 'white' ? 'white' : 'black'}.png`;
+  const src = `${assetBase}/assets/phaeron-wordmark.png`;
   const taglineColor = variant === 'white' ? '#7d9097' : 'var(--ink-500)';
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -81,7 +81,7 @@ function Logo({
     }
   }, /*#__PURE__*/React.createElement("img", {
     src: src,
-    alt: "Calastone",
+    alt: "Phaeron",
     style: {
       height,
       width: 'auto',
@@ -282,7 +282,7 @@ Object.assign(__ds_scope, { Badge });
 try { (() => {
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 /**
- * Calastone Button — primary actions use the brand teal; the accent
+ * Phaeron Button — primary actions use the brand teal; the accent
  * (bright) variant is used for the "lit up" interactive CTAs.
  */
 function Button({
@@ -392,7 +392,7 @@ Object.assign(__ds_scope, { Button });
 // components/core/Card.jsx
 try { (() => {
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-/** Surface container. Calastone cards are white, hairline-bordered, softly shadowed. */
+/** Surface container. Phaeron cards are white, hairline-bordered, softly shadowed. */
 function Card({
   children,
   elevated = false,
@@ -597,7 +597,7 @@ Object.assign(__ds_scope, { Input });
 // components/core/SegmentedControl.jsx
 try { (() => {
 /**
- * Segmented control — the rounded pill toggle Calastone uses for
+ * Segmented control — the rounded pill toggle Phaeron uses for
  * Before / After, The Network / Order Routing, etc.
  */
 function SegmentedControl({
@@ -770,9 +770,9 @@ Object.assign(__ds_scope, { Tabs });
 
 // ui_kits/network/NetworkDiagram.jsx
 try { (() => {
-// Calastone Network diagram — hexagon participants arranged around the hub.
+// Phaeron Network diagram — hexagon participants arranged around the hub.
 // Renders "before" (tangled point-to-point mesh) and "after" (one connection
-// to the Calastone hub). Pure presentational; controlled by `mode`.
+// to the Phaeron hub). Pure presentational; controlled by `mode`.
 const {
   Hexagon
 } = window.CalastoneDesignSystem_d5328f;
@@ -967,7 +967,7 @@ function NetworkDiagram({
       letterSpacing: '0.1em',
       fill: '#fff'
     }
-  }, "CALASTONE")) : null);
+  }, "PHAERON")) : null);
 }
 window.NetworkDiagram = NetworkDiagram;
 })(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/network/NetworkDiagram.jsx", error: String((e && e.message) || e) }); }
@@ -975,7 +975,7 @@ window.NetworkDiagram = NetworkDiagram;
 // ui_kits/network/OrderRouting.jsx
 try { (() => {
 // Order Routing flow — the numbered message sequence between Distributor,
-// the Calastone hub, and the Fund Manager, with settlement + payments below.
+// the Phaeron hub, and the Fund Manager, with settlement + payments below.
 const {
   Hexagon
 } = window.CalastoneDesignSystem_d5328f;
@@ -1086,7 +1086,7 @@ function OrderRouting() {
     dir: "left",
     n: "6",
     label: "Price confirmation"
-  })), lane('Calastone Order Routing', 'var(--ink-900)'), /*#__PURE__*/React.createElement("div", {
+  })), lane('Phaeron Order Routing', 'var(--ink-900)'), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
@@ -1122,7 +1122,7 @@ function OrderRouting() {
   }, /*#__PURE__*/React.createElement(Hexagon, {
     size: 92,
     fill: "var(--ink-300)",
-    label: "Calastone Settlements",
+    label: "Phaeron Settlements",
     labelColor: "var(--ink-800)"
   }), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1139,7 +1139,7 @@ function OrderRouting() {
   }, /*#__PURE__*/React.createElement(Hexagon, {
     size: 92,
     fill: "var(--ink-300)",
-    label: "Calastone Payments",
+    label: "Phaeron Payments",
     labelColor: "var(--ink-800)"
   }), /*#__PURE__*/React.createElement("span", {
     style: {

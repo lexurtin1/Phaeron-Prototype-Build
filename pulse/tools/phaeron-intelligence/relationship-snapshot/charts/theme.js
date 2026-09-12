@@ -1,12 +1,12 @@
 /**
- * Calastone ECharts theme.
+ * Phaeron ECharts theme.
  *
  * Registered once, applied to every chart in the feature. Nothing is left with
  * ECharts' stock styling — default blues, heavy grid lines, boxy tooltips and
  * the default font stack are all replaced.
  *
  * Colour discipline (matches the Intelligence Module's token block):
- *   brand ramp — data series, in ramp order. The Calastone mark is a black
+ *   brand ramp — data series, in ramp order. The Phaeron mark is a black
  *                wordmark over a blue → teal → green sweep, and these are that
  *                sweep: blue #1D7FB8, teal #2D9A8E, green #35B57E, lime #6BBF59.
  *   grey       — muted dashed comparison series
@@ -155,7 +155,7 @@ let registered = false;
  * Register the theme with an ECharts instance. Idempotent.
  * @param {any} echarts the global ECharts UMD object
  */
-export function registerCalastoneTheme(echarts) {
+export function registerPhaeronTheme(echarts) {
   if (registered || !echarts?.registerTheme) return;
   echarts.registerTheme(THEME_NAME, THEME);
   registered = true;
