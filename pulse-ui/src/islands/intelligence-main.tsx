@@ -9,7 +9,7 @@ function IntelligenceEmpty() {
   return (
     <div className="intel-empty-enhance">
       <div className="intel-orb-wrap">
-        <Orb hue={160} hoverIntensity={0.35} rotateOnHover backgroundColor="#eef8f6" />
+        <Orb hue={160} hoverIntensity={0.35} rotateOnHover backgroundColor="#F2F5FA" />
       </div>
       <TextType
         text={[
@@ -33,11 +33,11 @@ function IntelligenceEmpty() {
             width="auto"
             height="auto"
             background="#ffffff"
-            borderColor="#dcefec"
+            borderColor="#E4EAF3"
             borderRadius="999px"
-            glareColor="#2d9a8e"
+            glareColor="#1B3A6B"
             glareOpacity={0.22}
-            style={{ padding: '8px 14px', fontSize: 12, fontWeight: 600, color: '#26867d' }}
+            style={{ padding: '8px 14px', fontSize: 12, fontWeight: 600, color: '#1A3558' }}
           >
             {label}
           </GlareHover>

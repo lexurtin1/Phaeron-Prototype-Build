@@ -18,20 +18,20 @@ function AccountPolish() {
   return (
     <FadeContent duration={600} blur>
       <div className="account-kpi-rail">
-        <SpotlightCard className="account-kpi" spotlightColor="rgba(45, 154, 142, 0.16)">
+        <SpotlightCard className="account-kpi" spotlightColor="rgba(27, 58, 107, 0.16)">
           <div className="label">Pipeline value</div>
           <div className="value">
             £<CountUp to={48.2} from={0} duration={1.6} separator="," />
             m
           </div>
         </SpotlightCard>
-        <SpotlightCard className="account-kpi" spotlightColor="rgba(53, 181, 126, 0.16)">
+        <SpotlightCard className="account-kpi" spotlightColor="rgba(225, 29, 72, 0.14)">
           <div className="label">Open accounts</div>
           <div className="value">
             <CountUp to={4} duration={1.2} />
           </div>
         </SpotlightCard>
-        <SpotlightCard className="account-kpi" spotlightColor="rgba(63, 141, 188, 0.16)">
+        <SpotlightCard className="account-kpi" spotlightColor="rgba(47, 82, 133, 0.16)">
           <div className="label">Signals (30d)</div>
           <div className="value">
             <CountUp to={17} duration={1.4} />

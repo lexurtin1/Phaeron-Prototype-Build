@@ -1,68 +1,91 @@
 /* ============================================================
    PHAERON · COLOR TOKENS
-   Light + teal + black. The signature is a teal→green gradient
-   and a six-colour participant palette (the network nodes).
+   Light surfaces + neon dark navy + crimson accents.
+   Signature gradient: navy → crimson. Legacy --teal-* / brand
+   --accent-* / hub --green-* map onto navy/crimson for compat.
    ============================================================ */
 :root {
-  /* ---- Ink / neutrals (text is dark slate, not pure black) ---- */
-  --ink-900: #0d1418;   /* near-black, logo & strongest headings */
-  --ink-800: #22323d;   /* primary text — dark slate navy */
-  --ink-700: #3a4a55;
-  --ink-600: #566571;   /* secondary text */
-  --ink-500: #7a8893;   /* muted / captions */
-  --ink-400: #9aa6b0;   /* disabled, placeholder */
-  --ink-300: #c3cdd5;   /* borders (strong) */
-  --ink-200: #dde4ea;   /* borders / dividers */
-  --ink-100: #eef2f6;   /* hairlines, track fills */
-  --ink-050: #f5f8fb;   /* tint background */
+  /* ---- Ink / neutrals (cool navy-tinted slate) ---- */
+  --ink-900: #07111F;   /* deepest navy ink & strongest headings */
+  --ink-800: #0C1A2E;   /* primary text */
+  --ink-700: #243048;
+  --ink-600: #3D4F66;   /* secondary text */
+  --ink-500: #6B7C91;   /* muted / captions */
+  --ink-400: #93A1B3;   /* disabled, placeholder */
+  --ink-300: #C5CEDA;   /* borders (strong) */
+  --ink-200: #DDE4EE;   /* borders / dividers */
+  --ink-100: #EEF2F7;   /* hairlines, track fills */
+  --ink-050: #F5F7FB;   /* tint background */
   --white:   #ffffff;
 
-  /* ---- Brand teal (primary) ---- */
-  --teal-700: #1f7a72;
-  --teal-600: #26867d;
-  --teal-500: #2d9a8e;  /* PRIMARY brand teal */
-  --teal-400: #43a89c;
-  --teal-300: #7cc4bb;
-  --teal-200: #b3ddd7;
-  --teal-100: #dcefec;
-  --teal-050: #eef8f6;
+  /* ---- Brand navy (primary) ---- */
+  --navy-900: #07111F;
+  --navy-800: #0C1A2E;
+  --navy-700: #132743;
+  --navy-600: #1A3558;
+  --navy-500: #1B3A6B;  /* PRIMARY brand navy */
+  --navy-400: #2F5285;
+  --navy-300: #5B7AAB;
+  --navy-200: #B8C7DE;
+  --navy-100: #E4EAF3;
+  --navy-050: #F2F5FA;
 
-  /* ---- Bright teal (interactive accent / links / focus) ---- */
-  --accent-600: #0c9d86;
-  --accent-500: #0fb89c;  /* bright network teal — links, active */
-  --accent-400: #2ecbb1;
-  --accent-300: #73d6c5;
+  /* ---- Brand crimson (interactive accent) ---- */
+  --crimson-700: #9F1239;
+  --crimson-600: #BE123C;
+  --crimson-500: #E11D48;  /* PRIMARY accent — links, focus, live */
+  --crimson-400: #FB7185;
+  --crimson-300: #FDA4AF;
+  --crimson-200: #FECDD3;
+  --crimson-100: #FFE4E6;
+  --crimson-050: #FFF1F2;
 
-  /* ---- Green (secondary brand — pairs with teal in the gradient) ---- */
-  --green-700: #2c8f5f;
-  --green-600: #2fa06b;
-  --green-500: #35b57e;   /* hub green */
-  --green-400: #56a773;
-  --green-300: #8fce9f;
-  --green-100: #e0f3e7;
+  /* ---- Compat: legacy teal scale → navy ---- */
+  --teal-700: var(--navy-700);
+  --teal-600: var(--navy-600);
+  --teal-500: var(--navy-500);
+  --teal-400: var(--navy-400);
+  --teal-300: var(--navy-300);
+  --teal-200: var(--navy-200);
+  --teal-100: var(--navy-100);
+  --teal-050: var(--navy-050);
 
-  /* ---- Signature brand gradient (teal → green, the Phaeron hub) ---- */
-  --grad-brand: linear-gradient(135deg, #2d9a8e 0%, #35b57e 100%); /* @kind color */
-  --grad-brand-soft: linear-gradient(135deg, #43a89c 0%, #5fc08c 100%); /* @kind color */
-  --grad-accent-rule: linear-gradient(90deg, #2d9a8e 0%, #35b57e 100%); /* @kind color */
+  /* ---- Compat: legacy bright accent → crimson ---- */
+  --accent-600: var(--crimson-600);
+  --accent-500: var(--crimson-500);
+  --accent-400: var(--crimson-400);
+  --accent-300: var(--crimson-300);
 
-  /* ---- Participant palette (the six network roles) ---- */
-  --role-investor:      #3d8dbc;  /* Investors / Distributors (blue) */
-  --role-distributor:   #3d8dbc;
-  --role-fundmanager:   #2ea39b;  /* Fund Managers (teal) */
-  --role-transferagent: #1c4d6a;  /* Transfer Agents (deep navy) */
-  --role-custodian:     #56a773;  /* Custodians (green) */
-  --role-calastone:     #2d9a8e;  /* the hub */
+  /* ---- Compat: legacy hub green (brand, not status) → crimson mid ---- */
+  --green-700: var(--crimson-700);
+  --green-600: var(--crimson-600);
+  --green-500: var(--crimson-500);
+  --green-400: var(--crimson-400);
+  --green-300: var(--crimson-300);
+  --green-100: var(--crimson-100);
 
-  /* ---- Semantic status ---- */
-  --status-success:    #35b57e;
-  --status-success-bg: #e0f3e7;
-  --status-warning:    #e0a325;
-  --status-warning-bg: #fbf1d8;
-  --status-danger:     #d05454;
-  --status-danger-bg:  #fbe4e4;
-  --status-info:       #3d8dbc;
-  --status-info-bg:    #e4eff6;
+  /* ---- Signature brand gradient (navy → crimson) ---- */
+  --grad-brand: linear-gradient(135deg, #1B3A6B 0%, #E11D48 100%); /* @kind color */
+  --grad-brand-soft: linear-gradient(135deg, #2F5285 0%, #FB7185 100%); /* @kind color */
+  --grad-accent-rule: linear-gradient(90deg, #1B3A6B 0%, #E11D48 100%); /* @kind color */
+
+  /* ---- Participant palette (network roles) ---- */
+  --role-investor:      #2F5285;  /* Investors / Distributors */
+  --role-distributor:   #2F5285;
+  --role-fundmanager:   #1B3A6B;  /* Fund Managers */
+  --role-transferagent: #0C1A2E;  /* Transfer Agents */
+  --role-custodian:     #BE123C;  /* Custodians */
+  --role-calastone:     #1B3A6B;  /* the hub */
+
+  /* ---- Semantic status (true meaning colors — not brand) ---- */
+  --status-success:    #2F9B63;
+  --status-success-bg: #E3F6EC;
+  --status-warning:    #E0A325;
+  --status-warning-bg: #FBF1D8;
+  --status-danger:     #E11D48;
+  --status-danger-bg:  #FFF1F2;
+  --status-info:       #2F5285;
+  --status-info-bg:    #E4EAF3;
 
   /* ============================================================
      SEMANTIC ALIASES — prefer these in components
@@ -71,23 +94,23 @@
   --color-bg-subtle:    var(--ink-050);
   --color-bg-muted:     var(--ink-100);
   --color-surface:      var(--white);
-  --color-surface-tint: var(--teal-050);
+  --color-surface-tint: var(--navy-050);
 
   --text-strong:    var(--ink-900);
   --text-primary:   var(--ink-800);
   --text-secondary: var(--ink-600);
   --text-muted:     var(--ink-500);
   --text-inverse:   var(--white);
-  --text-link:      var(--accent-600);
-  --text-brand:     var(--teal-600);
+  --text-link:      var(--crimson-600);
+  --text-brand:     var(--navy-600);
 
   --border-subtle:  var(--ink-200);
   --border-default: var(--ink-300);
   --border-strong:  var(--ink-600);
 
-  --brand-primary: var(--teal-500);
-  --brand-accent:  var(--accent-500);
+  --brand-primary: var(--navy-500);
+  --brand-accent:  var(--crimson-500);
   --brand-ink:     var(--ink-900);
 
-  --focus-ring: var(--accent-500);
+  --focus-ring: var(--crimson-500);
 }

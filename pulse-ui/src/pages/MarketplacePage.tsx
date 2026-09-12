@@ -10,28 +10,28 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2d9a8e"/><stop offset="1" stop-color="#35b57e"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Research</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1B3A6B"/><stop offset="1" stop-color="#BE123C"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Research</text></svg>`
       ),
     title: 'Atlas Research Agent',
     subtitle: 'Country opportunity briefs and competitor scans',
     handle: 'Research',
     location: 'Install',
-    borderColor: '#2d9a8e',
-    gradient: 'linear-gradient(145deg, #2d9a8e, #0d1418)',
+    borderColor: '#1B3A6B',
+    gradient: 'linear-gradient(145deg, #1B3A6B, #0d1418)',
     url: '/tools/market-research/index.html',
   },
   {
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0fb89c"/><stop offset="1" stop-color="#1f7a72"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Routing</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#E11D48"/><stop offset="1" stop-color="#132743"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Routing</text></svg>`
       ),
     title: 'Order Routing Copilot',
     subtitle: 'Hub-and-spoke path suggestions for pitches',
     handle: 'Routing',
     location: 'Try',
-    borderColor: '#0fb89c',
-    gradient: 'linear-gradient(165deg, #0fb89c, #0d1418)',
+    borderColor: '#E11D48',
+    gradient: 'linear-gradient(165deg, #E11D48, #0d1418)',
     url: '/tools/product-demo/index.html',
   },
   {
@@ -52,14 +52,14 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#35b57e"/><stop offset="1" stop-color="#1c4d6a"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Intel</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#BE123C"/><stop offset="1" stop-color="#1c4d6a"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Intel</text></svg>`
       ),
     title: 'Relationship Snapshot',
     subtitle: 'Ask Atlas for CTN-ready relationship packs',
     handle: 'Intelligence',
     location: 'Try',
-    borderColor: '#35b57e',
-    gradient: 'linear-gradient(210deg, #35b57e, #0d1418)',
+    borderColor: '#BE123C',
+    gradient: 'linear-gradient(210deg, #BE123C, #0d1418)',
     url: '/tools/phaeron-intelligence/index.html',
   },
   {
@@ -80,14 +80,14 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7cc4bb"/><stop offset="1" stop-color="#0d1418"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Email</text></svg>`
+        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5B7AAB"/><stop offset="1" stop-color="#0d1418"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Email</text></svg>`
       ),
     title: 'Outreach Drafter',
     subtitle: 'Meeting prep and follow-up email drafts',
     handle: 'Outreach',
     location: 'Soon',
-    borderColor: '#7cc4bb',
-    gradient: 'linear-gradient(135deg, #7cc4bb, #0d1418)',
+    borderColor: '#5B7AAB',
+    gradient: 'linear-gradient(135deg, #5B7AAB, #0d1418)',
     url: '/ui/marketplace.html',
   },
 ];
@@ -96,7 +96,7 @@ export function MarketplacePage() {
   return (
     <div className="pulse-shell">
       <div className="pulse-aurora" aria-hidden>
-        <SoftAurora lightMode color1="#2d9a8e" color2="#0fb89c" brightness={1.05} speed={0.5} />
+        <SoftAurora lightMode color1="#1B3A6B" color2="#E11D48" brightness={1.05} speed={0.5} />
       </div>
       <div className="pulse-noise" aria-hidden>
         <Noise patternAlpha={8} />
@@ -122,7 +122,7 @@ export function MarketplacePage() {
               splitLevelClassName="overflow-hidden"
               transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               rotationInterval={2200}
-              style={{ color: '#2d9a8e', fontWeight: 700 }}
+              style={{ color: '#1B3A6B', fontWeight: 700 }}
             />
           </div>
 
@@ -132,7 +132,7 @@ export function MarketplacePage() {
               glowColor="174 45 55"
               backgroundColor="#f7fbfa"
               borderRadius={24}
-              colors={['#2d9a8e', '#35b57e', '#0fb89c']}
+              colors={['#1B3A6B', '#BE123C', '#E11D48']}
               fillOpacity={0.22}
               glowIntensity={0.85}
             >

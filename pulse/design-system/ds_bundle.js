@@ -37,7 +37,7 @@ function Hexagon({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      filter: glow ? 'drop-shadow(0 8px 22px rgba(45,154,142,0.35))' : 'none',
+      filter: glow ? 'drop-shadow(0 8px 22px rgba(27,58,107,0.35))' : 'none',
       ...style
     }
   }, rest), children || label && /*#__PURE__*/React.createElement("span", {
@@ -895,10 +895,10 @@ function NetworkDiagram({
     y2: "100%"
   }, /*#__PURE__*/React.createElement("stop", {
     offset: "0%",
-    stopColor: "#2d9a8e"
+    stopColor: "#1B3A6B"
   }), /*#__PURE__*/React.createElement("stop", {
     offset: "100%",
-    stopColor: "#35b57e"
+    stopColor: "#E11D48"
   }))), !isAfter && meshLines.map(([a, b], i) => /*#__PURE__*/React.createElement("line", {
     key: 'm' + i,
     x1: a.x,

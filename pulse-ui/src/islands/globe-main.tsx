@@ -61,7 +61,7 @@ function GlobeChrome() {
             logoAlt="Mode"
             items={MODE_ITEMS}
             activeHref={`#mode-${mode}`}
-            baseColor="#2d9a8e"
+            baseColor="#1B3A6B"
             pillColor="#ffffff"
             pillTextColor="#22323d"
             hoveredPillTextColor="#ffffff"
