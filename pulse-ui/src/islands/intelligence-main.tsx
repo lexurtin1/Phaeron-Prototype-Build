@@ -9,7 +9,7 @@ function IntelligenceEmpty() {
   return (
     <div className="intel-empty-enhance">
       <div className="intel-orb-wrap">
-        <Orb hue={160} hoverIntensity={0.35} rotateOnHover backgroundColor="#F2F5FA" />
+        <Orb hue={350} hoverIntensity={0.35} rotateOnHover backgroundColor="#F2F5FA" />
       </div>
       <TextType
         text={[

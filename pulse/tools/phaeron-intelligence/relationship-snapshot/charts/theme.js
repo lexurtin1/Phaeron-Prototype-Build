@@ -8,7 +8,7 @@
  * Colour discipline (matches the Intelligence Module's token block):
  *   brand ramp — data series, in ramp order. The Phaeron mark is a black
  *                wordmark over a blue → teal → green sweep, and these are that
- *                sweep: blue #1D7FB8, teal #2D9A8E, green #35B57E, lime #6BBF59.
+ *                sweep: navy #1B3A6B, mid #2F5285, accent #BE123C, dark crimson #9F1239.
  *   grey       — muted dashed comparison series
  *   amber      — explicit attention state only
  *   red        — explicit high severity / breach / error only
@@ -19,23 +19,23 @@
  */
 
 export const PALETTE = {
-  /* the brand ramp, blue → green */
-  brandBlue: '#1D7FB8',
-  brandTeal: '#2D9A8E',
-  brandGreen: '#35B57E',
-  brandLime: '#6BBF59',
-  brandDeep: '#1C4D6A',
+  /* the brand ramp, navy → dark crimson */
+  brandBlue: '#1B3A6B',
+  brandTeal: '#2F5285',
+  brandGreen: '#BE123C',
+  brandLime: '#9F1239',
+  brandDeep: '#132743',
 
-  teal: '#2D9A8E',
-  tealBright: '#2ECBB1',
-  tealSoft: 'rgba(45,154,142,0.14)',
-  green: '#35B57E',
-  blue: '#3D8DBC',
+  teal: '#9F1239',
+  tealBright: '#BE123C',
+  tealSoft: 'rgba(159,18,57,0.14)',
+  green: '#9F1239',
+  blue: '#1B3A6B',
   grey: '#9AA6B0',
   greyLine: 'rgba(34,50,61,0.10)',
   amber: '#F59E0B',
   red: '#EF4444',
-  navy: '#22323D',
+  navy: '#0C1A2E',
   muted: '#566571',
   faint: '#9AA6B0',
   surface: '#FFFFFF',
@@ -111,8 +111,8 @@ const THEME = {
     extraCssText: 'box-shadow:0 4px 14px rgba(34,50,61,0.09);border-radius:7px;',
     textStyle: { fontFamily: FONT, color: PALETTE.navy, fontSize: 12 },
     axisPointer: {
-      lineStyle: { color: 'rgba(45,154,142,0.35)', width: 1 },
-      crossStyle: { color: 'rgba(45,154,142,0.35)' },
+      lineStyle: { color: 'rgba(159,18,57,0.35)', width: 1 },
+      crossStyle: { color: 'rgba(159,18,57,0.35)' },
     },
   },
 

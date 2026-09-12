@@ -1121,7 +1121,7 @@ ${indicatorPromptSpec()}
 
 const C = {
   good:'#4a9d5b', mid:'#d79a31', bad:'#cf5a4e',
-  developed:'#007DB7', emerging:'#2D9A8E', frontier:'#6AAD6A', unknown:'#a7b3bd',
+  developed:'#1B3A6B', emerging:'#9F1239', frontier:'#BE123C', unknown:'#a7b3bd',
   none:'#cdd8e1'
 };
 /* Opportunity uses a red→green heat scale: red is a weak opportunity, green a
@@ -1199,7 +1199,7 @@ function polyCapColor(f){
   return hexA(col, selectedISO===rec.iso3 ? Math.min(1, base+0.06) : base);
 }
 function polySideColor(){return 'rgba(0,80,120,0.10)';}
-function polyStrokeColor(f){const rec=recordFor(f);if(selectedISO&&rec&&rec.iso3===selectedISO)return '#007DB7';return 'rgba(15,34,48,0.12)';}
+function polyStrokeColor(f){const rec=recordFor(f);if(selectedISO&&rec&&rec.iso3===selectedISO)return '#1B3A6B';return 'rgba(15,34,48,0.12)';}
 function polyAltitude(f){const rec=recordFor(f);if(rec&&rec.iso3===selectedISO)return 0.10;if(f.__hover)return 0.07;if(rec&&passesFilters(rec))return 0.012;return 0.006;}
 
 const tooltipEl=document.getElementById('tooltip');

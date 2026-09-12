@@ -20,38 +20,38 @@
   --card-line: rgba(34,50,61,0.07);
   --shadow:    0 12px 44px rgba(34,50,61,0.10), 0 2px 8px rgba(34,50,61,0.04);
 
-  /* exact Phaeron brand gradient (sampled from logo): blue → teal → green */
-  --brand-blue:  #0082C4;
-  --brand-teal:  #2D999C;
-  --brand-green: #64B066;
-  --grad: linear-gradient(90deg, #0082C4 0%, #1194A6 38%, #2D999C 60%, #4FAA87 82%, #64B066 100%);
+  /* brand gradient: navy → dark crimson */
+  --brand-blue:  #1B3A6B;
+  --brand-teal:  #BE123C;
+  --brand-green: #9F1239;
+  --grad: linear-gradient(90deg, #1B3A6B 0%, #2F5285 38%, #BE123C 60%, #9F1239 100%);
 
-  --teal:      #2D999C;
-  --teal-dk:   #1f7f82;
-  --navy:      #1c2b34;
-  --ink:       #0D1418;
-  --blue:      #0082C4;
+  --teal:      #9F1239;
+  --teal-dk:   #7A1233;
+  --navy:      #0C1A2E;
+  --ink:       #07111F;
+  --blue:      #1B3A6B;
   --grey:      #6b7a83;
   --grey-lt:   #9aa6ad;
   --grey-xlt:  #c3ccd2;
 
   --reg:       #B5524E;
   --comp:      #C98A3C;
-  --mkt:       #2D999C;
+  --mkt:       #1B3A6B;
   --call:      #8a98a0;
 
   --land:      #ffffff;
   --land-line: rgba(108,123,131,0.5);
-  --active:    #bcd6dc;
+  --active:    #E4EAF3;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{
   font-family:'Inter',system-ui,sans-serif;color:var(--navy);
-  background:linear-gradient(170deg,var(--bg-top) 0%, #f6f9fb 42%, var(--bg-bottom) 100%);
+  background:linear-gradient(170deg,var(--bg-top) 0%, #F2F5FA 42%, var(--bg-bottom) 100%);
   -webkit-font-smoothing:antialiased;
 }
-::selection{background:rgba(45,154,142,0.22)}
+::selection{background:rgba(159,18,57,0.18)}
 .scroll::-webkit-scrollbar{width:6px}
 .scroll::-webkit-scrollbar-track{background:transparent}
 .scroll::-webkit-scrollbar-thumb{background:rgba(125,144,151,0.28);border-radius:3px}
@@ -201,8 +201,8 @@ body{
 .feed{flex:1 1 auto;overflow-y:auto;padding:8px 14px 14px}
 .row{display:flex;gap:11px;padding:13px 11px;border-radius:11px;cursor:pointer;
   border:1px solid transparent;transition:background .18s ease,border-color .18s ease}
-.row:hover{background:rgba(45,154,142,0.05);border-color:var(--card-line)}
-.row.sel{background:rgba(45,154,142,0.09);border-color:rgba(45,154,142,0.3)}
+.row:hover{background:rgba(159,18,57,0.05);border-color:var(--card-line)}
+.row.sel{background:rgba(159,18,57,0.09);border-color:rgba(159,18,57,0.3)}
 .row-dot{position:relative;flex:0 0 auto;width:10px;height:10px;border-radius:50%;margin-top:5px}
 .row-dot.high::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1.5px solid currentColor;animation:ripple 1.8s ease-out infinite}
 @keyframes ripple{0%{transform:scale(.5);opacity:.8}100%{transform:scale(1.9);opacity:0}}
@@ -330,7 +330,7 @@ body{
 .brazil-card .bc-types{font-size:10.5px;color:var(--grey-lt);margin-top:2px}
 .brazil-card .bc-status{flex-shrink:0;font-size:8.5px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;padding:4px 8px;border-radius:99px}
-.bc-status.Live{background:rgba(53,181,126,.14);color:#1f8a55}
+.bc-status.Live{background:rgba(190,18,60,.14);color:#1f8a55}
 .bc-status.InDiscussions{background:rgba(61,141,188,.14);color:#2a6690}
 .bc-status.Prospect{background:rgba(224,163,37,.16);color:#9c721b}
 .bc-status.Disabled{background:rgba(154,166,176,.16);color:#6b7a83}
@@ -489,7 +489,7 @@ body{
 const CAT = {
   regulatory:{color:'#C0504D', label:'REGULATORY', badge:'regulatory'},
   competitor:{color:'#E08A2B', label:'COMPETITOR', badge:'competitor'},
-  market:    {color:'#2D9A8E', label:'MARKET',     badge:'market'},
+  market:    {color:'#9F1239', label:'MARKET',     badge:'market'},
   call:      {color:'#7D9097', label:'CALL NOTE',  badge:'call'},
 };
 

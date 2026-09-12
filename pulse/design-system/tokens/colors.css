@@ -1,8 +1,8 @@
 /* ============================================================
    PHAERON · COLOR TOKENS
    Light surfaces + neon dark navy + crimson accents.
-   Signature gradient: navy → crimson. Legacy --teal-* / brand
-   --accent-* / hub --green-* map onto navy/crimson for compat.
+   Signature gradient: navy → dark crimson (#1B3A6B → #9F1239).
+   Legacy --teal-* / brand --accent-* / hub --green-* map for compat.
    ============================================================ */
 :root {
   /* ---- Ink / neutrals (cool navy-tinted slate) ---- */
@@ -31,9 +31,10 @@
   --navy-050: #F2F5FA;
 
   /* ---- Brand crimson (interactive accent) ---- */
-  --crimson-700: #9F1239;
-  --crimson-600: #BE123C;
-  --crimson-500: #E11D48;  /* PRIMARY accent — links, focus, live */
+  --crimson-800: #7A1233;  /* deepest crimson for aurora/inked fills */
+  --crimson-700: #9F1239;  /* dark crimson — gradient end / brand rules */
+  --crimson-600: #BE123C;  /* hover / secondary accent */
+  --crimson-500: #E11D48;  /* live / danger / focus (not aurora) */
   --crimson-400: #FB7185;
   --crimson-300: #FDA4AF;
   --crimson-200: #FECDD3;
@@ -64,10 +65,10 @@
   --green-300: var(--crimson-300);
   --green-100: var(--crimson-100);
 
-  /* ---- Signature brand gradient (navy → crimson) ---- */
-  --grad-brand: linear-gradient(135deg, #1B3A6B 0%, #E11D48 100%); /* @kind color */
-  --grad-brand-soft: linear-gradient(135deg, #2F5285 0%, #FB7185 100%); /* @kind color */
-  --grad-accent-rule: linear-gradient(90deg, #1B3A6B 0%, #E11D48 100%); /* @kind color */
+  /* ---- Signature brand gradient (navy → dark crimson) ---- */
+  --grad-brand: linear-gradient(135deg, #1B3A6B 0%, #9F1239 100%); /* @kind color */
+  --grad-brand-soft: linear-gradient(135deg, #2F5285 0%, #BE123C 100%); /* @kind color */
+  --grad-accent-rule: linear-gradient(90deg, #1B3A6B 0%, #9F1239 100%); /* @kind color */
 
   /* ---- Participant palette (network roles) ---- */
   --role-investor:      #2F5285;  /* Investors / Distributors */
@@ -109,8 +110,8 @@
   --border-strong:  var(--ink-600);
 
   --brand-primary: var(--navy-500);
-  --brand-accent:  var(--crimson-500);
+  --brand-accent:  var(--crimson-700);
   --brand-ink:     var(--ink-900);
 
-  --focus-ring: var(--crimson-500);
+  --focus-ring: var(--crimson-600);
 }

@@ -18,8 +18,8 @@ export function HomePage() {
         <SoftAurora
           lightMode
           color1="#1B3A6B"
-          color2="#E11D48"
-          brightness={1.05}
+          color2="#9F1239"
+          brightness={1.0}
           speed={0.55}
           scale={1.05}
           enableMouseInteraction={false}

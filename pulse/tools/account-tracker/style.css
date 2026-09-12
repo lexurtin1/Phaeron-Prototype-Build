@@ -6,10 +6,10 @@
    the linked token files.
    ============================================================ */
 :root{
-  --blue:#007DB7;
-  --blue-d:#005f8c;
-  --teal:#2D9A8E;
-  --green:#6AAD6A;
+  --blue:#1B3A6B;
+  --blue-d:#132743;
+  --teal:#BE123C;
+  --green:#9F1239;
   --ink-strong:#0f2230;
   --ink:#22323d;
   --ink-1:#516170;
@@ -25,19 +25,19 @@
   --green-soft:rgba(74,157,91,0.10);
   --amber:#d79a31;
   --amber-soft:rgba(215,154,49,0.12);
-  --navy:#2F3C7E;
-  --navy-soft:rgba(47,60,126,0.10);
+  --navy:#1B3A6B;
+  --navy-soft:rgba(27,58,107,0.10);
   --purple:#7B5EA7;
   --purple-soft:rgba(123,94,167,0.10);
-  --teal-soft:rgba(45,154,142,0.10);
-  --teal-soft-2:rgba(45,154,142,0.18);
+  --teal-soft:rgba(159,18,57,0.10);
+  --teal-soft-2:rgba(159,18,57,0.18);
   /* Source-specific colours */
   --src-sf:#0067B8;        /* Salesforce — blue */
   --src-sf-soft:rgba(0,103,184,0.09);
   --src-granola:#7B5EA7;   /* Granola — purple */
   --src-granola-soft:rgba(123,94,167,0.09);
-  --src-call:#2D9A8E;      /* Call Notes — teal */
-  --src-call-soft:rgba(45,154,142,0.09);
+  --src-call:#9F1239;      /* Call Notes — dark crimson */
+  --src-call-soft:rgba(159,18,57,0.09);
   --src-news:#516170;      /* News — slate */
   --src-news-soft:rgba(81,97,112,0.08);
   --src-alert:#d79a31;     /* Alert — amber */

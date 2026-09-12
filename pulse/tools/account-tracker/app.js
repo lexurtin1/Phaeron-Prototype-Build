@@ -35,10 +35,10 @@ const companies = [
     ],
     contacts:[
       {name:"Sarah Hume",      title:"Chief Operating Officer",       init:"SH", color:"#003366", last:"3 days",  rec:"g"},
-      {name:"Dan Fairley",     title:"Head of Platform Engineering",  init:"DF", color:"#2D9A8E", last:"17 days", rec:"a"},
+      {name:"Dan Fairley",     title:"Head of Platform Engineering",  init:"DF", color:"#1B3A6B", last:"17 days", rec:"a"},
       {name:"Priya Mehta",     title:"Procurement Director",          init:"PM", color:"#7B5EA7", last:"8 days",  rec:"g"},
     ],
-    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#2D9A8E"},
+    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#1B3A6B"},
     meeting:{when:"Tue 1 Jul · 10:00",detail:"Proposal commercial review with COO and procurement"},
     briefing:`<b>Hargreaves Lansdowne</b> is the highest-value opportunity in the pipeline at <b>£5.2m</b>. Shares fell <span class="hl">4.3% today on an FCA platform fee review</span>, and the incoming CEO has a clear cost and technology modernisation mandate — both are strong conversation hooks. The <b>£5.2m proposal</b> was delivered 3 days ago and the 17 June Granola notes confirm an internal champion and T+1 as a live concern. Follow up before the 1 July meeting to anchor the conversation around the regulatory and settlement timeline angles.`
   },
@@ -63,7 +63,7 @@ const companies = [
       {name:"Claire Ashworth",  title:"Chief Technology Officer",      init:"CA", color:"#4a9d5b", last:"19 days", rec:"a"},
       {name:"Tom Gallagher",    title:"Legal Counsel",                 init:"TG", color:"#7B5EA7", last:"2 days",  rec:"g"},
     ],
-    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#2D9A8E"},
+    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#1B3A6B"},
     meeting:{when:"Wed 2 Jul · 14:00",detail:"Negotiation: data-sharing agreement & legal review"},
     briefing:`<b>FNZ Group</b> is advancing well — the deal moved to <b>Negotiation today</b> at <b>£4.8m</b>. The 19 June Granola notes confirm T+1 as a hard Q4 deadline and no technical blockers remain after the ISO 20022 call. FNZ's recent SEI acquisition expands their platform footprint, strengthening the routing volume case. The sole open item is the legal review of the data-sharing clause — prioritise this for the 2 July session to keep the Q3 close on track.`
   },
@@ -88,7 +88,7 @@ const companies = [
       {name:"Anita Sharma",    title:"Head of Technology",       init:"AS", color:"#d79a31", last:"9 days",  rec:"g"},
       {name:"James Fletcher",  title:"Procurement Manager",      init:"JF", color:"#7B5EA7", last:"16 days", rec:"a"},
     ],
-    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#2D9A8E"},
+    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#1B3A6B"},
     meeting:{when:"Mon 7 Jul · 11:00",detail:"Proposal walkthrough with procurement committee"},
     briefing:`<b>Pershing</b> is at <b>Proposal Sent</b> stage with a <b>£2.9m</b> opportunity. The 16 June call notes reveal 14 fragmented TA connections and a stated consolidation mandate — a strong fit. The Granola notes confirm ISO 20022 readiness, simplifying integration. BNY Mellon's record Q2 AuC growth reinforces the volume case. Maintain regular touchpoints ahead of the 7 July procurement review to keep momentum.`
   },
@@ -114,7 +114,7 @@ const companies = [
       {name:"Kate Simmons",   title:"Head of Platform Technology", init:"KS", color:"#C05A00", last:"Today",   rec:"g"},
       {name:"Oliver Banks",   title:"Chief Operating Officer",     init:"OB", color:"#1A3A5C", last:"10 days", rec:"g"},
     ],
-    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#2D9A8E"},
+    owner:{name:"Alex Curtin",title:"Account Executive",init:"AC",color:"#1B3A6B"},
     meeting:{when:"Thu 3 Jul · 15:00",detail:"Discovery workshop: connectivity mapping & T+1 readiness"},
     briefing:`<b>Transact</b> is an actively progressing <b>Discovery</b> opportunity at <b>£1.6m</b>. A new technology champion was identified today and the 10 June Granola notes confirm appetite for a single network solution ahead of T+1. IntegraFin's 8.4% FUA growth strengthens the commercial case. The 3 July workshop is the key next step — prepare a connectivity consolidation narrative and T+1 readiness comparison to advance toward a formal proposal.`
   },

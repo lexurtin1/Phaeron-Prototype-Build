@@ -4,11 +4,11 @@
   Single self-contained HTML file. CDN deps: Lucide (icons), Chart.js (charts).
 
   DESIGN SYSTEM derived from Phaeron_Design_System.pptx (exact tokens):
-    Brand teal:        #2D9A8E (primary), #26867D (hover/deep), #2ECBB1 (bright accent)
+    Brand teal:        #9F1239 (primary), #7A1233 (hover/deep), #BE123C (bright accent)
     Deep navy/ink:     #22323D (headers/primary text), #0D1418 (near-black surfaces)
     Slate/muted:       #9AA6B0, #7D9097, #566571
     Tint surfaces:     #EEF8F6, #DCEFEC, #B3DDD7
-    Support green:     #35B57E
+    Support green:     #BE123C
   TYPEFACE: deck uses Arial (clean geometric sans). On web we substitute the closest
     freely-available geometric sans (Inter via Google Fonts) with Arial fallback,
     matching the deck's letterspaced uppercase eyebrow/label treatment.
@@ -26,15 +26,15 @@
 <style>
 :root{
   /* ── Phaeron palette (exact, from deck) ─────────────────── */
-  --c-teal:        #2D9A8E;   /* PRIMARY brand teal */
-  --c-teal-hover:  #26867D;
-  --c-teal-bright: #2ECBB1;   /* accent highlight */
-  --c-teal-soft:   rgba(45,154,142,0.08);
-  --c-teal-soft-2: rgba(45,154,142,0.14);
+  --c-teal:        #9F1239;   /* PRIMARY brand teal */
+  --c-teal-hover:  #7A1233;
+  --c-teal-bright: #BE123C;   /* accent highlight */
+  --c-teal-soft:   rgba(159,18,57,0.08);
+  --c-teal-soft-2: rgba(159,18,57,0.14);
 
   --c-navy:        #22323D;   /* headers / primary text */
   --c-ink:         #0D1418;   /* near-black surfaces */
-  --c-green:       #35B57E;
+  --c-green:       #BE123C;
 
   --c-surface:     #FFFFFF;
   --c-surface-2:   #F6F8F8;
@@ -647,7 +647,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
     <div class="logo">
       <span class="wordmark" aria-label="Phaeron Pulse">
         CAL<span class="mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#2ECBB1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#BE123C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
         </span>STONE
       </span>
       <span class="pulse-tag">Pulse</span>
@@ -712,7 +712,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
               <!-- empty state -->
               <div class="empty-chat" id="emptyChat">
                 <div class="mark-lg" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#2D9A8E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#9F1239" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 L12 7 L17 17"/><path d="M9.2 13 H14.8"/></svg>
                 </div>
                 <h1>What would you like to know?</h1>
                 <p>Ask about clients, contracts, products, projects, or fund operations.</p>
@@ -1265,7 +1265,7 @@ function buildStageChart(stages,stageW){
   if(charts.stage) charts.stage.destroy();
   charts.stage=new Chart(ctx,{
     type:'bar',
-    data:{labels:stages,datasets:[{label:'Weighted Value (£k)',data:stageW,backgroundColor:'#2D9A8E',hoverBackgroundColor:'#26867D',borderRadius:5,maxBarThickness:64}]},
+    data:{labels:stages,datasets:[{label:'Weighted Value (£k)',data:stageW,backgroundColor:'#9F1239',hoverBackgroundColor:'#7A1233',borderRadius:5,maxBarThickness:64}]},
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' £'+c.parsed.y+'k weighted'}}},

@@ -4,15 +4,14 @@
    Self-contained. No backend, DB, or localStorage.
    To edit content: see the ===== EDITABLE COUNTRY DATA =====
    block in the JavaScript below.
-   Brand palette sampled from the Phaeron logo:
-     blue #007DB7 · teal #2D9A8E · green #6AAD6A
+   Brand palette: navy #1B3A6B · accent #BE123C · dark crimson #9F1239
    ============================================================ */
 
 :root{
-  --blue:#007DB7;
-  --blue-d:#005f8c;
-  --teal:#2D9A8E;
-  --green:#6AAD6A;
+  --blue:#1B3A6B;
+  --blue-d:#132743;
+  --teal:#BE123C;
+  --green:#9F1239;
   --ink-strong:#0f2230;   /* logo-black-ish, slightly blue */
   --ink:#22323d;
   --ink-1:#516170;
@@ -29,8 +28,8 @@
   --good-s:rgba(74,157,91,0.12);
   --mid-s:rgba(215,154,49,0.14);
   --bad-s:rgba(207,90,78,0.12);
-  --blue-s:rgba(0,125,183,0.10);
-  --teal-s:rgba(45,154,142,0.12);
+  --blue-s:rgba(27,58,107,0.10);
+  --teal-s:rgba(159,18,57,0.12);
   --radius:14px;
   --shadow:0 18px 48px -18px rgba(15,34,48,0.28);
   --shadow-soft:0 6px 22px -10px rgba(15,34,48,0.20);
@@ -43,8 +42,8 @@ html,body{height:100%}
 body{
   font-family:var(--sans);
   background:
-    radial-gradient(1100px 760px at 80% -12%, rgba(0,125,183,0.10), transparent 60%),
-    radial-gradient(900px 700px at 4% 112%, rgba(106,173,106,0.10), transparent 58%),
+    radial-gradient(1100px 760px at 80% -12%, rgba(27,58,107,0.12), transparent 60%),
+    radial-gradient(900px 700px at 4% 112%, rgba(159,18,57,0.10), transparent 58%),
     var(--bg);
   color:var(--ink);
   overflow:hidden;-webkit-font-smoothing:antialiased;

@@ -31,7 +31,7 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.4;
+  opacity: 0.48;
 }
 
 .pulse-shell-content {
@@ -249,8 +249,8 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--crimson-500, #E11D48);
-  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.22);
+  background: var(--crimson-700, #9F1239);
+  box-shadow: 0 0 0 3px rgba(159, 18, 57, 0.22);
   animation: csBlink 2.4s ease-in-out infinite;
 }
 
@@ -423,7 +423,7 @@ body {
 
 .market-hero .chroma-card {
   border-color: var(--ink-200, #dde4ea);
-  background: linear-gradient(160deg, #ffffff 0%, #f3faf8 100%);
+  background: linear-gradient(160deg, #ffffff 0%, #F2F5FA 100%);
 }
 
 .market-hero .chroma-info {

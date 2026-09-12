@@ -167,7 +167,7 @@ Then output a small JSON object (and nothing after it) with these structured fie
 
 const C = {
   good:'#4a9d5b', mid:'#d79a31', bad:'#cf5a4e',
-  developed:'#007DB7', emerging:'#2D9A8E', frontier:'#6AAD6A', unknown:'#a7b3bd',
+  developed:'#1B3A6B', emerging:'#9F1239', frontier:'#BE123C', unknown:'#a7b3bd',
   none:'#cdd8e1'
 };
 function scoreColor(v){ if(v==null)return null; if(v>=66)return C.good; if(v>=40)return C.mid; return C.bad; }
@@ -215,7 +215,7 @@ function officeHeatmapColor(f){
   const inCal=officeLayerCalastone&&iso&&CALASTONE_ISO3.has(iso);
   const inSSC=officeLayerSSC&&iso&&SSC_ISO3.has(iso);
   if(inCal&&inSSC)return hexA('#00C4A7',0.88);
-  if(inCal)return hexA('#2D9A8E',0.88);
+  if(inCal)return hexA('#9F1239',0.88);
   if(inSSC)return hexA('#1b7fc4',0.88);
   return 'rgba(214,224,232,0.92)';
 }
@@ -233,7 +233,7 @@ function polyCapColor(f){
   return hexA(col, selectedISO===rec.iso3?0.95:0.82);
 }
 function polySideColor(){return 'rgba(0,80,120,0.10)';}
-function polyStrokeColor(f){const rec=recordFor(f);if(selectedISO&&rec&&rec.iso3===selectedISO)return '#007DB7';return 'rgba(15,34,48,0.12)';}
+function polyStrokeColor(f){const rec=recordFor(f);if(selectedISO&&rec&&rec.iso3===selectedISO)return '#1B3A6B';return 'rgba(15,34,48,0.12)';}
 function polyAltitude(f){const rec=recordFor(f);if(rec&&rec.iso3===selectedISO)return 0.10;if(f.__hover)return 0.07;if(rec&&passesFilters(rec))return 0.012;return 0.006;}
 
 const tooltipEl=document.getElementById('tooltip');
@@ -1449,11 +1449,11 @@ switchToResearch = function() {
     const defs=ns('defs');
     defs.innerHTML=`
       <radialGradient id="hg-bg-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="rgba(45,154,142,0.42)"/>
-        <stop offset="100%" stop-color="rgba(45,154,142,0)"/>
+        <stop offset="0%" stop-color="rgba(159,18,57,0.42)"/>
+        <stop offset="100%" stop-color="rgba(159,18,57,0)"/>
       </radialGradient>
       <linearGradient id="hg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#2d9a8e"/>
+        <stop offset="0%" stop-color="#9F1239"/>
         <stop offset="100%" stop-color="#35b57e"/>
       </linearGradient>
       <filter id="hg-shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -1516,7 +1516,7 @@ switchToResearch = function() {
     const spokeG=ns('g',{id:'hs-spoke-g'});
     NODES.forEach((n,i)=>{
       const len=Math.hypot(n.x-CX,n.y-CY);
-      const ln=ns('line',{id:`hs-s${i}`,x1:CX,y1:CY,x2:n.x,y2:n.y,'data-role':n.role,'data-len':len,stroke:'#2D9A8E','stroke-width':'1.8','stroke-linecap':'round','stroke-dasharray':len,'stroke-dashoffset':len});
+      const ln=ns('line',{id:`hs-s${i}`,x1:CX,y1:CY,x2:n.x,y2:n.y,'data-role':n.role,'data-len':len,stroke:'#9F1239','stroke-width':'1.8','stroke-linecap':'round','stroke-dasharray':len,'stroke-dashoffset':len});
       ln.style.opacity='0';
       spokeG.appendChild(ln);
     });
@@ -1551,7 +1551,7 @@ switchToResearch = function() {
     hubOuter.style.transform=`translate(${CX}px,${CY}px)`;
     const hubInner=ns('g',{id:'hs-hub-inner'});
     hubInner.style.cssText='transform:scale(0);transform-origin:0px 0px;opacity:0';
-    hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#2d9a8e','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
+    hubInner.appendChild(ns('polygon',{points:hexPts(RHUB),fill:'#0a0f14',stroke:'#9F1239','stroke-width':'2.5',filter:'url(#hg-shadow)'}));
     const hubT=ns('text',{x:0,y:0,'text-anchor':'middle','dominant-baseline':'middle'});
     hubT.style.cssText='font:800 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;letter-spacing:0.12em;fill:#fff;pointer-events:none';
     hubT.textContent='PHAERON';
@@ -1686,7 +1686,7 @@ switchToResearch = function() {
     NODES.forEach((n,i)=>{
       const ln=$(`hs-s${i}`);if(!ln)return;
       const active=hovered===n.role;
-      ln.setAttribute('stroke',active?swatch[n.role]:'#2D9A8E');
+      ln.setAttribute('stroke',active?swatch[n.role]:'#9F1239');
       ln.setAttribute('stroke-width',active?'3.5':'1.8');
       if(hovered&&isAfter)ln.style.opacity=active?'1':'0.07';
     });
@@ -1889,7 +1889,7 @@ window._orSetActiveStep=function(n){
     const b=document.getElementById('orStep'+i);
     if(!b)continue;
     if(i===n){
-      b.style.background='#0fb89c'; b.style.color='#fff';
+      b.style.background='#9F1239'; b.style.color='#fff';
       b.style.border='none'; b.style.boxShadow='0 0 0 3px rgba(15,184,156,.22)';
     }else{
       b.style.background='#fff'; b.style.color='#566571';
@@ -2120,11 +2120,11 @@ function switchToSettlements(){
     .polygonsData(window.CALASTONE_GEO.features)
     .polygonCapColor(function(f){return settNodeColor(f);})
     .polygonSideColor(function(){return 'rgba(130,180,180,0.2)';})
-    .polygonStrokeColor(function(){return 'rgba(45,154,142,0.3)';})
+    .polygonStrokeColor(function(){return 'rgba(159,18,57,0.3)';})
     .polygonAltitude(0.006).polygonsTransitionDuration(300)
     .pointsData(D.nodes)
     .pointLat(function(d){return d.capLat;}).pointLng(function(d){return d.capLng;})
-    .pointColor(function(){return '#1a7a72';}).pointAltitude(0.009)
+    .pointColor(function(){return '#7A1233';}).pointAltitude(0.009)
     .pointRadius(function(d){return 0.25+1.1*Math.sqrt(d.total/D.meta.maxNode);})
     .pointResolution(14)
     .labelsData(D.nodes.filter(function(n){return n.total>5000;}))
@@ -2198,9 +2198,9 @@ document.addEventListener('DOMContentLoaded',function(){
   const RAD=Math.PI/180;
 
   const PRODUCTS=[
-    {id:'order-routing',            lines:['Order','Routing'],          angle:270, color:'#007DB7', colorD:'#005f8c', stroke:'rgba(0,125,183,0.5)'},
-    {id:'settlements',              lines:['Settlements'],              angle:240, color:'#2D9A8E', colorD:'#1a7a72', stroke:'rgba(45,154,142,0.5)'},
-    {id:'share-class-conversions',  lines:['Share Class','Conversions'],angle:210, color:'#6AAD6A', colorD:'#4a9d5b', stroke:'rgba(106,173,106,0.5)'},
+    {id:'order-routing',            lines:['Order','Routing'],          angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
+    {id:'settlements',              lines:['Settlements'],              angle:240, color:'#9F1239', colorD:'#7A1233', stroke:'rgba(159,18,57,0.5)'},
+    {id:'share-class-conversions',  lines:['Share Class','Conversions'],angle:210, color:'#BE123C', colorD:'#4a9d5b', stroke:'rgba(159,18,57,0.5)'},
     {id:'transfers',                lines:['Transfers'],                angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
     {id:'dividends',                lines:['Dividends'],                angle:150, color:'#6A4FA0', colorD:'#513c7a', stroke:'rgba(106,79,160,0.5)'},
     {id:'reporting',                lines:['Reporting'],                angle:120, color:'#B07C2C', colorD:'#8a6020', stroke:'rgba(176,124,44,0.5)'},

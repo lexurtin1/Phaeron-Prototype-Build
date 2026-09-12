@@ -26,11 +26,11 @@
      for a state. */
   --rs-blue:       #1D7FB8;
   --rs-blue-deep:  #1C4D6A;
-  --rs-teal:       #2D9A8E;
-  --rs-green:      #35B57E;
+  --rs-teal:       #9F1239;
+  --rs-green:      #BE123C;
   --rs-lime:       #6BBF59;
   --rs-ramp:       linear-gradient(90deg, var(--rs-blue) 0%, var(--rs-teal) 52%, var(--rs-lime) 100%);
-  --rs-ramp-soft:  linear-gradient(90deg, rgba(29,127,184,.10) 0%, rgba(45,154,142,.10) 52%, rgba(107,191,89,.10) 100%);
+  --rs-ramp-soft:  linear-gradient(90deg, rgba(29,127,184,.10) 0%, rgba(159,18,57,.10) 52%, rgba(107,191,89,.10) 100%);
 
   --rs-gap: 24px;
   --rs-card-radius: var(--radius-lg, 11px);
@@ -202,7 +202,7 @@
   white-space: nowrap;
 }
 .rs-pill-neutral   { background: var(--c-surface-3); color: var(--c-text-muted); }
-.rs-pill-live      { background: rgba(53,181,126,0.12); color: #1E7F5A; }
+.rs-pill-live      { background: rgba(190,18,60,0.12); color: #1E7F5A; }
 .rs-pill-progress  { background: var(--c-teal-soft-2); color: var(--c-teal-hover); }
 .rs-pill-attention { background: var(--c-amber-bg); color: #A96A05; }
 .rs-pill-severe    { background: var(--c-red-bg); color: #C23434; }
