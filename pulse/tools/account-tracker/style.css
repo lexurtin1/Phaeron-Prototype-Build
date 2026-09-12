@@ -104,9 +104,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-
 
 /* ---------- LAYOUT ---------- */
 .layout{display:flex;height:calc(100vh - 56px)}
-body:has(#pulse-react-nav):has(#pulse-react-account) .layout{
-  height:calc(100vh - 280px);
-}
 .left{width:30%;min-width:300px;max-width:400px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column}
 .right{flex:1;overflow-y:auto;background:var(--bg)}
 
