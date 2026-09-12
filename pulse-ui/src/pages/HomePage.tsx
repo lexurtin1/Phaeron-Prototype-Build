@@ -1,5 +1,4 @@
 import SoftAurora from '@/bits/SoftAurora/SoftAurora';
-import Noise from '@/bits/Noise/Noise';
 import BlurText from '@/bits/BlurText/BlurText';
 import { PulseHeader } from '@/components/PulseHeader';
 import { ToolGrid } from '@/components/ToolGrid';
@@ -20,19 +19,15 @@ export function HomePage() {
           lightMode
           color1="#2d9a8e"
           color2="#35b57e"
-          brightness={1.15}
-          speed={0.65}
-          scale={1.1}
-          enableMouseInteraction
-          mouseInfluence={0.18}
+          brightness={1.05}
+          speed={0.55}
+          scale={1.05}
+          enableMouseInteraction={false}
         />
-      </div>
-      <div className="pulse-noise" aria-hidden>
-        <Noise patternAlpha={10} patternRefreshInterval={3} />
       </div>
 
       <div className="pulse-shell-content">
-        <PulseHeader activeHref="/ui/" />
+        <PulseHeader />
         <main className="pulse-main">
           <div className="pulse-page-head">
             <div>

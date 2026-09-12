@@ -1,6 +1,6 @@
 /* auto-generated — do not edit */
 (function () {
-  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-DSJt-J6e.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/Triangle-DsNpnrqg.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/GlareHover-zkn32NPC.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-CsuNRkEe.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/GlareHover-DycjCkro.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-intelligence-DhVNM_ZA.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-intelligence.js"}];
+  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-bT1KhpkM.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/index-CzGW6FVa.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/Triangle-DsNpnrqg.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-BBTIeqSz.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-intelligence-DYQkMNJm.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-intelligence.js"}];
   tags.forEach(function (t) {
     if (t.type === 'link') {
       if (document.querySelector('link[href="' + t.href + '"]')) return;

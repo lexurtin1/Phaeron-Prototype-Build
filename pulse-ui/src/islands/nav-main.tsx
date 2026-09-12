@@ -1,12 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import PillNav from '@/bits/PillNav/PillNav';
 import { PULSE_NAV } from '@/lib/tools';
 import '@/styles/pulse-ui.css';
 
 function detectActiveHref() {
   const path = window.location.pathname;
-  const match = PULSE_NAV.find((item) => path.includes(item.href.replace('/index.html', '')) || path === item.href);
+  const match = PULSE_NAV.find(
+    (item) => path.includes(item.href.replace('/index.html', '')) || path === item.href
+  );
   return match?.href ?? path;
 }
 
@@ -18,17 +19,17 @@ function ToolNavIsland() {
         <a className="island-nav-home" href="/ui/">
           ← Pulse Home
         </a>
-        <PillNav
-          logo="/assets/phaeron-wordmark.png"
-          logoAlt="Phaeron"
-          items={PULSE_NAV}
-          activeHref={activeHref}
-          baseColor="#2d9a8e"
-          pillColor="#ffffff"
-          pillTextColor="#22323d"
-          hoveredPillTextColor="#ffffff"
-          initialLoadAnimation={false}
-        />
+        <nav className="island-nav-pills" aria-label="Pulse tools">
+          {PULSE_NAV.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className={`island-nav-pill${activeHref === item.href ? ' is-active' : ''}`}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
       </div>
     </div>
   );

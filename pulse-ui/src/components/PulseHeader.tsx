@@ -1,58 +1,35 @@
-import GlassSurface from '@/bits/GlassSurface/GlassSurface';
-import PillNav from '@/bits/PillNav/PillNav';
-import { PULSE_NAV } from '@/lib/tools';
-
-type PulseHeaderProps = {
-  activeHref?: string;
-  compact?: boolean;
-};
-
-export function PulseHeader({ activeHref = '/ui/', compact = false }: PulseHeaderProps) {
+export function PulseHeader() {
   return (
-    <div className="pulse-header-wrap">
-      <GlassSurface
-        width="100%"
-        height="auto"
-        borderRadius={18}
-        backgroundOpacity={0.12}
-        blur={12}
-        brightness={78}
-        opacity={0.92}
-        className="pulse-glass-header"
-        style={{ width: '100%', maxWidth: 1264, margin: '0 auto' }}
-      >
-        <div className="pulse-header-inner">
-          <a className="pulse-header-brand" href="/ui/">
-            <img src="/assets/phaeron-wordmark.png" alt="Phaeron" />
-            <span className="pulse-label">Pulse</span>
-          </a>
+    <header className="pulse-header">
+      <div className="ph-brand">
+        <a href="/ui/" className="ph-brand-link">
+          <img src="/assets/phaeron-wordmark.png" alt="Phaeron" />
+        </a>
+        <span className="divider" aria-hidden />
+        <span className="pulse-label">Pulse</span>
+      </div>
 
-          {!compact && (
-            <div className="pulse-header-nav">
-              <PillNav
-                logo="/assets/phaeron-wordmark.png"
-                logoAlt="Phaeron"
-                items={PULSE_NAV}
-                activeHref={activeHref}
-                baseColor="#2d9a8e"
-                pillColor="#ffffff"
-                pillTextColor="#22323d"
-                hoveredPillTextColor="#ffffff"
-                initialLoadAnimation={false}
-                className="pulse-pill-nav"
-              />
-            </div>
-          )}
+      <a href="/tools/system-architecture/index.html" className="ph-arch-link">
+        System Architecture
+      </a>
 
-          <div className="pulse-header-user">
-            <div className="meta">
-              <strong>Alex Curtin</strong>
-              <span>Sales · EMEA</span>
-            </div>
-            <img src="/assets/Headshot.png" alt="Alex Curtin" />
-          </div>
+      <div className="ph-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <circle cx="11" cy="11" r="7" stroke="#9aa6b0" strokeWidth="2" />
+          <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#9aa6b0" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <input type="search" placeholder="Search workspaces, accounts, markets…" aria-label="Search" />
+      </div>
+
+      <div className="ph-user">
+        <div className="ph-user-name">
+          <strong>Alex Curtin</strong>
+          <span>Sales · EMEA</span>
         </div>
-      </GlassSurface>
-    </div>
+        <div className="ph-avatar">
+          <img src="/assets/Headshot.png" alt="Alex Curtin" />
+        </div>
+      </div>
+    </header>
   );
 }

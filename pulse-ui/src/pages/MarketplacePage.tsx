@@ -102,7 +102,7 @@ export function MarketplacePage() {
         <Noise patternAlpha={8} />
       </div>
       <div className="pulse-shell-content">
-        <PulseHeader activeHref="/ui/marketplace.html" />
+        <PulseHeader />
         <main className="pulse-main market-hero">
           <div className="badge">
             <span className="live-dot" />
