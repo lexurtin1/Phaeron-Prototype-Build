@@ -186,6 +186,13 @@ let MODE='opportunity', world=null, globe=null, selectedISO=null;
 const FILTERS={region:'',cls:'',hub:'',tier:'',net:'',highopp:false};
 let officeLayerCalastone = true;
 let CALASTONE_ISO3 = new Set();
+/** Europe-heavy presence heat (offices + regional network markets). */
+let PRESENCE_ISO3 = new Set();
+const PRESENCE_HOTSPOTS = {
+  POL:'new_entry', CZE:'rising', ROU:'new_entry', HUN:'rising', GRC:'rising',
+};
+let presencePulseRaf = null;
+let presencePulseT0 = 0;
 
 function toggleActiveClass(id, isActive, className='active'){
   const el=document.getElementById(id);
@@ -212,7 +219,7 @@ function hexA(hex,a){const h=hex.replace('#','');return`rgba(${parseInt(h.slice(
 
 function officeHeatmapColor(f){
   const iso=featISO(f);
-  if(iso&&CALASTONE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
+  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
   return 'rgba(214,224,232,0.88)';
 }
 function polyCapColor(f){
@@ -863,7 +870,7 @@ function netArcRGB(t){t=Math.max(0,Math.min(1,t));for(let i=0;i<netCstops.length
 function netArcColor(d){const maxArc=window.CALASTONE_FLOWS.meta.maxArc;const[r,g,b]=netArcRGB(Math.sqrt(d.orders/maxArc));return `rgba(${r},${g},${b},${0.45+0.45*Math.sqrt(d.orders/maxArc)})`;}
 function netLandColor(f){
   const iso=featISO(f);
-  if(iso&&CALASTONE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
+  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
   return 'rgba(214,224,232,0.88)';
 }
 
@@ -903,13 +910,14 @@ function switchToNetwork(){
     .pointsData([]).pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(()=>'#0b79ae').pointAltitude(0.008).pointRadius(d=>0.28+1.0*Math.sqrt(d.total/maxNode)).pointResolution(14)
     .labelsData([]).labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.name).labelSize(0.9).labelDotRadius(0).labelColor(()=>'rgba(11,121,174,0.9)').labelResolution(2).labelAltitude(0.012)
     .arcsData([]).arcStartLat(d=>d.startLat).arcStartLng(d=>d.startLng).arcEndLat(d=>d.endLat).arcEndLng(d=>d.endLng).arcColor(d=>netArcColor(d)).arcStroke(d=>0.18+1.5*Math.sqrt(d.orders/maxArc)).arcAltitudeAutoScale(0.5).arcDashLength(0.45).arcDashGap(0.6).arcDashInitialGap(()=>Math.random()).arcDashAnimateTime(d=>Math.max(1400,5200-3600*Math.sqrt(d.orders/maxArc))).arcsTransitionDuration(0)
-    .onPolygonHover(f=>{const iso=f&&featISO(f);const present=iso&&CALASTONE_ISO3.has(iso);document.body.style.cursor=present?'pointer':'';globe.polygonAltitude(ff=>ff===f&&present?0.02:0.006);if(present){const n=netNodeById[f.properties.iso2];if(n)netNodeTip(n);else{const tip=document.getElementById('netTooltip');tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-sub">Phaeron office presence</div>`;tip.style.opacity=1;posNetTip();}if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
-    .onPolygonClick(null).onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPolygonHover(f=>{const iso=f&&featISO(f);const present=iso&&PRESENCE_ISO3.has(iso);const hot=iso&&PRESENCE_HOTSPOTS[iso];document.body.style.cursor=present?'pointer':'';globe.polygonAltitude(ff=>{const id=featISO(ff);if(ff===f&&present)return 0.028;if(id&&PRESENCE_HOTSPOTS[id])return 0.014;return 0.006;});if(present){const tip=document.getElementById('netTooltip');const signal=hot?(hot==='new_entry'?' · New market entry':' · Rising activity'):'';tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-sub">Phaeron presence${signal} · click for briefing</div>`;tip.style.opacity=1;posNetTip();if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPolygonClick(f=>{if(f)openPresenceBriefing(f);}).onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
     .onArcHover(null);
   if(ctrl&&netSpin)ctrl.autoRotate=true;
   // Presence heatmap: polygons only — never paint corridor arcs
   netFlowsOn=false;
   globe.arcsData([]);
+  startPresencePulse();
 }
 
 function switchToResearch(){
@@ -930,6 +938,8 @@ function switchToResearch(){
     .pointsData([]).arcsData([]).labelsData([])
     .onPolygonHover(handleHover).onPolygonClick(handleClick).onPointHover(null).onArcHover(null);
   if(ctrl)ctrl.autoRotate=false;
+  stopPresencePulse();
+  closePresenceBriefing();
   refreshGlobe();
 }
 
@@ -986,14 +996,14 @@ function init(){
   // Start in network mode
   switchToNetwork();
 
-  // Presence heatmap stats — Phaeron office countries
-  document.getElementById('heroCountries').textContent=String(CALASTONE_ISO3.size||DATA.meta.countries);
+  // Presence heatmap stats — Europe-wide Phaeron presence
+  document.getElementById('heroCountries').textContent=String(PRESENCE_ISO3.size||DATA.meta.countries);
   document.getElementById('heroCorridors').textContent=DATA.meta.corridors;
   document.getElementById('mInter').textContent=fmtShort(DATA.meta.interCountryVol);
   document.getElementById('mMapped').textContent=DATA.meta.mappedPct+'%';
   const leg=document.getElementById('legnote');
-  if(leg)leg.textContent=`${CALASTONE_ISO3.size} Phaeron office countries · markers show city examples`;
-  netCountUp(CALASTONE_ISO3.size||DATA.meta.countries);
+  if(leg)leg.textContent=`${PRESENCE_ISO3.size} presence markets · ${Object.keys(PRESENCE_HOTSPOTS).length} rising / new-entry signals`;
+  netCountUp(PRESENCE_ISO3.size||DATA.meta.countries);
 
   // Research mode ready
   renderLegend();initFilters();afterFilter();
@@ -1022,7 +1032,7 @@ let hoverFeat=null;
 function handleHover(f,prev){if(prev)prev.__hover=false;if(hoverFeat&&hoverFeat!==f)hoverFeat.__hover=false;hoverFeat=f;document.getElementById('globeViz').style.cursor=f?'pointer':'grab';if(f)f.__hover=true;refreshGlobe();if(!f)hideTooltip();}
 document.getElementById('globeViz').addEventListener('mousemove',e=>{if(hoverFeat&&!officeLayerCalastone)showTooltip(hoverFeat,e.clientX,e.clientY);else hideTooltip();});
 function handleClick(f){if(!f)return;if(officeLayerCalastone)return;selectedISO=featISO(f);const c=centroid(f);if(c)globe.pointOfView({lat:c.lat,lng:c.lng,altitude:1.7},1100);refreshGlobe();openDrawer(f);if(EDIT_MODE)console.log('Record:',recordFor(f)||('No profile for '+featISO(f)));}
-addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modalVeil').classList.contains('open')){closeModal();return;}closeDrawer();document.getElementById('filterPanel').classList.remove('open');document.getElementById('filterBtn').classList.remove('active');}});
+addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modalVeil').classList.contains('open')){closeModal();return;}closePresenceBriefing();closeDrawer();document.getElementById('filterPanel').classList.remove('open');document.getElementById('filterBtn').classList.remove('active');}});
 
 /* ================================================================
    =====================   AI CHATBOT   =========================
@@ -1185,6 +1195,116 @@ const CALASTONE_OFFICES = [
 
 /* ---- build ISO3 presence sets from office arrays + name→ISO mapping ---- */
 CALASTONE_ISO3 = new Set(CALASTONE_OFFICES.map(o=>NAME_TO_ISO[o.country]).filter(Boolean));
+PRESENCE_ISO3 = new Set([
+  ...CALASTONE_ISO3,
+  'GBR','IRL','LUX','DEU','FRA','NLD','BEL','CHE','AUT','ITA','ESP','PRT',
+  'DNK','SWE','NOR','FIN','POL','CZE','HUN','ROU','SVK','GRC',
+]);
+
+const PRESENCE_BRIEFINGS = {
+  GBR:{value:'£48.2m ARR',customers:['BlackRock','Legal & General','Schroders','Abrdn'],sales:'Amelia Hart · London',news:['FCA opens consultation on T+1 settlement readiness.','UK platform flows remain concentrated in intermediated channels.']},
+  LUX:{value:'€31.4m ARR',customers:['JPMorgan AM','Fidelity International','Nordea'],sales:'Marc Weber · Luxembourg',news:['CSSF digital ops guidance updated for cross-border distributors.','Luxembourg remains primary EU fund domicile for Phaeron corridors.']},
+  DEU:{value:'€22.1m ARR',customers:['DWS','Union Investment','Allianz Global Investors'],sales:'Jonas Keller · Frankfurt',news:['BaFin focus on operational resilience across fund platforms.','German institutional RFPs cite connectivity as a top criterion.']},
+  FRA:{value:'€18.6m ARR',customers:['Amundi','Natixis IM','BNP Paribas AM'],sales:'Camille Renard · Paris',news:['Paris Europlace digital asset working group expands membership.','French distributors accelerating ISO 20022 migration.']},
+  IRL:{value:'€27.9m ARR',customers:['State Street','Northern Trust','Invesco'],sales:'Niamh Byrne · Dublin',news:['Central Bank of Ireland clarifies outsourcing expectations.','Dublin continues to win EU fund redomiciliations.']},
+  NLD:{value:'€9.4m ARR',customers:['Robeco','NN Investment Partners'],sales:'Sven de Vries · Amsterdam',news:['Dutch pension platforms evaluating multi-market order routing.']},
+  BEL:{value:'€4.1m ARR',customers:['Degroof Petercam'],sales:'Sven de Vries · Amsterdam',news:['Benelux distributor partnerships under review for 2026.']},
+  CHE:{value:'CHF 6.8m ARR',customers:['UBS AM','Pictet'],sales:'Amelia Hart · London',news:['Swiss cross-border fund distribution volumes ticking up.']},
+  AUT:{value:'€3.2m ARR',customers:['Erste AM'],sales:'Jonas Keller · Frankfurt',news:['CEE corridor interest rising via Austrian hubs.']},
+  ITA:{value:'€7.5m ARR',customers:['Generali','Eurizon'],sales:'Camille Renard · Paris',news:['Italian retail platforms seeking fewer bilateral integrations.']},
+  ESP:{value:'€5.9m ARR',customers:['Santander AM','CaixaBank AM'],sales:'Camille Renard · Paris',news:['Iberian fund houses prioritising European network reach.']},
+  PRT:{value:'€1.8m ARR',customers:['Millennium bcp'],sales:'Camille Renard · Paris',news:['Lisbon fintech corridor attracting early network conversations.']},
+  DNK:{value:'DKK 28m ARR',customers:['Danske Bank AM'],sales:'Erik Lund · Stockholm',news:['Nordic platforms consolidating vendor stacks.']},
+  SWE:{value:'SEK 41m ARR',customers:['SEB IM','Swedbank Robur'],sales:'Erik Lund · Stockholm',news:['Swedish institutional RFPs emphasise auditability of order flow.']},
+  NOR:{value:'NOK 19m ARR',customers:['DNB AM'],sales:'Erik Lund · Stockholm',news:['Oslo managers evaluating EU passporting connectivity.']},
+  FIN:{value:'€2.4m ARR',customers:['Nordea'],sales:'Erik Lund · Stockholm',news:['Finnish market showing early automation uplift.']},
+  POL:{value:'€2.1m ARR',customers:['PKO TFI','PZU'],sales:'Anna Kowalska · Warsaw',news:['New market entry: Warsaw coverage live this quarter.','Polish fund industry digitising transfer-agent workflows.']},
+  CZE:{value:'€1.4m ARR',customers:['ČSOB AM'],sales:'Anna Kowalska · Warsaw',news:['Rising activity across Czech distributor corridors.','Prague hub supporting CEE onboarding pipeline.']},
+  HUN:{value:'€0.9m ARR',customers:['OTP Fund Management'],sales:'Anna Kowalska · Warsaw',news:['Hungary flagged as rising activity market.']},
+  ROU:{value:'€0.7m ARR',customers:['BCR'],sales:'Anna Kowalska · Warsaw',news:['New entry signal: Bucharest pilot with regional distributor.']},
+  SVK:{value:'€0.5m ARR',customers:['Tatra Asset Management'],sales:'Anna Kowalska · Warsaw',news:['Slovak corridors routed via CEE presence model.']},
+  GRC:{value:'€1.1m ARR',customers:['Eurobank AM'],sales:'Nikos Papadopoulos · Athens',news:['Rising activity: Athens platform modernisation wave.']},
+  USA:{value:'$12.4m ARR',customers:['State Street','BNY'],sales:'Jordan Hale · New York',news:['US institutional interest in European fund access rising.']},
+  SGP:{value:'S$8.2m ARR',customers:['Fullerton','Eastspring'],sales:'Mei Lin · Singapore',news:['APAC hub supporting EU–Asia corridor growth.']},
+  HKG:{value:'HK$6.1m ARR',customers:['Hang Seng Investment'],sales:'Mei Lin · Singapore',news:['Hong Kong remaining a key Asia distribution node.']},
+  TWN:{value:'NT$110m ARR',customers:['Cathay Securities Investment Trust'],sales:'Mei Lin · Singapore',news:['Taiwan outbound fund flows remain resilient.']},
+  AUS:{value:'A$4.8m ARR',customers:['Colonial First State'],sales:'Tom Riley · Sydney',news:['Australian platforms evaluating global order-routing links.']},
+};
+
+function stopPresencePulse(){
+  if(presencePulseRaf){cancelAnimationFrame(presencePulseRaf);presencePulseRaf=null;}
+}
+function startPresencePulse(){
+  stopPresencePulse();
+  if(typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  presencePulseT0=performance.now();
+  const tick=(now)=>{
+    if(currentMode!=='network'||!globe)return;
+    const t=(now-presencePulseT0)/1000;
+    const pulse=0.5+0.5*Math.sin(t*2.2);
+    globe.polygonAltitude(f=>{
+      const iso=featISO(f);
+      if(iso&&PRESENCE_HOTSPOTS[iso])return 0.01+0.018*pulse;
+      if(iso&&PRESENCE_ISO3.has(iso))return 0.007;
+      return 0.006;
+    });
+    globe.polygonCapColor(f=>{
+      const iso=featISO(f);
+      if(iso&&PRESENCE_HOTSPOTS[iso]){
+        const a=0.78+0.18*pulse;
+        return `rgba(27,58,107,${a.toFixed(3)})`;
+      }
+      return netLandColor(f);
+    });
+    presencePulseRaf=requestAnimationFrame(tick);
+  };
+  presencePulseRaf=requestAnimationFrame(tick);
+}
+
+function closePresenceBriefing(){
+  const d=document.getElementById('presenceDrawer');
+  if(!d)return;
+  d.classList.remove('open');
+  d.setAttribute('aria-hidden','true');
+}
+function openPresenceBriefing(f){
+  const iso=featISO(f);
+  if(!iso||!PRESENCE_ISO3.has(iso))return;
+  const name=featName(f);
+  const brief=PRESENCE_BRIEFINGS[iso]||{
+    value:'Pipeline · early coverage',
+    customers:['Regional distributor partners'],
+    sales:'EMEA desk · London',
+    news:['Coverage expanding across European network markets.'],
+  };
+  const office=CALASTONE_OFFICES.find(o=>NAME_TO_ISO[o.country]===iso);
+  const hot=PRESENCE_HOTSPOTS[iso];
+  const signal=hot?(hot==='new_entry'?'New market entry':'Rising activity'):'Established presence';
+  const cust=brief.customers.map(c=>`<li>${c}</li>`).join('');
+  const news=brief.news.map(n=>`<li>${n}</li>`).join('');
+  const content=document.getElementById('presenceDrawerContent');
+  const drawer=document.getElementById('presenceDrawer');
+  if(!content||!drawer)return;
+  content.innerHTML=`
+    <div class="drawer-head">
+      <button class="drawer-close" onclick="closePresenceBriefing()" title="Close">×</button>
+      <div class="ctry-name">${name}</div>
+      <div class="ctry-region">${iso} · ${signal}</div>
+    </div>
+    <div class="scroll presence-brief">
+      <div class="section"><div class="s-title">Presence value</div><div class="presence-value">${brief.value}</div></div>
+      <div class="section"><div class="s-title">Top customers</div><ul class="presence-list">${cust}</ul></div>
+      <div class="section"><div class="s-title">Salesperson stationed</div><div class="presence-sales">${brief.sales}</div></div>
+      ${office?`<div class="section"><div class="s-title">Office</div><div class="presence-office">${office.name} · ${office.city}${office.address?'<br>'+office.address:''}</div></div>`:''}
+      <div class="section"><div class="s-title">Recent market news</div><ul class="presence-list">${news}</ul></div>
+    </div>`;
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden','false');
+  selectedISO=iso;
+  const c=centroid(f);
+  if(c&&globe)globe.pointOfView({lat:c.lat,lng:c.lng,altitude:1.55},900);
+}
+window.closePresenceBriefing=closePresenceBriefing;
 
 /* ---- marker element factory ---- */
 function createOfficePin(office) {
@@ -1304,14 +1424,22 @@ init();
   // Phaeron brand gradients — solid accents for tokens / hover highlights
   const swatch={
     erp:'#2F5285',crm:'#5B7AAB',
-    projectmgmt:'#1B3A6B',financial:'#0C1A2E',hr:'#9F1239',
+    projectmgmt:'#1B3A6B',financial:'#0C1A2E',businessknowledge:'#9F1239',
   };
   const fills={
     erp:['#2F5285','#1B3A6B'],
     crm:['#5B7AAB','#2F5285'],
     projectmgmt:['#1B3A6B','#0C1A2E'],
     financial:['#0C1A2E','#132743'],
-    hr:['#1B3A6B','#9F1239'],
+    businessknowledge:['#1B3A6B','#9F1239'],
+  };
+  const LOGO_BASE='/tools/product-demo/assets/logos/';
+  const LOGOS={
+    erp:[LOGO_BASE+'erp-sap.webp',LOGO_BASE+'erp-oracle.png'],
+    crm:[LOGO_BASE+'crm-salesforce.webp',LOGO_BASE+'crm-hubspot.png'],
+    projectmgmt:[LOGO_BASE+'pm-jira.webp',LOGO_BASE+'pm-asana.webp'],
+    financial:[LOGO_BASE+'fin-excel.webp',LOGO_BASE+'fin-xero.png'],
+    businessknowledge:[LOGO_BASE+'bk-sharepoint.webp',LOGO_BASE+'bk-confluence.jpeg'],
   };
   const cssGrad=role=>`linear-gradient(135deg, ${fills[role][0]} 0%, ${fills[role][1]} 100%)`;
 
@@ -1320,7 +1448,7 @@ init();
     {role:'crm',         label:'CRM',                    angle:-18, lx:66,  ly:0,   anchor:'start' },
     {role:'projectmgmt', label:'Project Management',     angle:54,  lx:26,  ly:62,  anchor:'middle'},
     {role:'financial',   label:'Financial Performance',  angle:126, lx:-26, ly:62,  anchor:'middle'},
-    {role:'hr',          label:'HR',                     angle:198, lx:-66, ly:0,   anchor:'end'   },
+    {role:'businessknowledge', label:'Business Knowledge', angle:198, lx:-66, ly:0,   anchor:'end'   },
   ];
   const rad=d=>(d*Math.PI)/180;
   GROUPS.forEach(g=>{
@@ -1544,14 +1672,34 @@ init();
     spokePulseG.style.cssText='pointer-events:none';
     svg.appendChild(spokePulseG);
 
-    // node hexagons — always visible, CSS transitions handle scale on hover
+    // node hex tiles — logo plates (siloed systems)
     const nodeG=ns('g',{id:'hs-node-g'});
+    const roleNodeIdx={};
     NODES.forEach((n,i)=>{
+      const idxInRole=roleNodeIdx[n.role]|0;
+      roleNodeIdx[n.role]=idxInRole+1;
+      const logos=LOGOS[n.role]||[];
+      const logoSrc=logos[idxInRole%Math.max(logos.length,1)]||logos[0];
+      const clipId=`hs-clip-${i}`;
       const g=ns('g',{id:`hs-n${i}`,'data-role':n.role,transform:`translate(${n.x},${n.y})`});
       g.style.cssText='cursor:pointer;transition:opacity 0.18s ease';
-      const poly=ns('polygon',{points:hexPts(R),fill:`url(#hs-fill-${n.role})`,filter:'url(#hg-shadow)'});
-      poly.style.cssText='transform-origin:0px 0px;transform:scale(1);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.18s';
-      g.appendChild(poly);
+      const clip=ns('clipPath',{id:clipId});
+      clip.appendChild(ns('polygon',{points:hexPts(R)}));
+      defs.appendChild(clip);
+      const plate=ns('polygon',{points:hexPts(R+1.5),fill:'#f7fafc',stroke:'rgba(15,34,48,0.12)','stroke-width':'1.2',filter:'url(#hg-shadow)'});
+      plate.style.cssText='transform-origin:0px 0px;transform:scale(1);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.18s';
+      g.appendChild(plate);
+      if(logoSrc){
+        const img=ns('image',{
+          href:logoSrc,
+          x:String(-R*0.72),y:String(-R*0.55),
+          width:String(R*1.44),height:String(R*1.1),
+          preserveAspectRatio:'xMidYMid meet',
+          'clip-path':`url(#${clipId})`,
+        });
+        img.setAttributeNS('http://www.w3.org/1999/xlink','href',logoSrc);
+        g.appendChild(img);
+      }
       g.addEventListener('mouseenter',()=>{hovered=n.role;applyHover();});
       g.addEventListener('mouseleave',()=>{hovered=null;applyHover();});
       nodeG.appendChild(g);

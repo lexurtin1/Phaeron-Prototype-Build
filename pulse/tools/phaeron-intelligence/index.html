@@ -85,7 +85,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 }
 
 /* ══════════ APP SHELL ══════════ */
-.app{display:flex;flex-direction:column;height:100vh}
+.app{display:flex;flex-direction:column;height:calc(100dvh - var(--chrome-h, 72px));--chrome-h:72px}
 
 /* ── entrance animations (CSS — work in headless + real browsers) ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -501,9 +501,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 @keyframes dotPulse{0%,60%,100%{opacity:.25;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
 
 /* ── input bar ── */
-.input-wrap{flex:0 0 auto;border-top:1px solid var(--c-border);background:var(--c-surface);padding:10px 30px 14px}
+.input-wrap{flex:0 0 auto;border-top:1px solid var(--c-border);background:var(--c-surface);padding:16px 30px 22px}
 .input-inner{max-width:760px;margin:0 auto}
-.ctx-toggles{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px;align-items:center}
+.ctx-toggles{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;align-items:center}
 .ctx-toggles .lead{font-size:10.5px;color:var(--c-text-faint);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-right:2px}
 .ctx-toggle{
   display:inline-flex;align-items:center;gap:6px;
@@ -524,8 +524,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .attach-btn svg{width:18px;height:18px;stroke-width:1.8}
 .attach-btn:hover{background:var(--c-surface-3);color:var(--c-text-muted)}
 #chatInput{
-  flex:1;border:none;resize:none;font-family:inherit;font-size:14px;color:var(--c-text);
-  background:none;line-height:1.5;max-height:108px;padding:8px 0;
+  flex:1;border:none;resize:none;font-family:inherit;font-size:14.5px;color:var(--c-text);
+  background:none;line-height:1.55;max-height:140px;min-height:44px;padding:10px 0;
 }
 #chatInput:focus{outline:none}
 #chatInput::placeholder{color:var(--c-text-faint)}

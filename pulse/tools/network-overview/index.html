@@ -33,7 +33,7 @@ window._hsTimeline = createTimeline;
 <div id="networkUI" style="display:none">
   <div class="hero" id="hero">
     <div class="count" id="heroCount">0<span class="unit">markets</span></div>
-    <div class="cap">with Phaeron office presence highlighted — navy countries show where we are (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
+    <div class="cap">with Phaeron presence highlighted across Europe and key global hubs — navy countries show where we are (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
     <div class="meta">
       <div class="m"><div class="v" id="mInter">—</div><div class="k">Cross-border volume</div></div>
       <div class="m"><div class="v" id="mMapped">—</div><div class="k">Mapped coverage</div></div>
@@ -159,6 +159,11 @@ window._hsTimeline = createTimeline;
   <div class="hint">drag to rotate · scroll to zoom · click a market for the snapshot</div>
 </div>
 
+<aside class="drawer presence-drawer" id="presenceDrawer" aria-hidden="true">
+  <div class="drawer-top-accent"></div>
+  <div id="presenceDrawerContent"></div>
+</aside>
+
 <!-- ===== OFFICE LAYER TOGGLE PANEL (Phaeron offices) ===== -->
 <div class="office-layer-panel" id="officeLayerPanel"
      role="region" aria-label="Office location layers">
@@ -278,7 +283,7 @@ o_.readability=function(e,t){var n=o_(e),r=o_(t);return(Math.max(n.getLuminance(
         <span class="hs-side-eyebrow" id="hs-side-eyebrow">Before · the problem</span>
         <div id="hs-side-before">
           <h3 class="hs-side-title">Siloed system islands</h3>
-          <p class="hs-side-body">Each business system works in isolation. There is useful local activity, but no shared enterprise intelligence layer — and no common view across ERP, CRM, finance, projects and HR.</p>
+          <p class="hs-side-body">Each business system works in isolation. There is useful local activity, but no shared enterprise intelligence layer — and no common view across ERP, CRM, finance, projects and business knowledge.</p>
         </div>
         <div id="hs-side-after" style="display:none">
           <h3 class="hs-side-title">With the Phaeron Network</h3>

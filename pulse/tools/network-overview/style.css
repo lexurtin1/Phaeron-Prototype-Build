@@ -170,6 +170,11 @@ body{
 .drawer-expand:active{transform:scale(0.92)}
 .drawer .ctry-name{font-size:25px;font-weight:700;letter-spacing:-0.01em;color:var(--ink-strong);padding-right:78px}
 .drawer .ctry-region{font-size:11px;color:var(--ink-2);font-family:var(--mono);letter-spacing:0.05em;margin-top:4px}
+.presence-drawer{z-index:35;top:72px;height:calc(100vh - 72px)}
+.presence-brief .presence-value{font-size:22px;font-weight:700;color:var(--ink-strong);letter-spacing:-0.02em}
+.presence-brief .presence-sales,.presence-brief .presence-office{font-size:14px;line-height:1.5;color:var(--ink-1)}
+.presence-brief .presence-list{margin:0;padding-left:18px}
+.presence-brief .presence-list li{margin:6px 0;font-size:13.5px;line-height:1.45;color:var(--ink-1)}
 .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
 
 /* snapshot KPI strip */

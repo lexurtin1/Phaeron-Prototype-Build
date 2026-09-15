@@ -158,14 +158,22 @@ function switchToOrderRouting() {
   // Phaeron brand gradients — solid accents for tokens / hover highlights
   const swatch={
     erp:'#2F5285',crm:'#5B7AAB',
-    projectmgmt:'#1B3A6B',financial:'#0C1A2E',hr:'#9F1239',
+    projectmgmt:'#1B3A6B',financial:'#0C1A2E',businessknowledge:'#9F1239',
   };
   const fills={
     erp:['#2F5285','#1B3A6B'],
     crm:['#5B7AAB','#2F5285'],
     projectmgmt:['#1B3A6B','#0C1A2E'],
     financial:['#0C1A2E','#132743'],
-    hr:['#1B3A6B','#9F1239'],
+    businessknowledge:['#1B3A6B','#9F1239'],
+  };
+  const LOGO_BASE='/tools/product-demo/assets/logos/';
+  const LOGOS={
+    erp:[LOGO_BASE+'erp-sap.webp',LOGO_BASE+'erp-oracle.png'],
+    crm:[LOGO_BASE+'crm-salesforce.webp',LOGO_BASE+'crm-hubspot.png'],
+    projectmgmt:[LOGO_BASE+'pm-jira.webp',LOGO_BASE+'pm-asana.webp'],
+    financial:[LOGO_BASE+'fin-excel.webp',LOGO_BASE+'fin-xero.png'],
+    businessknowledge:[LOGO_BASE+'bk-sharepoint.webp',LOGO_BASE+'bk-confluence.jpeg'],
   };
   const cssGrad=role=>`linear-gradient(135deg, ${fills[role][0]} 0%, ${fills[role][1]} 100%)`;
 
@@ -174,7 +182,7 @@ function switchToOrderRouting() {
     {role:'crm',         label:'CRM',                    angle:-18, lx:66,  ly:0,   anchor:'start' },
     {role:'projectmgmt', label:'Project Management',     angle:54,  lx:26,  ly:62,  anchor:'middle'},
     {role:'financial',   label:'Financial Performance',  angle:126, lx:-26, ly:62,  anchor:'middle'},
-    {role:'hr',          label:'HR',                     angle:198, lx:-66, ly:0,   anchor:'end'   },
+    {role:'businessknowledge', label:'Business Knowledge', angle:198, lx:-66, ly:0,   anchor:'end'   },
   ];
   const rad=d=>(d*Math.PI)/180;
   GROUPS.forEach(g=>{
@@ -398,14 +406,34 @@ function switchToOrderRouting() {
     spokePulseG.style.cssText='pointer-events:none';
     svg.appendChild(spokePulseG);
 
-    // node hexagons — always visible, CSS transitions handle scale on hover
+    // node hex tiles — logo plates (siloed systems)
     const nodeG=ns('g',{id:'hs-node-g'});
+    const roleNodeIdx={};
     NODES.forEach((n,i)=>{
+      const idxInRole=roleNodeIdx[n.role]|0;
+      roleNodeIdx[n.role]=idxInRole+1;
+      const logos=LOGOS[n.role]||[];
+      const logoSrc=logos[idxInRole%Math.max(logos.length,1)]||logos[0];
+      const clipId=`hs-clip-${i}`;
       const g=ns('g',{id:`hs-n${i}`,'data-role':n.role,transform:`translate(${n.x},${n.y})`});
       g.style.cssText='cursor:pointer;transition:opacity 0.18s ease';
-      const poly=ns('polygon',{points:hexPts(R),fill:`url(#hs-fill-${n.role})`,filter:'url(#hg-shadow)'});
-      poly.style.cssText='transform-origin:0px 0px;transform:scale(1);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.18s';
-      g.appendChild(poly);
+      const clip=ns('clipPath',{id:clipId});
+      clip.appendChild(ns('polygon',{points:hexPts(R)}));
+      defs.appendChild(clip);
+      const plate=ns('polygon',{points:hexPts(R+1.5),fill:'#f7fafc',stroke:'rgba(15,34,48,0.12)','stroke-width':'1.2',filter:'url(#hg-shadow)'});
+      plate.style.cssText='transform-origin:0px 0px;transform:scale(1);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),filter 0.18s';
+      g.appendChild(plate);
+      if(logoSrc){
+        const img=ns('image',{
+          href:logoSrc,
+          x:String(-R*0.72),y:String(-R*0.55),
+          width:String(R*1.44),height:String(R*1.1),
+          preserveAspectRatio:'xMidYMid meet',
+          'clip-path':`url(#${clipId})`,
+        });
+        img.setAttributeNS('http://www.w3.org/1999/xlink','href',logoSrc);
+        g.appendChild(img);
+      }
       g.addEventListener('mouseenter',()=>{hovered=n.role;applyHover();});
       g.addEventListener('mouseleave',()=>{hovered=null;applyHover();});
       nodeG.appendChild(g);

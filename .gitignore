@@ -18,6 +18,7 @@ node_modules/
 # Exclude PNGs globally but allow brand assets in pulse/assets/
 *.png
 !pulse/assets/*.png
+!pulse/tools/product-demo/assets/logos/*.png
 
 # OS / editor noise
 .DS_Store

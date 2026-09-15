@@ -332,110 +332,47 @@ body {
   font-weight: 700;
 }
 
-/* Phaeron Intelligence — Libraries.dev thinking-orbs pill (natural size=64) */
+/* Phaeron Intelligence — Libraries.dev thinking-orbs (natural size=64) */
 .intel-orb-panel {
-  --intel-pill-fill: rgba(255, 255, 255, 0.72);
-  --intel-pill-stroke: 0 0 0 1px rgba(27, 58, 107, 0.08), 0 10px 28px rgba(12, 26, 46, 0.06);
-  --intel-shimmer-base: #1a2430;
-  --intel-shimmer-highlight: #0d0d0d;
-  --intel-shimmer-band: 180%;
-  --intel-shimmer-dur: 2.4s;
-  --intel-shimmer-ease: linear;
-
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 20px;
   min-height: 100%;
-  padding: 28px 20px 20px;
+  padding: 24px 16px 16px;
   text-decoration: none;
   color: inherit;
-  background: rgba(27, 58, 107, 0.028);
+  background: transparent;
   border: 0;
-  border-radius: 30px;
+  border-radius: 0;
   box-shadow: none;
-  overflow: hidden;
-  transition: transform 0.2s ease, background 0.2s ease;
+  overflow: visible;
+  transition: transform 0.2s ease;
 }
 
 .intel-orb-panel:hover {
   transform: translateY(-2px);
-  background: rgba(27, 58, 107, 0.045);
 }
 
 .intel-orb-panel:focus-visible {
   outline: 2px solid rgba(27, 58, 107, 0.45);
-  outline-offset: 4px;
+  outline-offset: 8px;
+  border-radius: 16px;
 }
 
 .intel-orb-stage {
   position: relative;
   display: grid;
   place-items: center;
-  width: 100%;
-  min-height: 180px;
+  width: 72px;
+  height: 72px;
+  line-height: 0;
 }
 
-.intel-orb-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  width: 270px;
-  height: 74px;
-  padding: 0 32px 0 9px;
-  border-radius: 999px;
-  background: var(--intel-pill-fill);
-  box-shadow: var(--intel-pill-stroke);
-  color: var(--intel-shimmer-base);
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  cursor: inherit;
-}
-
-.intel-orb-pill canvas {
+.intel-orb-stage canvas {
   display: block;
-  flex: none;
-}
-
-.intel-orb-shimmer {
-  position: relative;
-  display: inline-block;
-  color: var(--intel-shimmer-base);
-}
-
-.intel-orb-shimmer::before {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent 40%,
-    var(--intel-shimmer-highlight) 50%,
-    transparent 60%,
-    transparent 100%
-  );
-  background-size: var(--intel-shimmer-band) 100%;
-  background-repeat: no-repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  animation: intel-orb-shimmer var(--intel-shimmer-dur) var(--intel-shimmer-ease) infinite;
-}
-
-@keyframes intel-orb-shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0% 0;
-  }
 }
 
 .intel-orb-copy {
@@ -467,10 +404,6 @@ body {
   .intel-orb-panel:hover {
     transform: none;
   }
-
-  .intel-orb-shimmer::before {
-    animation: none !important;
-  }
 }
 
 @media (max-width: 980px) {
@@ -480,16 +413,7 @@ body {
 
   .intel-orb-panel {
     min-height: 0;
-    padding: 28px 16px 18px;
-    border-radius: 20px;
-  }
-
-  .intel-orb-stage {
-    min-height: 140px;
-  }
-
-  .intel-orb-pill {
-    width: min(270px, 100%);
+    padding: 28px 12px 12px;
   }
 }
 
