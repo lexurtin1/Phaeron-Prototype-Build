@@ -205,7 +205,7 @@ function renderList(){
   const order={red:0,yellow:1,green:2};
   const rows=companies
     .filter(c=>matchesFilter(c,currentFilter))
-    .filter(c=>c.name.toLowerCase().includes(q)||c.location.toLowerCase().includes(q))
+    .filter(c=>c.name.toLowerCase().includes(q)||c.location.toLowerCase().includes(q)||c.sector.toLowerCase().includes(q))
     .sort((a,b)=>order[a.signal]-order[b.signal]);
   const sigText={red:c=>c.signalLabel,yellow:()=>"New activity",green:c=>c.signalLabel==="NO CONTACT"?"No contact":"Stable"};
   document.getElementById("plist").innerHTML=rows.map(c=>`
@@ -213,7 +213,8 @@ function renderList(){
       <div class="pavatar" style="background:${c.color}">${c.initials}</div>
       <div class="pinfo">
         <div class="pname">${c.name}</div>
-        <div class="pstage"><span class="sdot"></span>${c.stage}</div>
+        <div class="pmeta">${c.sector} · ${c.location}</div>
+        <div class="pstage"><span class="pill stage mini">${c.stage}</span></div>
       </div>
       <div class="pright">
         ${sparkline(c.spark,(c.change||0)>=0)}
@@ -247,7 +248,7 @@ function renderDetail(){
 
   const chartHTML=c.chart?`
     <div class="sec">
-      <div class="sec-title">Stock Price<span class="count">${c.ticker} · 30 days</span></div>
+      <div class="sec-title">Market context<span class="count">${c.ticker} · 30 days</span></div>
       <div class="chart-card">
         <div class="chart-head">
           <div><div class="chart-price">${c.price}</div><div class="chart-sub">${c.ticker} · last close</div></div>
@@ -268,74 +269,89 @@ function renderDetail(){
     </div>`).join("");
 
   document.getElementById("detail").innerHTML=`
-    <div class="co-head">
-      <div class="co-logo" style="background:${c.color}">${c.initials}</div>
-      <div class="co-titles">
-        <div class="co-name">${c.name}</div>
-        <div class="co-meta">
-          <span class="sector-tag"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>${c.sector} · ${c.location}</span>
-          <span class="pill stage">${c.stage}</span>
-          ${c.listed?`<span style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono)">${c.ticker}</span>`:''}
+    <div class="sami-pack">
+      <div class="pack-banner">
+        <div class="pack-eyebrow">SAMI pack · Strategic Account Management Information</div>
+        <div class="pack-asof">As of today · 07:15 AM</div>
+      </div>
+
+      <div class="co-head">
+        <div class="co-logo" style="background:${c.color}">${c.initials}</div>
+        <div class="co-titles">
+          <div class="co-name">${c.name}</div>
+          <div class="co-meta">
+            <span class="sector-tag"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>${c.sector} · ${c.location}</span>
+            <span class="pill stage">${c.stage}</span>
+            ${c.listed?`<span class="ticker-tag">${c.ticker}</span>`:''}
+          </div>
+          <div class="stage-progress">
+            <div class="sp-track"><div class="sp-fill" data-pct="${stagePcts[c.stage]||50}"></div></div>
+            <div class="sp-labels"><span>Discovery</span><span>Proposal</span><span>Negotiation</span><span>Closed</span></div>
+          </div>
         </div>
-        <div class="stage-progress">
-          <div class="sp-track"><div class="sp-fill" data-pct="${stagePcts[c.stage]||50}"></div></div>
-          <div class="sp-labels"><span>Discovery</span><span>Proposal</span><span>Negotiation</span><span>Closed</span></div>
+        <div class="co-value">
+          <div class="lbl">Open opportunity</div>
+          <div class="amt">${c.value}</div>
+          <div class="co-value-note">${c.stage}</div>
         </div>
       </div>
-      <div class="co-value"><div class="lbl">Open Opportunity</div><div class="amt">${c.value}</div></div>
-    </div>
-    <div class="quickstats">
-      <div class="qs"><div class="qicon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><div class="qlbl">Last SF activity</div><div class="qval">${c.lastActivity}</div></div></div>
-      <div class="qs"><div class="qicon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.6A2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.4-1.2a2 2 0 012.1-.5c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z"/></svg></div><div><div class="qlbl">Last call / meeting</div><div class="qval">${c.lastCall}</div></div></div>
-      <div class="qs"><div class="qicon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="qlbl">Open opportunity</div><div class="qval">${c.value} · ${c.stage}</div></div></div>
-    </div>
 
-    <div class="sec">
-      <div class="sec-title">Signal Feed
-        <span class="live-mini"><span class="d"></span>LIVE</span>
-        <span class="count">Last 30 days · ${c.signals.length} signals</span>
-      </div>
-      <div class="feed">${feedHTML}</div>
-    </div>
-
-    ${chartHTML}
-
-    <div class="sec">
-      <div class="sec-title">Relationship Summary</div>
-      <div class="rel-grid">
-        <div class="rel-card">
-          <h4>Key Contacts</h4>
-          ${contactsHTML}
+      <div class="sec">
+        <div class="sec-title">Account snapshot</div>
+        <div class="quickstats">
+          <div class="qs"><div class="qicon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><div class="qlbl">Last SF activity</div><div class="qval">${c.lastActivity}</div></div></div>
+          <div class="qs"><div class="qicon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.6A2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.4-1.2a2 2 0 012.1-.5c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z"/></svg></div><div><div class="qlbl">Last call / meeting</div><div class="qval">${c.lastCall}</div></div></div>
+          <div class="qs"><div class="qicon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="qlbl">Open opportunity</div><div class="qval">${c.value} · ${c.stage}</div></div></div>
         </div>
-        <div class="rel-side">
+      </div>
+
+      <div class="sec">
+        <div class="sec-title">Signal intelligence
+          <span class="live-mini"><span class="d"></span>LIVE</span>
+          <span class="count">Last 30 days · ${c.signals.length} signals</span>
+        </div>
+        <div class="feed">${feedHTML}</div>
+      </div>
+
+      ${chartHTML}
+
+      <div class="sec">
+        <div class="sec-title">Relationship map</div>
+        <div class="rel-grid">
           <div class="rel-card">
-            <h4>Phaeron Account Owner</h4>
-            <div class="owner-row">
-              <div class="c-av" style="background:${c.owner.color}">${c.owner.init}</div>
-              <div class="c-info"><div class="c-name">${c.owner.name}</div><div class="c-title">${c.owner.title}</div></div>
-            </div>
-            <div class="next-meet">
-              <div class="nm-when"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${c.meeting.when}</div>
-              <div class="nm-detail">${c.meeting.detail}</div>
+            <h4>Key Contacts</h4>
+            ${contactsHTML}
+          </div>
+          <div class="rel-side">
+            <div class="rel-card">
+              <h4>Phaeron Account Owner</h4>
+              <div class="owner-row">
+                <div class="c-av" style="background:${c.owner.color}">${c.owner.init}</div>
+                <div class="c-info"><div class="c-name">${c.owner.name}</div><div class="c-title">${c.owner.title}</div></div>
+              </div>
+              <div class="next-meet">
+                <div class="nm-when"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${c.meeting.when}</div>
+                <div class="nm-detail">${c.meeting.detail}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="sec">
-      <div class="sec-title">AI Briefing</div>
-      <div class="briefing">
-        <div class="briefing-accent"></div>
-        <div class="briefing-body">
-          <div class="brief-head">
-            <span class="ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 5.4L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.6-1.6z"/></svg>Pulse AI Summary</span>
-            <span class="brief-time">Generated today, 07:15 AM</span>
-          </div>
-          <div class="brief-text">${c.briefing}</div>
-          <div class="brief-actions">
-            <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M4 7l8 6 8-6"/></svg>Draft outreach email</button>
-            <button class="btn btn-ghost-light"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Ask Pulse a question</button>
+      <div class="sec">
+        <div class="sec-title">Strategic briefing</div>
+        <div class="briefing">
+          <div class="briefing-accent"></div>
+          <div class="briefing-body">
+            <div class="brief-head">
+              <span class="ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 5.4L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.6-1.6z"/></svg>Pulse AI Summary</span>
+              <span class="brief-time">Generated today, 07:15 AM</span>
+            </div>
+            <div class="brief-text">${c.briefing}</div>
+            <div class="brief-actions">
+              <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M4 7l8 6 8-6"/></svg>Draft outreach email</button>
+              <button class="btn btn-ghost-light"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Ask Pulse a question</button>
+            </div>
           </div>
         </div>
       </div>
