@@ -33,6 +33,23 @@
         href: '/tools/product-demo/index.html',
       },
     ],
+    'reporting-mi': [
+      {
+        id: 'overview',
+        label: 'Overview',
+        href: '/tools/reporting-mi/index.html',
+      },
+      {
+        id: 'pipeline',
+        label: 'Pipeline',
+        href: '/tools/reporting-mi/pipeline.html',
+      },
+      {
+        id: 'markets',
+        label: 'Markets',
+        href: '/tools/reporting-mi/markets.html',
+      },
+    ],
   };
 
   function pathMatches(href, path) {
@@ -64,7 +81,7 @@
     el.className = 'pulse-module-subnav';
     el.setAttribute('data-layout', layout);
     el.setAttribute('role', 'navigation');
-    el.setAttribute('aria-label', moduleId === 'studio' ? 'Studio views' : 'Market Intelligence views');
+    el.setAttribute('aria-label', moduleId === 'studio' ? 'Studio views' : moduleId === 'reporting-mi' ? 'Reporting and MI views' : 'Market Intelligence views');
 
     var html = '';
     for (var i = 0; i < items.length; i++) {

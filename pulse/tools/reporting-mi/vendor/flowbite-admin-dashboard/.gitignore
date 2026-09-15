@@ -1,0 +1,6 @@
+node_modules/
+*.map
+static/app.bundle.js
+static/app.css
+static/*.map
+public/

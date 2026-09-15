@@ -4,29 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Phaeron · Reporting and MI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../design-system/tokens/colors.css">
 <link rel="stylesheet" href="../../design-system/tokens/typography.css">
 <link rel="stylesheet" href="../../design-system/tokens/spacing.css">
 <link rel="stylesheet" href="../../design-system/tokens/effects.css">
 <link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
+<link rel="stylesheet" href="./dist/app.css">
 <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<body class="mi-app bg-gray-50">
 
-<div id="pulse-react-chrome" data-title="Reporting and MI"></div>
+<div id="pulse-react-chrome" data-title="Reporting and MI" data-module="reporting-mi" data-view="overview"></div>
 <script src="/ui/islands/load-chrome.js"></script>
 
-<main class="shell">
-  <div class="shell-card">
-    <span class="badge">Coming soon</span>
-    <h1>Reporting and MI</h1>
-    <p>
-      KPIs, management information, and configurable reports — a single place for
-      operational and leadership views across the Phaeron network.
-    </p>
+<div class="mi-shell">
+  <div class="mi-subnav-wrap">
+    <div id="pulse-module-subnav" data-module="reporting-mi" data-view="overview" data-layout="inline"></div>
   </div>
-</main>
 
+  <main class="mi-main">
+    <div class="px-1 pt-4 pb-2">
+      <h1 class="text-2xl font-bold text-gray-900">Management overview</h1>
+      <p class="mt-1 text-sm text-gray-500">Pipeline, presence, and network KPIs for Phaeron — funds industry MI.</p>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Open Opportunities</p>
+        <p id="kpi-pipeline" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-pipeline-sub" class="mt-1 text-sm text-gray-500">—</p>
+        <p class="mt-2 text-sm font-medium mi-kpi-delta">Aligned with Opportunities module</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Presence markets</p>
+        <p id="kpi-markets" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-markets-sub" class="mt-1 text-sm text-gray-500">—</p>
+        <p class="mt-2 text-sm font-medium text-primary-700">Market Presence globe</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Network volume</p>
+        <p id="kpi-volume" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-volume-sub" class="mt-1 text-sm text-gray-500">—</p>
+        <p class="mt-2 text-sm font-medium text-primary-700">Live order flow</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">ETF weighted pipeline</p>
+        <p id="kpi-etf" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-etf-sub" class="mt-1 text-sm text-gray-500">—</p>
+        <p class="mt-2 text-sm font-medium text-gray-500">Product pipeline (separate from Opportunities)</p>
+      </div>
+    </div>
+
+    <div class="grid gap-4 mt-4 xl:grid-cols-3">
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm xl:col-span-2 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Presence ARR trend</h3>
+            <p class="text-sm text-gray-500">£m equivalent · leadership view</p>
+          </div>
+        </div>
+        <div id="mi-arr-chart"></div>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <h3 class="mb-1 text-lg font-semibold text-gray-900">Pipeline by stage</h3>
+        <p class="mb-4 text-sm text-gray-500">Opportunities · £14.5m open</p>
+        <div id="mi-stage-donut"></div>
+      </div>
+    </div>
+
+    <div class="p-4 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Open Opportunities</h3>
+          <p class="text-sm text-gray-500">Same four deals as the Opportunities module</p>
+        </div>
+        <a href="./pipeline.html" class="text-sm font-medium text-primary-700 hover:underline">View pipeline →</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th class="px-4 py-3">Account</th>
+              <th class="px-4 py-3">Sector</th>
+              <th class="px-4 py-3">Location</th>
+              <th class="px-4 py-3">Stage</th>
+              <th class="px-4 py-3">Value</th>
+              <th class="px-4 py-3">Owner</th>
+              <th class="px-4 py-3">Last activity</th>
+            </tr>
+          </thead>
+          <tbody id="mi-opps-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../../shared/module-subnav.js"></script>
+<script src="./dist/apexcharts.min.js"></script>
+<script src="./dist/flowbite.min.js"></script>
+<script src="./data.js"></script>
+<script src="./app.js"></script>
 <script src="../../favicon-pulse.js"></script>
 </body>
 </html>

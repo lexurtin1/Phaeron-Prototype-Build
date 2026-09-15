@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phaeron · Reporting and MI · Markets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/effects.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
+<link rel="stylesheet" href="./dist/app.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="mi-app bg-gray-50">
+
+<div id="pulse-react-chrome" data-title="Reporting and MI" data-module="reporting-mi" data-view="markets"></div>
+<script src="/ui/islands/load-chrome.js"></script>
+
+<div class="mi-shell">
+  <div class="mi-subnav-wrap">
+    <div id="pulse-module-subnav" data-module="reporting-mi" data-view="markets" data-layout="inline"></div>
+  </div>
+
+  <main class="mi-main">
+    <div class="px-1 pt-4 pb-2">
+      <h1 class="text-2xl font-bold text-gray-900">Markets &amp; presence</h1>
+      <p class="mt-1 text-sm text-gray-500">Presence ARR and client concentration hotspots — same figures as Market Presence.</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-3">
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Presence markets</p>
+        <p id="kpi-markets" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-markets-sub" class="mt-1 text-sm text-gray-500">—</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Network volume</p>
+        <p id="kpi-volume" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-volume-sub" class="mt-1 text-sm text-gray-500">—</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Top hotspot</p>
+        <p class="mt-2 text-3xl font-bold text-gray-900">London</p>
+        <p class="mt-1 text-sm text-gray-500">142 clients · crimson band</p>
+      </div>
+    </div>
+
+    <div class="grid gap-4 mt-4 xl:grid-cols-2">
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <h3 class="mb-1 text-lg font-semibold text-gray-900">Top markets by ARR</h3>
+        <p class="mb-4 text-sm text-gray-500">From presence briefings</p>
+        <div id="mi-presence-arr"></div>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <h3 class="mb-1 text-lg font-semibold text-gray-900">Client concentration hotspots</h3>
+        <p class="mb-4 text-sm text-gray-500">Berlin crimson · London / Paris high density</p>
+        <div id="mi-hotspot-chart"></div>
+      </div>
+    </div>
+
+    <div class="p-4 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900">Presence ARR by market</h3>
+          <p class="text-sm text-gray-500">Matches Market Presence briefing drawer</p>
+        </div>
+        <a href="/tools/network-overview/index.html" class="text-sm font-medium text-primary-700 hover:underline">Open globe →</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th class="px-4 py-3">Market</th>
+              <th class="px-4 py-3">ARR</th>
+              <th class="px-4 py-3">Sales coverage</th>
+              <th class="px-4 py-3">ISO</th>
+            </tr>
+          </thead>
+          <tbody id="mi-presence-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="p-4 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+      <h3 class="mb-1 text-lg font-semibold text-gray-900">City hotspots</h3>
+      <p class="mb-4 text-sm text-gray-500">Client concentration colours match the Market Presence globe</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th class="px-4 py-3">City</th>
+              <th class="px-4 py-3">Clients</th>
+              <th class="px-4 py-3">Band</th>
+              <th class="px-4 py-3">ISO</th>
+            </tr>
+          </thead>
+          <tbody id="mi-hotspot-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../../shared/module-subnav.js"></script>
+<script src="./dist/apexcharts.min.js"></script>
+<script src="./dist/flowbite.min.js"></script>
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+<script src="../../favicon-pulse.js"></script>
+</body>
+</html>

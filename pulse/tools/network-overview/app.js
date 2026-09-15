@@ -186,13 +186,32 @@ let MODE='opportunity', world=null, globe=null, selectedISO=null;
 const FILTERS={region:'',cls:'',hub:'',tier:'',net:'',highopp:false};
 let officeLayerCalastone = true;
 let CALASTONE_ISO3 = new Set();
-/** Europe-heavy presence heat (offices + regional network markets). */
+/** Europe-heavy presence markets (offices + regional network). */
 let PRESENCE_ISO3 = new Set();
 const PRESENCE_HOTSPOTS = {
   POL:'new_entry', CZE:'rising', ROU:'new_entry', HUN:'rising', GRC:'rising',
 };
+/** City client-concentration hotspots (colour by density; no polygon pulse). */
+const CLIENT_HOTSPOTS = [
+  { city:'London',      lat:51.5074, lng:-0.1278,  clients:142, color:'#9F1239', iso:'GBR' },
+  { city:'Berlin',      lat:52.5200, lng:13.4050,  clients:118, color:'#DC143C', iso:'DEU' },
+  { city:'Paris',       lat:48.8566, lng:2.3522,   clients:96,  color:'#E11D48', iso:'FRA' },
+  { city:'Dublin',      lat:53.3498, lng:-6.2603,  clients:84,  color:'#BE123C', iso:'IRL' },
+  { city:'Luxembourg',  lat:49.6116, lng:6.1319,   clients:78,  color:'#F43F5E', iso:'LUX' },
+  { city:'Frankfurt',   lat:50.1109, lng:8.6821,   clients:64,  color:'#FB7185', iso:'DEU' },
+  { city:'Amsterdam',   lat:52.3676, lng:4.9041,   clients:52,  color:'#FDA4AF', iso:'NLD' },
+  { city:'Zurich',      lat:47.3769, lng:8.5417,   clients:41,  color:'#FCA5A5', iso:'CHE' },
+  { city:'Milan',       lat:45.4642, lng:9.1900,   clients:36,  color:'#FECACA', iso:'ITA' },
+  { city:'Madrid',      lat:40.4168, lng:-3.7038,  clients:33,  color:'#FECACA', iso:'ESP' },
+  { city:'Stockholm',   lat:59.3293, lng:18.0686,  clients:29,  color:'#FEE2E2', iso:'SWE' },
+  { city:'Warsaw',      lat:52.2297, lng:21.0122,  clients:27,  color:'#FEE2E2', iso:'POL' },
+  { city:'New York',    lat:40.7128, lng:-74.0060, clients:58,  color:'#FB7185', iso:'USA' },
+  { city:'Singapore',   lat:1.3521,  lng:103.8198, clients:47,  color:'#FDA4AF', iso:'SGP' },
+  { city:'Hong Kong',   lat:22.3193, lng:114.1694, clients:39,  color:'#FCA5A5', iso:'HKG' },
+  { city:'Sydney',      lat:-33.8688,lng:151.2093, clients:31,  color:'#FECACA', iso:'AUS' },
+];
+const CLIENT_HOTSPOT_MAX = Math.max(...CLIENT_HOTSPOTS.map(h=>h.clients));
 let presencePulseRaf = null;
-let presencePulseT0 = 0;
 
 function toggleActiveClass(id, isActive, className='active'){
   const el=document.getElementById(id);
@@ -219,8 +238,8 @@ function hexA(hex,a){const h=hex.replace('#','');return`rgba(${parseInt(h.slice(
 
 function officeHeatmapColor(f){
   const iso=featISO(f);
-  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
-  return 'rgba(214,224,232,0.88)';
+  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(198,210,222,0.92)';
+  return 'rgba(228,234,240,0.88)';
 }
 function polyCapColor(f){
   if(officeLayerCalastone)return officeHeatmapColor(f);
@@ -870,8 +889,9 @@ function netArcRGB(t){t=Math.max(0,Math.min(1,t));for(let i=0;i<netCstops.length
 function netArcColor(d){const maxArc=window.CALASTONE_FLOWS.meta.maxArc;const[r,g,b]=netArcRGB(Math.sqrt(d.orders/maxArc));return `rgba(${r},${g},${b},${0.45+0.45*Math.sqrt(d.orders/maxArc)})`;}
 function netLandColor(f){
   const iso=featISO(f);
-  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
-  return 'rgba(214,224,232,0.88)';
+  /* Quiet land tint — city hotspots carry the colour story */
+  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(198,210,222,0.92)';
+  return 'rgba(228,234,240,0.88)';
 }
 
 const fmtNet=n=>n.toLocaleString('en-GB');
@@ -907,17 +927,19 @@ function switchToNetwork(){
   try{const m=globe.globeMaterial();if(m.color&&m.color.set)m.color.set('#eef5f9');if(m.emissive&&m.emissive.set){m.emissive.set('#e8f1f6');m.emissiveIntensity=0.85;}if('shininess'in m)m.shininess=0;m.needsUpdate=true;}catch(e){}
   globe.showAtmosphere(true).atmosphereColor('#9fc6d8').atmosphereAltitude(0.2)
     .polygonsData(window.CALASTONE_GEO.features).polygonCapColor(f=>netLandColor(f)).polygonSideColor(()=>'rgba(150,170,190,0.25)').polygonStrokeColor(()=>'rgba(120,150,180,0.3)').polygonAltitude(0.006).polygonsTransitionDuration(300)
-    .pointsData([]).pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(()=>'#0b79ae').pointAltitude(0.008).pointRadius(d=>0.28+1.0*Math.sqrt(d.total/maxNode)).pointResolution(14)
-    .labelsData([]).labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.name).labelSize(0.9).labelDotRadius(0).labelColor(()=>'rgba(11,121,174,0.9)').labelResolution(2).labelAltitude(0.012)
+    .pointsData(CLIENT_HOTSPOTS).pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(d=>d.color).pointAltitude(0.012).pointRadius(d=>0.45+1.35*Math.sqrt(d.clients/CLIENT_HOTSPOT_MAX)).pointResolution(18)
+    .labelsData(CLIENT_HOTSPOTS.filter(h=>h.clients>=78)).labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.city).labelSize(0.85).labelDotRadius(0).labelColor(()=>'rgba(127,29,29,0.9)').labelResolution(2).labelAltitude(0.02)
     .arcsData([]).arcStartLat(d=>d.startLat).arcStartLng(d=>d.startLng).arcEndLat(d=>d.endLat).arcEndLng(d=>d.endLng).arcColor(d=>netArcColor(d)).arcStroke(d=>0.18+1.5*Math.sqrt(d.orders/maxArc)).arcAltitudeAutoScale(0.5).arcDashLength(0.45).arcDashGap(0.6).arcDashInitialGap(()=>Math.random()).arcDashAnimateTime(d=>Math.max(1400,5200-3600*Math.sqrt(d.orders/maxArc))).arcsTransitionDuration(0)
-    .onPolygonHover(f=>{const iso=f&&featISO(f);const present=iso&&PRESENCE_ISO3.has(iso);const hot=iso&&PRESENCE_HOTSPOTS[iso];document.body.style.cursor=present?'pointer':'';globe.polygonAltitude(ff=>{const id=featISO(ff);if(ff===f&&present)return 0.028;if(id&&PRESENCE_HOTSPOTS[id])return 0.014;return 0.006;});if(present){const tip=document.getElementById('netTooltip');const signal=hot?(hot==='new_entry'?' · New market entry':' · Rising activity'):'';tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-sub">Phaeron presence${signal} · click for briefing</div>`;tip.style.opacity=1;posNetTip();if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
-    .onPolygonClick(f=>{if(f)openPresenceBriefing(f);}).onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPolygonHover(f=>{const iso=f&&featISO(f);const present=iso&&PRESENCE_ISO3.has(iso);document.body.style.cursor=present?'pointer':'';globe.polygonAltitude(ff=>{const id=featISO(ff);if(ff===f&&present)return 0.02;return 0.006;});if(present){const tip=document.getElementById('netTooltip');tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-sub">Phaeron market · click for briefing</div>`;tip.style.opacity=1;posNetTip();if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPolygonClick(f=>{if(f)openPresenceBriefing(f);})
+    .onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){clientHotspotTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPointClick(n=>{if(n&&n.iso){const feat=(window.CALASTONE_GEO.features||[]).find(f=>featISO(f)===n.iso);if(feat)openPresenceBriefing(feat);}})
     .onArcHover(null);
   if(ctrl&&netSpin)ctrl.autoRotate=true;
-  // Presence heatmap: polygons only — never paint corridor arcs
+  // City hotspots only — no corridor arcs, no shimmering polygon pulse
   netFlowsOn=false;
   globe.arcsData([]);
-  startPresencePulse();
+  stopPresencePulse();
 }
 
 function switchToResearch(){
@@ -996,13 +1018,13 @@ function init(){
   // Start in network mode
   switchToNetwork();
 
-  // Presence heatmap stats — Europe-wide Phaeron presence
+  // Presence + client hotspot stats
   document.getElementById('heroCountries').textContent=String(PRESENCE_ISO3.size||DATA.meta.countries);
   document.getElementById('heroCorridors').textContent=DATA.meta.corridors;
   document.getElementById('mInter').textContent=fmtShort(DATA.meta.interCountryVol);
   document.getElementById('mMapped').textContent=DATA.meta.mappedPct+'%';
   const leg=document.getElementById('legnote');
-  if(leg)leg.textContent=`${PRESENCE_ISO3.size} presence markets · ${Object.keys(PRESENCE_HOTSPOTS).length} rising / new-entry signals`;
+  if(leg)leg.textContent=`${CLIENT_HOTSPOTS.length} city hotspots · ${PRESENCE_ISO3.size} presence markets`;
   netCountUp(PRESENCE_ISO3.size||DATA.meta.countries);
 
   // Research mode ready
@@ -1235,30 +1257,16 @@ function stopPresencePulse(){
   if(presencePulseRaf){cancelAnimationFrame(presencePulseRaf);presencePulseRaf=null;}
 }
 function startPresencePulse(){
+  /* Deprecated: polygon pulse caused shimmering monochrome — city points only */
   stopPresencePulse();
-  if(typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  presencePulseT0=performance.now();
-  const tick=(now)=>{
-    if(currentMode!=='network'||!globe)return;
-    const t=(now-presencePulseT0)/1000;
-    const pulse=0.5+0.5*Math.sin(t*2.2);
-    globe.polygonAltitude(f=>{
-      const iso=featISO(f);
-      if(iso&&PRESENCE_HOTSPOTS[iso])return 0.01+0.018*pulse;
-      if(iso&&PRESENCE_ISO3.has(iso))return 0.007;
-      return 0.006;
-    });
-    globe.polygonCapColor(f=>{
-      const iso=featISO(f);
-      if(iso&&PRESENCE_HOTSPOTS[iso]){
-        const a=0.78+0.18*pulse;
-        return `rgba(27,58,107,${a.toFixed(3)})`;
-      }
-      return netLandColor(f);
-    });
-    presencePulseRaf=requestAnimationFrame(tick);
-  };
-  presencePulseRaf=requestAnimationFrame(tick);
+}
+
+function clientHotspotTip(n){
+  const tip=document.getElementById('netTooltip');
+  if(!tip||!n)return;
+  tip.innerHTML=`<div class="tt-route">${n.city}</div><div class="tt-big">${n.clients}</div><div class="tt-sub">client concentration · click for market briefing</div>`;
+  tip.style.opacity=1;
+  posNetTip();
 }
 
 function closePresenceBriefing(){
@@ -1356,9 +1364,9 @@ function applyOfficeLayers() {
   if (!globe) return;
   const data = officeLayerCalastone ? CALASTONE_OFFICES : [];
 
-  /* Presence mode: always paint Phaeron office countries; markers follow toggle */
+  /* Presence mode: city hotspots stay visible; pins follow toggle */
   if (currentMode === 'network') {
-    globe.pointsData([]);
+    globe.pointsData(CLIENT_HOTSPOTS);
     globe.polygonCapColor(f => netLandColor(f));
   } else if (currentMode === 'research') {
     refreshGlobe();

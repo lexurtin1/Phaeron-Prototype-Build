@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phaeron · Reporting and MI · Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/effects.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
+<link rel="stylesheet" href="./dist/app.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="mi-app bg-gray-50">
+
+<div id="pulse-react-chrome" data-title="Reporting and MI" data-module="reporting-mi" data-view="pipeline"></div>
+<script src="/ui/islands/load-chrome.js"></script>
+
+<div class="mi-shell">
+  <div class="mi-subnav-wrap">
+    <div id="pulse-module-subnav" data-module="reporting-mi" data-view="pipeline" data-layout="inline"></div>
+  </div>
+
+  <main class="mi-main">
+    <div class="px-1 pt-4 pb-2">
+      <h1 class="text-2xl font-bold text-gray-900">Pipeline</h1>
+      <p class="mt-1 text-sm text-gray-500">Opportunities pipeline and ETF product pipeline — kept as separate stories.</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-3">
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">Open Opportunities</p>
+        <p id="kpi-pipeline" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-pipeline-sub" class="mt-1 text-sm text-gray-500">—</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">ETF total pipeline</p>
+        <p id="etf-total" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p class="mt-1 text-sm text-gray-500"><span id="etf-count">—</span> product opportunities</p>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <p class="text-sm font-medium text-gray-500">ETF weighted</p>
+        <p id="etf-weighted" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p class="mt-1 text-sm text-gray-500">Probability-weighted · Intelligence</p>
+      </div>
+    </div>
+
+    <div class="grid gap-4 mt-4 xl:grid-cols-2">
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+        <h3 class="mb-1 text-lg font-semibold text-gray-900">Opportunities by stage</h3>
+        <p class="mb-4 text-sm text-gray-500">Discovery · Proposal Sent · Negotiation</p>
+        <div id="mi-stage-bar"></div>
+      </div>
+      <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6 mi-callout">
+        <h3 class="mb-2 text-lg font-semibold text-gray-900">Two pipelines, one MI view</h3>
+        <p class="text-sm text-gray-600 leading-relaxed">
+          <strong>Open Opportunities (£14.5m)</strong> are the four UK platform deals from the Opportunities module
+          (Hargreaves Lansdowne, FNZ, Pershing, Transact).
+          <strong>ETF product pipeline (£4.62m / £2.18m weighted)</strong> is the nine-name product book from Phaeron Intelligence —
+          do not sum them into a single total.
+        </p>
+      </div>
+    </div>
+
+    <div class="p-4 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+      <h3 class="mb-1 text-lg font-semibold text-gray-900">Opportunities detail</h3>
+      <p class="mb-4 text-sm text-gray-500">Source: Opportunities / account tracker</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th class="px-4 py-3">Account</th>
+              <th class="px-4 py-3">Sector</th>
+              <th class="px-4 py-3">Location</th>
+              <th class="px-4 py-3">Stage</th>
+              <th class="px-4 py-3">Value</th>
+              <th class="px-4 py-3">Owner</th>
+              <th class="px-4 py-3">Last activity</th>
+            </tr>
+          </thead>
+          <tbody id="mi-opps-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="p-4 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+      <h3 class="mb-1 text-lg font-semibold text-gray-900">ETF product pipeline</h3>
+      <p class="mb-4 text-sm text-gray-500">Source: Phaeron Intelligence · SFDC Opportunity Export Q3</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th class="px-4 py-3">Opportunity</th>
+              <th class="px-4 py-3">Fund</th>
+              <th class="px-4 py-3">Stage</th>
+              <th class="px-4 py-3">Prob</th>
+              <th class="px-4 py-3">Value</th>
+              <th class="px-4 py-3">Weighted</th>
+              <th class="px-4 py-3">Close</th>
+            </tr>
+          </thead>
+          <tbody id="mi-etf-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../../shared/module-subnav.js"></script>
+<script src="./dist/apexcharts.min.js"></script>
+<script src="./dist/flowbite.min.js"></script>
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+<script src="../../favicon-pulse.js"></script>
+</body>
+</html>

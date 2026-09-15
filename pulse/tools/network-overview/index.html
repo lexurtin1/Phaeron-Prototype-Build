@@ -33,17 +33,19 @@ window._hsTimeline = createTimeline;
 <div id="networkUI" style="display:none">
   <div class="hero" id="hero">
     <div class="count" id="heroCount">0<span class="unit">markets</span></div>
-    <div class="cap">with Phaeron presence highlighted across Europe and key global hubs — navy countries show where we are (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
+    <div class="cap">client concentration hotspots across Phaeron's markets — city colour shows where clients cluster (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
     <div class="meta">
       <div class="m"><div class="v" id="mInter">—</div><div class="k">Cross-border volume</div></div>
       <div class="m"><div class="v" id="mMapped">—</div><div class="k">Mapped coverage</div></div>
     </div>
   </div>
-  <div class="hint-net">drag · zoom · hover a country</div>
+  <div class="hint-net">drag · zoom · hover a city hotspot</div>
   <div class="net-legend">
-    <h4>Phaeron presence</h4>
-    <div class="legrow"><span class="nodemark" style="background:#1B3A6B"></span> Phaeron presence</div>
-    <div class="legrow"><span class="nodemark" style="opacity:.35"></span> No office / not mapped</div>
+    <h4>Client hotspots</h4>
+    <div class="legrow"><span class="nodemark" style="background:#9F1239"></span> Highest concentration</div>
+    <div class="legrow"><span class="nodemark" style="background:#E11D48"></span> High</div>
+    <div class="legrow"><span class="nodemark" style="background:#FB7185"></span> Moderate</div>
+    <div class="legrow"><span class="nodemark" style="background:#FCA5A5"></span> Emerging</div>
     <div class="legdiv"></div>
     <div class="legnote" id="legnote"></div>
   </div>

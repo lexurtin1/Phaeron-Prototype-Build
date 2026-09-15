@@ -7,9 +7,8 @@ function prefersReducedMotion() {
 }
 
 /**
- * Phaeron Intelligence entry — Libraries.dev thinking-orbs at the tuned
- * size=64 avatar preset (see https://github.com/Jakubantalik/Libraries.dev).
- * Do not CSS-scale: 64/32/20 are separate designs.
+ * Phaeron Intelligence entry — Libraries.dev thinking-orbs at max size=64,
+ * enlarged on the home tile via stage + CSS scale.
  */
 export function IntelligenceOrbPanel() {
   const reduced = prefersReducedMotion();
@@ -27,12 +26,11 @@ export function IntelligenceOrbPanel() {
           theme="light"
           speed={reduced ? 0 : 1}
           paused={reduced}
-          style={{ width: 56, height: 56 }}
         />
       </div>
       <div className="intel-orb-copy">
         <h2>Phaeron Intelligence</h2>
-        <p>Ask anything about Phaeron products, markets, and relationships.</p>
+        <p>Ask anything about your company — markets, clients, and relationships.</p>
       </div>
     </a>
   );

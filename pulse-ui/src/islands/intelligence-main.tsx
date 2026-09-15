@@ -13,7 +13,7 @@ function IntelligenceEmpty() {
       </div>
       <TextType
         text={[
-          'Ask Atlas about products, markets, or accounts…',
+          'Ask Atlas about your company — markets, clients, relationships…',
           'Generate a relationship snapshot for any CTN…',
           'Surface billing, stage, and RM context in seconds…',
         ]}

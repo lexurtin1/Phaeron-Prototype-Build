@@ -309,49 +309,26 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 #emptyChat h1{font-size:23px;font-weight:800;color:var(--c-navy);letter-spacing:-0.015em;margin-top:12px}
 #emptyChat .lead{font-size:13.5px;color:var(--c-text-muted);margin-top:7px;max-width:380px;line-height:1.6}
 
-/* network visualization */
+/* brand mark in empty chat */
 .network-vis{
-  width:100%;max-width:480px;margin:0 auto;
+  width:100%;max-width:280px;margin:8px auto 4px;
+  display:flex;align-items:center;justify-content:center;
 }
-.network-vis svg{width:100%;height:auto;overflow:visible}
-.net-line{
-  fill:none;stroke:var(--c-teal);stroke-width:1.4;opacity:0;
-  stroke-dasharray:1;stroke-dashoffset:1;
+.network-vis .brand-mark{
+  width:min(220px,70%);
+  height:auto;
+  display:block;
+  mix-blend-mode:multiply;
+  opacity:0.92;
 }
-/* node base styles */
-.nn-circle{fill:rgba(255,255,255,0.9);stroke-width:1.8}
-.nn-abbr{font-family:'Inter','Arial',sans-serif;font-size:8.5px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
-.nn-label{font-family:'Inter','Arial',sans-serif;font-size:9px;font-weight:600;text-anchor:middle}
-/* per-source colour coding */
-#nn-0 .nn-circle{stroke:#1B3A6B;fill:rgba(27,58,107,0.08)}    /* Salesforce – Phaeron blue */
-#nn-1 .nn-circle{stroke:#22323D;fill:rgba(34,50,61,0.08)}     /* Contracts  – Navy */
-#nn-2 .nn-circle{stroke:#3B6FCC;fill:rgba(59,111,204,0.08)}   /* Jira       – Cobalt */
-#nn-3 .nn-circle{stroke:#2F5285;fill:rgba(47,82,133,0.08)}   /* PowerBI    – Teal */
-#nn-4 .nn-circle{stroke:#5B7AAB;fill:rgba(91,122,171,0.08)}   /* Billing    – Green */
-#nn-5 .nn-circle{stroke:#566571;fill:rgba(86,101,113,0.08)}   /* Procedures – Slate */
-#nn-0 .nn-abbr,#nn-0 .nn-label{fill:#1B3A6B}
-#nn-1 .nn-abbr,#nn-1 .nn-label{fill:#22323D}
-#nn-2 .nn-abbr,#nn-2 .nn-label{fill:#3B6FCC}
-#nn-3 .nn-abbr,#nn-3 .nn-label{fill:#2F5285}
-#nn-4 .nn-abbr,#nn-4 .nn-label{fill:#5B7AAB}
-#nn-5 .nn-abbr,#nn-5 .nn-label{fill:#566571}
-/* hex centre */
-#hexCenter{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .52s both}
-/* source toggle colour coding (matches nodes) */
+/* source toggle colour coding */
 .ctx-toggle[data-ctx="Salesforce"].on{background:#1B3A6B;border-color:#1B3A6B}
 .ctx-toggle[data-ctx="Contracts"].on{background:#22323D;border-color:#22323D}
 .ctx-toggle[data-ctx="Jira"].on{background:#3B6FCC;border-color:#3B6FCC}
 .ctx-toggle[data-ctx="PowerBI"].on{background:#2F5285;border-color:#2F5285}
 .ctx-toggle[data-ctx="Billing"].on{background:#5B7AAB;border-color:#5B7AAB}
 .ctx-toggle[data-ctx="Procedures"].on{background:#566571;border-color:#566571}
-.net-line{animation:fadeIn .8s ease .58s both}
-#nn-0{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .66s both}
-#nn-1{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .74s both}
-#nn-2{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .82s both}
-#nn-3{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .9s both}
-#nn-4{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) .98s both}
-#nn-5{animation:fadeScaleUp .4s cubic-bezier(.23,1,.32,1) 1.06s both}
-.net-node{opacity:0}
+.network-vis .brand-mark{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .35s both}
 
 /* suggest chips */
 .chips-area{width:100%;max-width:540px;margin-top:20px}
@@ -848,65 +825,13 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
               <div class="empty-chat" id="emptyChat">
                 <div class="proto-badge"><span class="proto-dot"></span>Internal Prototype · Commercial Preview</div>
 
-                <!-- animated data connectivity network -->
+                <!-- company brand -->
                 <div class="network-vis" id="networkVis" aria-hidden="true">
-                  <svg viewBox="0 -22 440 284" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%"   stop-color="#1B3A6B"/>
-                        <stop offset="50%"  stop-color="#2F5285"/>
-                        <stop offset="100%" stop-color="#9F1239"/>
-                      </linearGradient>
-                    </defs>
-                    <!-- lines stop at circle edge (r=22) so they never cross labels -->
-                    <path class="net-line" id="nl-0" d="M220,120 L88,61"   pathLength="1" style="stroke:#1B3A6B"/>
-                    <path class="net-line" id="nl-1" d="M220,120 L220,46"  pathLength="1" style="stroke:#22323D"/>
-                    <path class="net-line" id="nl-2" d="M220,120 L352,61"  pathLength="1" style="stroke:#3B6FCC"/>
-                    <path class="net-line" id="nl-3" d="M220,120 L352,179" pathLength="1" style="stroke:#2F5285"/>
-                    <path class="net-line" id="nl-4" d="M220,120 L220,194" pathLength="1" style="stroke:#5B7AAB"/>
-                    <path class="net-line" id="nl-5" d="M220,120 L88,179"  pathLength="1" style="stroke:#566571"/>
-                    <!-- Phaeron hexagon centre -->
-                    <g id="hexCenter">
-                      <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="url(#hexGrad)"/>
-                      <path id="hexTrace" d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(180,240,230,0.85)" stroke-width="3" stroke-linecap="round" stroke-dasharray="24 168"/>
-                      <path d="M220,88 L248,104 L248,136 L220,152 L192,136 L192,104 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
-                    </g>
-                    <!-- source nodes -->
-                    <g class="net-node" id="nn-0">
-                      <circle class="nn-circle" cx="68" cy="52" r="22"/>
-                      <text class="nn-abbr" x="68" y="52">SF</text>
-                      <text class="nn-label" x="68" y="82">Salesforce</text>
-                    </g>
-                    <g class="net-node" id="nn-1">
-                      <circle class="nn-circle" cx="220" cy="24" r="22"/>
-                      <text class="nn-abbr" x="220" y="24">CT</text>
-                      <text class="nn-label" x="220" y="-4">Contracts</text>
-                    </g>
-                    <g class="net-node" id="nn-2">
-                      <circle class="nn-circle" cx="372" cy="52" r="22"/>
-                      <text class="nn-abbr" x="372" y="52">JR</text>
-                      <text class="nn-label" x="372" y="82">Jira</text>
-                    </g>
-                    <g class="net-node" id="nn-3">
-                      <circle class="nn-circle" cx="372" cy="188" r="22"/>
-                      <text class="nn-abbr" x="372" y="188">BI</text>
-                      <text class="nn-label" x="372" y="158">PowerBI</text>
-                    </g>
-                    <g class="net-node" id="nn-4">
-                      <circle class="nn-circle" cx="220" cy="216" r="22"/>
-                      <text class="nn-abbr" x="220" y="216">BL</text>
-                      <text class="nn-label" x="220" y="248">Billing</text>
-                    </g>
-                    <g class="net-node" id="nn-5">
-                      <circle class="nn-circle" cx="68" cy="188" r="22"/>
-                      <text class="nn-abbr" x="68" y="188">PR</text>
-                      <text class="nn-label" x="68" y="158">Procedures</text>
-                    </g>
-                  </svg>
+                  <img class="brand-mark" src="/assets/phaeron-wordmark.png" alt="Phaeron" width="220" height="48" />
                 </div>
 
                 <h1>What would you like to know?</h1>
-                <p class="lead">Your AI analyst — pulling live answers from contracts, billing, Jira, PowerBI, Salesforce and procedures.</p>
+                <p class="lead">Your AI analyst for Phaeron — markets, clients, relationships, and how the company is performing.</p>
 
                 <div class="chips-area">
                   <div class="chips-grid">
@@ -1029,50 +954,14 @@ const now = ()=> new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2
 
 /* entrance animations handled via CSS @keyframes above */
 
-/* ───────────────────── network visualization ───────────────────── */
+/* ───────────────────── empty-state brand mark ───────────────────── */
 function animateNetwork(){
-  /* lines draw outward from center */
-  anime({
-    targets:'.net-line',
-    strokeDashoffset:[1,0],
-    opacity:[0,0.45],
-    delay:anime.stagger(110,{start:520}),
-    duration:480,
-    easing:'easeOutCubic'
-  });
-  /* nodes pop in after their line */
-  anime({
-    targets:'.net-node',
-    opacity:[0,1],
-    scale:[0.55,1],
-    delay:anime.stagger(110,{start:640}),
-    duration:380,
-    easing:'easeOutBack'
-  });
-  /* hex centre scales up on network entrance */
-  anime({targets:'#hexCenter', scale:[0.7,1], opacity:[0,1], duration:500, delay:520, easing:'easeOutBack'});
+  anime({targets:'.network-vis .brand-mark', scale:[0.92,1], opacity:[0,0.92], duration:520, delay:280, easing:'easeOutBack'});
 }
 animateNetwork();
 
-/* ───────────────────── hex border trace ───────────────────── */
-function animateHexBorder(){
-  anime({targets:'#hexTrace', strokeDashoffset:[192,0], duration:2400, easing:'linear', loop:true});
-}
-animateHexBorder();
-
-/* source ctx → network node mapping (for submit flash) */
-const CTX_NODE = {
-  'salesforce':'#nn-0','contracts':'#nn-1','jira':'#nn-2',
-  'powerbi':'#nn-3','billing':'#nn-4','procedures':'#nn-5'
-};
-
 function flashNodes(){
-  const activeCtx = $$('.ctx-toggle.on').map(b=>b.dataset.ctx.toLowerCase());
-  const targets = activeCtx.map(c=>CTX_NODE[c]).filter(Boolean);
-  if(!targets.length) return;
-  anime.timeline({easing:'easeInOutSine'})
-    .add({targets:'#hexCenter', scale:[1,1.1,1], duration:500})
-    .add({targets:targets.join(','), scale:[1,1.18,1], delay:anime.stagger(90), duration:480}, '-=300');
+  anime({targets:'.network-vis .brand-mark', scale:[1,1.04,1], duration:420, easing:'easeInOutSine'});
 }
 
 /* ───────────────────── chip expand ───────────────────── */

@@ -1,6 +1,6 @@
 /* auto-generated — do not edit */
 (function () {
-  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-CfVif2ID.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/index-CzGW6FVa.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/Triangle-DsNpnrqg.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-B54r7nLW.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-intelligence-DYQkMNJm.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-intelligence.js"}];
+  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-CEtLHiAR.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/index-CzGW6FVa.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/Triangle-DsNpnrqg.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-D2dUSQQZ.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-intelligence-DYQkMNJm.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-intelligence.js"}];
   tags.forEach(function (t) {
     if (t.type === 'link') {
       if (document.querySelector('link[href="' + t.href + '"]')) return;
