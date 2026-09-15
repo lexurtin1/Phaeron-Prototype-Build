@@ -1,6 +1,6 @@
 /* auto-generated — do not edit */
 (function () {
-  var tags = [{"type":"link","href":"/ui/assets/client-DN6ZzvXO.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/tools-9aBgWzFc.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/single-value-TArlECVk.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/RadialNav-C7R-qjIK.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-D2dUSQQZ.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/module-chrome-DwQaT0UZ.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-chrome.js"}];
+  var tags = [{"type":"link","href":"/ui/assets/client-DN6ZzvXO.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/tools-C9S8G3nb.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/single-value-TArlECVk.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/RadialNav-dhtXm5kQ.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-D2dUSQQZ.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/module-chrome-DwQaT0UZ.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-chrome.js"}];
   tags.forEach(function (t) {
     if (t.type === 'link') {
       if (document.querySelector('link[href="' + t.href + '"]')) return;

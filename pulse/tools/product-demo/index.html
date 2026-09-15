@@ -38,33 +38,20 @@ window._hsTimeline = createTimeline;
       </div>
       <div class="hs-live-badge">
         <span class="hs-live-dot"></span>
-        Interactive · toggle before / after
+        Connected · Phaeron Network
       </div>
     </div>
     <div class="hs-grid">
       <div class="hs-diagram-panel">
         <div class="hs-panel-top">
-          <span class="hs-eyebrow" id="hs-stage-eyebrow">Before · siloed systems</span>
-          <div class="hs-controls" role="group" aria-label="Diagram state">
-            <div class="hs-toggle">
-              <button type="button" id="hs-btn-before" class="hs-toggle-btn active" aria-pressed="true">Before</button>
-              <button type="button" id="hs-btn-after" class="hs-toggle-btn" aria-pressed="false">After</button>
-            </div>
-            <button type="button" id="hs-btn-auto" class="hs-auto-btn" aria-pressed="false">
-              <span id="hs-auto-dot"></span>Auto
-            </button>
-          </div>
+          <span class="hs-eyebrow" id="hs-stage-eyebrow">After · one connection</span>
         </div>
         <div id="hs-diagram"></div>
-        <div class="hs-caption" id="hs-caption">Valuable information sits across separate systems, formats and teams.</div>
+        <div class="hs-caption" id="hs-caption">One connection to Phaeron reaches every system — translated and routed automatically.</div>
       </div>
       <div class="hs-info-panel">
-        <span class="hs-side-eyebrow" id="hs-side-eyebrow">Before · the problem</span>
-        <div id="hs-side-before">
-          <h3 class="hs-side-title">Siloed system islands</h3>
-          <p class="hs-side-body">Each business system works in isolation. There is useful local activity, but no shared enterprise intelligence layer — and no common view across ERP, CRM, finance, projects and business knowledge.</p>
-        </div>
-        <div id="hs-side-after" style="display:none">
+        <span class="hs-side-eyebrow" id="hs-side-eyebrow">After · connected systems</span>
+        <div id="hs-side-after">
           <h3 class="hs-side-title">With the Phaeron Network</h3>
           <p class="hs-side-body">One connection to Phaeron reaches every system — ERP, CRM, project tools, finance and more — translated and routed automatically.</p>
         </div>
@@ -81,25 +68,6 @@ window._hsTimeline = createTimeline;
     </div>
   </div>
 </div>
-
-<!-- Order Routing Mode UI -->
-<div id="orderRoutingUI" style="display:none;position:fixed;inset:0;z-index:12;flex-direction:column;background:#fff;">
-  <div id="orModeStrip" style="display:none;flex:none;align-items:center;justify-content:space-between;gap:8px;padding:0 24px;height:44px;background:#fff;border-bottom:1px solid #e3e9ef;box-sizing:border-box;">
-    <div style="display:flex;align-items:center;gap:5px;background:#f1f5f8;border:1px solid #e3e9ef;border-radius:999px;padding:3px;">
-      <button id="orBtnRoute" onclick="window._orSetMode('route')" style="font:600 11px/1 -apple-system,sans-serif;letter-spacing:.04em;padding:5px 14px;border-radius:999px;border:none;cursor:pointer;background:#fff;color:#0d1418;box-shadow:0 1px 3px rgba(0,0,0,.12);transition:background .15s,color .15s;">Order Routing</button>
-      <button id="orBtnSettle" onclick="window._orSetMode('settlement')" style="font:600 11px/1 -apple-system,sans-serif;letter-spacing:.04em;padding:5px 14px;border-radius:999px;border:none;cursor:pointer;background:transparent;color:#8a98a3;transition:background .15s,color .15s;">Order Routing + Settlement</button>
-    </div>
-    <div id="orStepBar" style="display:none;align-items:center;gap:4px;">
-      <span style="font:600 9px/1 -apple-system,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9aa6b0;margin-right:4px;">STEP</span>
-    </div>
-  </div>
-  <div id="orLoadingIndicator" style="flex:1;display:flex;align-items:center;justify-content:center;font:13px/1 -apple-system,sans-serif;color:#9aa6b0;letter-spacing:.04em;">
-    <span style="width:16px;height:16px;border-radius:50%;border:2px solid #dde5ec;border-top-color:#1B3A6B;animation:orSpin 0.8s linear infinite;display:inline-block;margin-right:10px;"></span>
-    Loading…
-  </div>
-  <iframe id="orFlowFrame" src="" title="Order Routing Flow" style="flex:1;min-height:0;border:none;display:none;width:100%;will-change:transform;"></iframe>
-</div>
-<style>@keyframes orSpin{to{transform:rotate(360deg)}}</style>
 
 <!-- Products Navigation -->
 <div id="productNav" style="display:none">

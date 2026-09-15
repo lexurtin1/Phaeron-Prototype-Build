@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phaeron · Studio · Artifacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/effects.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="pulse-react-chrome" data-title="Studio"></div>
+<script src="/ui/islands/load-chrome.js"></script>
+
+<div class="topbar" id="topbar">
+  <div id="pulse-module-subnav" data-module="studio" data-view="artifacts" data-layout="inline"></div>
+</div>
+
+<div class="app">
+  <div class="artifacts-shell">
+    <div class="da-head">
+      <h1>Artifacts</h1>
+      <p>Generate branded reports from Salesforce exports and internal data files</p>
+    </div>
+    <div class="da-cols">
+      <div class="da-left">
+        <span class="eyebrow">Templates</span>
+        <div id="tplList"></div>
+        <button class="create-tpl"><i data-lucide="plus"></i>Create Custom Template</button>
+        <span class="eyebrow" style="display:block;padding:0 4px 10px">Upload Data</span>
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload file">
+          <i data-lucide="upload-cloud"></i>
+          <div class="dz-label">Drop a Salesforce export here, or click to browse</div>
+          <div class="dz-sub">Accepts .csv, .xlsx</div>
+        </div>
+        <div class="file-loaded" id="fileLoaded">
+          <div class="fl-row">
+            <div class="fl-ico"><i data-lucide="file-spreadsheet"></i></div>
+            <div class="fl-meta">
+              <div class="fl-name" id="flName">SFDC_Opportunity_Export.xlsx</div>
+              <div class="fl-size" id="flSize">142 KB · 4 opportunities</div>
+            </div>
+          </div>
+          <button class="analyse-btn" id="analyseBtn"><i data-lucide="sparkles"></i>Generate artifact</button>
+        </div>
+      </div>
+      <div class="da-right" id="reportOutput">
+        <div class="report-empty" id="reportEmpty">
+          <div class="re-ico"><i data-lucide="file-bar-chart"></i></div>
+          <p>Select a template and upload a file to create an artifact</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i data-lucide="check-circle-2"></i><span id="toastMsg"></span></div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<script src="../../shared/module-subnav.js"></script>
+<script src="../../favicon-pulse.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

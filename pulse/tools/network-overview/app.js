@@ -213,14 +213,15 @@ function presenceArrNorm(iso){
 }
 
 function presenceRevenueColor(t, pulseBoost){
-  t = Math.max(0, Math.min(1, t + (pulseBoost||0)*0.18));
+  /* Low ARR = navy, high ARR = crimson (no pink midtones). */
+  t = Math.max(0, Math.min(1, t + (pulseBoost||0)*0.05));
   const stops=[
-    [0.00,[254,226,226]],
-    [0.22,[252,165,165]],
-    [0.45,[251,113,133]],
-    [0.68,[225,29,72]],
-    [0.88,[159,18,57]],
-    [1.00,[88,12,38]],
+    [0.00,[12,26,46]],    /* #0C1A2E navy */
+    [0.28,[27,58,107]],   /* #1B3A6B */
+    [0.52,[47,82,133]],   /* #2F5285 */
+    [0.72,[90,48,96]],    /* navy→crimson bridge */
+    [0.88,[159,18,57]],   /* #9F1239 crimson */
+    [1.00,[127,18,57]],   /* deep crimson */
   ];
   let a=stops[0], b=stops[stops.length-1];
   for(let i=0;i<stops.length-1;i++){
@@ -236,12 +237,13 @@ function presenceRevenueColor(t, pulseBoost){
 function presencePolyAltitude(f){
   const iso=featISO(f);
   if(!iso||!PRESENCE_ISO3.has(iso)) return 0.006;
-  let alt=0.008+0.012*presenceArrNorm(iso);
+  let alt=0.007+0.008*presenceArrNorm(iso);
   if(PRESENCE_HOTSPOTS[iso]==='new_entry'){
-    const pulse=0.5+0.5*Math.sin(presencePulseT);
-    alt=0.012+0.032*pulse;
+    /* Subtle lift — ~4px equivalent swing, not a bounce */
+    const pulse=0.55+0.20*Math.sin(presencePulseT);
+    alt=0.009+0.010*pulse;
   }
-  if(iso===hoveredPresenceISO) alt=Math.max(alt,0.034);
+  if(iso===hoveredPresenceISO) alt=Math.max(alt,0.024);
   return alt;
 }
 
@@ -923,7 +925,7 @@ function netLandColor(f){
   const iso=featISO(f);
   if(!iso||!PRESENCE_ISO3.has(iso)) return 'rgba(228,234,240,0.88)';
   const isNew=PRESENCE_HOTSPOTS[iso]==='new_entry';
-  const boost=isNew?(0.5+0.5*Math.sin(presencePulseT)):0;
+  const boost=isNew?(0.35+0.30*Math.sin(presencePulseT)):0;
   return presenceRevenueColor(presenceArrNorm(iso), boost);
 }
 
@@ -1326,8 +1328,8 @@ function startPresencePulse(){
   const t0=performance.now();
   function tick(now){
     if(currentMode!=='network'||!globe){presencePulseRaf=null;return;}
-    /* ~1.8s cycle — altitude + colour boost on new_entry markets only */
-    presencePulseT=((now-t0)/900)*Math.PI;
+    /* ~2.6s cycle — soft colour/altitude nudge on new_entry markets only */
+    presencePulseT=((now-t0)/1300)*Math.PI;
     globe.polygonCapColor(f=>netLandColor(f));
     globe.polygonAltitude(f=>presencePolyAltitude(f));
     presencePulseRaf=requestAnimationFrame(tick);
@@ -1354,14 +1356,14 @@ function openPresenceBriefing(f){
     news:['Coverage expanding across European network markets.'],
   };
   const arrM=PRESENCE_ARR_M[iso];
-  const valueHtml=arrM!=null
-    ? `${brief.value}<div class="presence-arr-equiv">£${arrM.toFixed(1)}m ARR equiv.</div>`
-    : brief.value;
   const office=CALASTONE_OFFICES.find(o=>NAME_TO_ISO[o.country]===iso);
   const hot=PRESENCE_HOTSPOTS[iso];
   const signal=hot?(hot==='new_entry'?'New market entry':'Rising activity'):'Established presence';
-  const cust=brief.customers.map(c=>`<li>${c}</li>`).join('');
-  const news=brief.news.map(n=>`<li>${n}</li>`).join('');
+  const salesParts=String(brief.sales||'').split('·').map(s=>s.trim());
+  const salesPerson=salesParts[0]||brief.sales;
+  const salesCity=salesParts[1]||'—';
+  const custCards=brief.customers.map(c=>`<div class="presence-chip">${c}</div>`).join('');
+  const newsCards=brief.news.map(n=>`<div class="presence-news-card"><div class="pn-label">Market signal</div><div class="pn-body">${n}</div></div>`).join('');
   const content=document.getElementById('presenceDrawerContent');
   const drawer=document.getElementById('presenceDrawer');
   if(!content||!drawer)return;
@@ -1372,11 +1374,41 @@ function openPresenceBriefing(f){
       <div class="ctry-region">${iso} · ${signal}</div>
     </div>
     <div class="scroll presence-brief">
-      <div class="section"><div class="s-title">Presence value</div><div class="presence-value">${valueHtml}</div></div>
-      <div class="section"><div class="s-title">Top customers</div><ul class="presence-list">${cust}</ul></div>
-      <div class="section"><div class="s-title">Salesperson stationed</div><div class="presence-sales">${brief.sales}</div></div>
-      ${office?`<div class="section"><div class="s-title">Office</div><div class="presence-office">${office.name} · ${office.city}${office.address?'<br>'+office.address:''}</div></div>`:''}
-      <div class="section"><div class="s-title">Recent market news</div><ul class="presence-list">${news}</ul></div>
+      <div class="kpis presence-kpis">
+        <div class="kpi">
+          <div class="k">Presence ARR</div>
+          <div class="v">${brief.value}</div>
+          ${arrM!=null?`<div class="kpi-sub">£${arrM.toFixed(1)}m equiv.</div>`:''}
+        </div>
+        <div class="kpi">
+          <div class="k">Market signal</div>
+          <div class="v presence-signal-v">${signal.replace(' market entry',' entry').replace(' activity','')}</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Customers</div>
+          <div class="v">${brief.customers.length}</div>
+          <div class="kpi-sub">named accounts</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Sales cover</div>
+          <div class="v presence-sales-v">${salesPerson}</div>
+          <div class="kpi-sub">${salesCity}${office?' · '+office.city:''}</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="s-title">Top customers</div>
+        <div class="presence-chip-row">${custCards}</div>
+      </div>
+      ${office?`<div class="section"><div class="s-title">Office</div>
+        <div class="presence-office-card">
+          <div class="po-name">${office.name}</div>
+          <div class="po-meta">${office.city}${office.address?' · '+office.address:''}</div>
+        </div>
+      </div>`:''}
+      <div class="section">
+        <div class="s-title">Recent market news</div>
+        <div class="presence-news-stack">${newsCards}</div>
+      </div>
     </div>`;
   drawer.classList.add('open');
   drawer.setAttribute('aria-hidden','false');

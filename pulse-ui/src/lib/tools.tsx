@@ -177,7 +177,7 @@ export const PULSE_CARD_TOOLS: PulseTool[] = [
     id: 'studio',
     num: '04',
     title: 'Studio',
-    description: 'Branded reports, presentations, diagrams, and team updates.',
+    description: 'Product demos, branded reports, and artifacts.',
     href: '/tools/product-demo/index.html',
     icon: <DemoIcon />,
   },

@@ -171,6 +171,29 @@ body{
 .drawer .ctry-name{font-size:25px;font-weight:700;letter-spacing:-0.01em;color:var(--ink-strong);padding-right:78px}
 .drawer .ctry-region{font-size:11px;color:var(--ink-2);font-family:var(--mono);letter-spacing:0.05em;margin-top:4px}
 .presence-drawer{z-index:35;top:72px;height:calc(100vh - 72px)}
+.presence-brief .presence-kpis{margin-top:4px}
+.presence-brief .kpi-sub{font-size:11px;color:var(--ink-2);margin-top:6px;line-height:1.35}
+.presence-brief .presence-signal-v,
+.presence-brief .presence-sales-v{font-size:15px;font-family:var(--sans);letter-spacing:-0.01em;line-height:1.25}
+.presence-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.presence-chip{
+  background:var(--bg);border:1px solid var(--line);border-radius:10px;
+  padding:9px 12px;font-size:13px;font-weight:600;color:var(--ink-strong);
+}
+.presence-office-card{
+  background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:13px 14px;
+}
+.presence-office-card .po-name{font-size:14px;font-weight:700;color:var(--ink-strong)}
+.presence-office-card .po-meta{font-size:12.5px;color:var(--ink-1);margin-top:4px;line-height:1.45}
+.presence-news-stack{display:flex;flex-direction:column;gap:8px}
+.presence-news-card{
+  background:var(--bg);border:1px solid var(--line);border-left:3px solid #1B3A6B;
+  border-radius:10px;padding:12px 14px;
+}
+.presence-news-card .pn-label{
+  font-size:9px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--ink-3);
+}
+.presence-news-card .pn-body{font-size:13.5px;line-height:1.45;color:var(--ink-1);margin-top:5px}
 .presence-brief .presence-value{font-size:22px;font-weight:700;color:var(--ink-strong);letter-spacing:-0.02em}
 .presence-brief .presence-arr-equiv{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:6px;letter-spacing:0}
 .presence-brief .presence-sales,.presence-brief .presence-office{font-size:14px;line-height:1.5;color:var(--ink-1)}
@@ -442,10 +465,10 @@ body{
 .gradline-net{width:40px;height:3px;border-radius:2px;background:linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%)}
 .gradline-net.thin{width:22px;height:2px;opacity:0.6}
 .nodemark{width:12px;height:12px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px rgba(38,145,159,0.18);flex:0 0 auto}
-.nodemark.pulse-mark{animation:presenceLegPulse 1.8s ease-in-out infinite}
+.nodemark.pulse-mark{animation:presenceLegPulse 2.6s ease-in-out infinite}
 @keyframes presenceLegPulse{
-  0%,100%{transform:scale(1);box-shadow:0 0 0 3px rgba(244,63,94,0.22)}
-  50%{transform:scale(1.18);box-shadow:0 0 0 6px rgba(244,63,94,0.12)}
+  0%,100%{transform:scale(1);box-shadow:0 0 0 3px rgba(27,58,107,0.18)}
+  50%{transform:scale(1.08);box-shadow:0 0 0 5px rgba(27,58,107,0.10)}
 }
 @media (prefers-reduced-motion: reduce){
   .nodemark.pulse-mark{animation:none}

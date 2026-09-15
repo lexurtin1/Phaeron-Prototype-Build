@@ -199,7 +199,7 @@ function switchToOrderRouting() {
     if(a&&b) INTRA.push([a,b]);
   });
 
-  let isAfter=false, hovered=null, autoMode=true, svgReady=false, inView=true;
+  let isAfter=true, hovered=null, autoMode=false, svgReady=false, inView=true;
   let activeAnims=[], autoTimers=[], spokeTokenTimers=[];
   const svgNS='http://www.w3.org/2000/svg';
   function hexPts(r){const w=(Math.sqrt(3)/2)*r;return`0,${-r} ${w},${-r/2} ${w},${r/2} 0,${r} ${-w},${r/2} ${-w},${-r/2}`;}
@@ -591,53 +591,28 @@ function switchToOrderRouting() {
   }
 
   function updateUI(){
-    if($('hs-stage-eyebrow'))$('hs-stage-eyebrow').textContent=isAfter?'After · one connection':'Before · siloed systems';
-    if($('hs-side-eyebrow'))$('hs-side-eyebrow').textContent=isAfter?'After · connected systems':'Before · the problem';
-    if($('hs-side-before'))$('hs-side-before').style.display=isAfter?'none':'block';
-    if($('hs-side-after'))$('hs-side-after').style.display=isAfter?'block':'none';
-    setCaption(isAfter?CAPTION_AFTER:CAPTION_BEFORE);
-    const bb=$('hs-btn-before'),ba=$('hs-btn-after'),bAuto=$('hs-btn-auto');
-    if(bb){bb.classList.toggle('active',!isAfter);bb.setAttribute('aria-pressed',String(!isAfter));}
-    if(ba){ba.classList.toggle('active',isAfter);ba.setAttribute('aria-pressed',String(isAfter));}
-    if(bAuto){bAuto.classList.toggle('active',autoMode);bAuto.setAttribute('aria-pressed',String(autoMode));}
+    if($('hs-stage-eyebrow'))$('hs-stage-eyebrow').textContent='After · one connection';
+    if($('hs-side-eyebrow'))$('hs-side-eyebrow').textContent='After · connected systems';
+    if($('hs-side-before'))$('hs-side-before').style.display='none';
+    if($('hs-side-after'))$('hs-side-after').style.display='block';
+    setCaption(CAPTION_AFTER);
   }
 
-  // Auto: hold Before 1.2s → transition ≤1.5s → hold After 1.2s → back
   function stopAuto(){
     clearAutoTimers();
   }
-  function runAutoCycle(){
-    if(!autoMode||!inView)return;
-    if(!isAfter){
-      scheduleAuto(()=>{
-        if(!autoMode||!inView)return;
-        transitionToAfter();
-        scheduleAuto(()=>{
-          if(!autoMode||!inView)return;
-          transitionToBefore();
-          scheduleAuto(runAutoCycle,700);
-        },1500+200);
-      },1200);
-    }else{
-      scheduleAuto(()=>{
-        if(!autoMode||!inView)return;
-        transitionToBefore();
-        scheduleAuto(runAutoCycle,700);
-      },1200);
-    }
-  }
+  function runAutoCycle(){ /* after-only — no before/after loop */ }
   function restartAuto(){
     stopAuto();
-    if(!autoMode||reduceMotion||!inView)return;
-    runAutoCycle();
   }
 
   function hsShow(){
     if(!svgReady)buildSVG();
-    isAfter=false;
-    if(svgReady)applyStaticState(false);
+    isAfter=true;
+    autoMode=false;
+    if(svgReady)applyStaticState(true);
     else updateUI();
-    if(!reduceMotion)autoMode=true;
+    startSpokeTokens();
     const overlay=$('hubSpokeUI');
     if(overlay){
       overlay.classList.add('hs-open');
@@ -660,7 +635,6 @@ function switchToOrderRouting() {
       });
     }
     updateUI();
-    restartAuto();
   }
 
   function hsHide(){
@@ -682,38 +656,7 @@ function switchToOrderRouting() {
   window._hsShow=hsShow;window.hsHide=hsHide;
 
   function wireButtons(){
-    const bb=$('hs-btn-before'),ba=$('hs-btn-after'),bAuto=$('hs-btn-auto');
-    if(bb){
-      bb.setAttribute('aria-pressed','true');
-      bb.onclick=()=>{autoMode=false;stopAuto();if(isAfter)transitionToBefore();else updateUI();};
-    }
-    if(ba){
-      ba.setAttribute('aria-pressed','false');
-      ba.onclick=()=>{autoMode=false;stopAuto();if(!isAfter)transitionToAfter();else updateUI();};
-    }
-    if(bAuto){
-      bAuto.setAttribute('aria-pressed',String(autoMode));
-      if(autoMode)bAuto.classList.add('active');
-      bAuto.onclick=()=>{
-        if(reduceMotion)return;
-        autoMode=!autoMode;
-        updateUI();
-        if(autoMode)restartAuto();else stopAuto();
-      };
-    }
-    // Pause Auto when diagram leaves viewport
-    const target=$('hubSpokeUI')||$('hs-diagram');
-    if(target&&typeof IntersectionObserver==='function'){
-      const io=new IntersectionObserver(entries=>{
-        entries.forEach(en=>{
-          inView=en.isIntersecting&&en.intersectionRatio>0.15;
-          if(!inView)stopAuto();
-          else if(autoMode)restartAuto();
-        });
-      },{threshold:[0,0.15,0.5]});
-      io.observe(target);
-    }
-    // Product demo opens in hub-spoke by default
+    // After-only Product Demo — no before/after toggle
     if($('hubSpokeUI')&&$('hubSpokeUI').classList.contains('hs-open')){
       hsShow();
     }
@@ -810,7 +753,6 @@ window._orWatchExploreMode=function(){
   const RAD=Math.PI/180;
 
   const PRODUCTS=[
-    {id:'order-routing',            lines:['Product','A'], angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
     {id:'settlements',              lines:['Product','B'], angle:240, color:'#2F5285', colorD:'#1B3A6B', stroke:'rgba(27,58,107,0.5)'},
     {id:'share-class-conversions',  lines:['Product','C'], angle:210, color:'#1B3A6B', colorD:'#0C1A2E', stroke:'rgba(27,58,107,0.5)'},
     {id:'transfers',                lines:['Product','D'], angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
@@ -960,25 +902,14 @@ window._orWatchExploreMode=function(){
   }
 
   function handleProductClick(id,label){
-    // ── Product Demo page (hub & spoke or order routing mode) ──────────
+    // Product Demo stays on the hub & spoke overview — no Calastone order-routing flow
     if(currentMode==='hubspoke'||currentMode==='orderrouting'){
-      if(id==='order-routing'){
-        if(typeof switchToOrderRouting==='function')switchToOrderRouting();
-        return;
-      }
-      // Return to hub & spoke overview for other products not yet implemented
-      if(currentMode==='orderrouting'){
-        if(typeof switchToHubSpoke==='function')switchToHubSpoke();
-      }
+      if(currentMode==='orderrouting'&&typeof switchToHubSpoke==='function')switchToHubSpoke();
       return;
     }
-    // ── Network Overview page (globe modes) ────────────────────────────
+    // Network Overview page (globe modes)
     if(id==='settlements'){
       if(typeof switchToSettlements==='function')switchToSettlements();
-      return;
-    }
-    if(id==='order-routing'){
-      if(typeof switchToNetwork==='function')switchToNetwork();
       return;
     }
     console.log('[ProductNav] Selected:',id,label);
