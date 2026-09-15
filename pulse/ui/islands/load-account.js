@@ -1,6 +1,6 @@
 /* auto-generated — do not edit */
 (function () {
-  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-C3zM0ghE.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/single-value-TArlECVk.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/react-BxzIlI20.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/index-CzGW6FVa.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/FadeContent-BodjXODd.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-D2aFexrr.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-account-BDQIjFbD.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-account.js"}];
+  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-76mEg8JE.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/single-value-TArlECVk.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/react-eazxQFUI.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/index-CzGW6FVa.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/FadeContent-C3r_bYfb.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-1FZbtxrD.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-account-BDQIjFbD.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-account.js"}];
   tags.forEach(function (t) {
     if (t.type === 'link') {
       if (document.querySelector('link[href="' + t.href + '"]')) return;
