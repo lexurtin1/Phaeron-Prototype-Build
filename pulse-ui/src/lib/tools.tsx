@@ -9,9 +9,18 @@ export type PulseTool = {
   icon: ReactNode;
 };
 
-function NetworkIcon() {
+export type NavDestination = {
+  id: string;
+  label: string;
+  href: string;
+  icon: ReactNode;
+};
+
+type IconProps = { size?: number };
+
+export function NetworkIcon({ size = 54 }: IconProps) {
   return (
-    <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
       <circle cx="24" cy="24" r="14" stroke="#c3cdd5" strokeWidth="1.4" />
       <ellipse cx="24" cy="24" rx="6" ry="14" stroke="#dde4ea" strokeWidth="1.2" />
       <line x1="10" y1="24" x2="38" y2="24" stroke="#dde4ea" strokeWidth="1.2" />
@@ -38,11 +47,12 @@ function NetworkIcon() {
   );
 }
 
-function DemoIcon() {
+export function DemoIcon({ size = 54 }: IconProps) {
+  const gid = `csHub-${size}`;
   return (
-    <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
       <defs>
-        <linearGradient id="csHub" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#1B3A6B" />
           <stop offset="1" stopColor="#2F5285" />
         </linearGradient>
@@ -65,7 +75,7 @@ function DemoIcon() {
       />
       <polygon
         points="24,17.5 18.37,20.75 18.37,27.25 24,30.5 29.63,27.25 29.63,20.75"
-        fill="url(#csHub)"
+        fill={`url(#${gid})`}
         stroke="#132743"
         strokeWidth="1.2"
       />
@@ -73,9 +83,9 @@ function DemoIcon() {
   );
 }
 
-function IntelligenceIcon() {
+export function IntelligenceIcon({ size = 54 }: IconProps) {
   return (
-    <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
       <path
         d="M13 8 H27 L33 14 V36 a2 2 0 0 1 -2 2 H13 a2 2 0 0 1 -2 -2 V10 a2 2 0 0 1 2 -2 Z"
         fill="#ffffff"
@@ -93,9 +103,9 @@ function IntelligenceIcon() {
   );
 }
 
-function AccountsIcon() {
+export function AccountsIcon({ size = 54 }: IconProps) {
   return (
-    <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
       <circle cx="17" cy="15" r="5.5" stroke="#9aa6b0" strokeWidth="1.5" />
       <path d="M8 35 C8 27 26 27 26 35" stroke="#9aa6b0" strokeWidth="1.5" fill="none" strokeLinecap="round" />
       <polyline
@@ -111,9 +121,9 @@ function AccountsIcon() {
   );
 }
 
-function ReportingIcon() {
+export function ReportingIcon({ size = 54 }: IconProps) {
   return (
-    <svg width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
       <rect x="9" y="9" width="30" height="30" rx="4" stroke="#c3cdd5" strokeWidth="1.4" />
       <line x1="14" y1="34" x2="34" y2="34" stroke="#dde4ea" strokeWidth="1.4" strokeLinecap="round" />
       <rect x="14" y="22" width="4.5" height="12" rx="1.2" fill="#B8C7DE" />
@@ -124,7 +134,21 @@ function ReportingIcon() {
   );
 }
 
-export const PULSE_TOOLS: PulseTool[] = [
+export function HomeNavIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z"
+        stroke="#1B3A6B"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Cards shown in the home 2×2 grid (Intelligence is the orb panel). */
+export const PULSE_CARD_TOOLS: PulseTool[] = [
   {
     id: 'opportunities',
     num: '01',
@@ -157,14 +181,35 @@ export const PULSE_TOOLS: PulseTool[] = [
     href: '/tools/product-demo/index.html',
     icon: <DemoIcon />,
   },
+];
+
+export const INTELLIGENCE_HREF = '/tools/phaeron-intelligence/index.html';
+
+/** @deprecated Use PULSE_CARD_TOOLS for the home grid. Kept for any legacy imports. */
+export const PULSE_TOOLS: PulseTool[] = [
+  ...PULSE_CARD_TOOLS,
   {
     id: 'intelligence',
     num: '05',
     title: 'Phaeron Intelligence',
     description: 'Ask anything about Phaeron products and markets.',
-    href: '/tools/phaeron-intelligence/index.html',
+    href: INTELLIGENCE_HREF,
     icon: <IntelligenceIcon />,
   },
+];
+
+export const RADIAL_DESTINATIONS: NavDestination[] = [
+  { id: 'home', label: 'Home', href: '/ui/', icon: <HomeNavIcon size={20} /> },
+  { id: 'opportunities', label: 'Opportunities', href: '/tools/account-tracker/index.html', icon: <AccountsIcon size={22} /> },
+  {
+    id: 'market-intelligence',
+    label: 'Market Intelligence',
+    href: '/tools/network-overview/index.html',
+    icon: <NetworkIcon size={22} />,
+  },
+  { id: 'reporting-mi', label: 'Reporting and MI', href: '/tools/reporting-mi/index.html', icon: <ReportingIcon size={22} /> },
+  { id: 'studio', label: 'Studio', href: '/tools/product-demo/index.html', icon: <DemoIcon size={22} /> },
+  { id: 'intelligence', label: 'Phaeron Intelligence', href: INTELLIGENCE_HREF, icon: <IntelligenceIcon size={22} /> },
 ];
 
 export const PULSE_NAV = [
@@ -173,5 +218,5 @@ export const PULSE_NAV = [
   { label: 'Market Intelligence', href: '/tools/network-overview/index.html' },
   { label: 'Reporting', href: '/tools/reporting-mi/index.html' },
   { label: 'Studio', href: '/tools/product-demo/index.html' },
-  { label: 'Intelligence', href: '/tools/phaeron-intelligence/index.html' },
+  { label: 'Intelligence', href: INTELLIGENCE_HREF },
 ];

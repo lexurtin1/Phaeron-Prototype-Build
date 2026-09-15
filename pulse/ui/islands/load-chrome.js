@@ -1,6 +1,6 @@
 /* auto-generated — do not edit */
 (function () {
-  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-CKv6LqTw.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/index-CzGW6FVa.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/FadeContent-B5MZeNHl.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-BSw1TV0E.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/island-globe-CsnzgsfI.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-globe.js"}];
+  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-CKv6LqTw.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/tools-CZHyWbeW.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/single-value-TArlECVk.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/RadialNav-Cm5DLQIf.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-BSw1TV0E.css","rel":"stylesheet"},{"type":"link","href":"/ui/assets/module-chrome-CsLB-J-Q.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-chrome.js"}];
   tags.forEach(function (t) {
     if (t.type === 'link') {
       if (document.querySelector('link[href="' + t.href + '"]')) return;

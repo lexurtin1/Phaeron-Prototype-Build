@@ -20,6 +20,9 @@ window._hsTimeline = createTimeline;
 </head>
 <body>
 
+<div id="pulse-react-chrome" data-title="Market Intelligence"></div>
+<script src="/ui/islands/load-chrome.js"></script>
+
 <!-- Shared: Loader -->
 <div class="loader" id="loader"><div class="ring"></div><div class="lt">Loading Phaeron Globe</div></div>
 
@@ -29,27 +32,24 @@ window._hsTimeline = createTimeline;
 <!-- Network Mode UI (hidden until network mode activated) -->
 <div id="networkUI" style="display:none">
   <div class="hero" id="hero">
-    <div class="count" id="heroCount">0<span class="unit">orders</span></div>
-    <div class="cap">routed across the network in 2025, connecting <b id="heroCountries">—</b> countries through <b id="heroCorridors">—</b> live trading corridors.</div>
+    <div class="count" id="heroCount">0<span class="unit">markets</span></div>
+    <div class="cap">with measurable network presence in 2025 — heat shows relative strength across <b id="heroCountries">—</b> countries (<b id="heroCorridors">—</b> active corridors mapped).</div>
     <div class="meta">
-      <div class="m"><div class="v" id="mInter">—</div><div class="k">Cross-border</div></div>
-      <div class="m"><div class="v" id="mMapped">—</div><div class="k">Mapped to country</div></div>
+      <div class="m"><div class="v" id="mInter">—</div><div class="k">Cross-border volume</div></div>
+      <div class="m"><div class="v" id="mMapped">—</div><div class="k">Mapped coverage</div></div>
     </div>
   </div>
-  <div class="hint-net">drag · zoom · hover</div>
+  <div class="hint-net">drag · zoom · hover a country</div>
   <div class="net-legend">
-    <h4>Order flow · distributor → fund manager</h4>
-    <div class="legrow"><span class="gradline-net thin"></span> Smaller corridor</div>
-    <div class="legrow"><span class="gradline-net"></span> Major corridor</div>
-    <div class="legrow"><span class="nodemark"></span> Country · size = activity</div>
+    <h4>Market presence · country heat</h4>
+    <div class="legrow"><span class="gradline-net thin"></span> Lighter presence</div>
+    <div class="legrow"><span class="gradline-net"></span> Stronger presence</div>
+    <div class="legrow"><span class="nodemark" style="opacity:.35"></span> No mapped presence</div>
     <div class="legdiv"></div>
     <div class="legnote" id="legnote"></div>
   </div>
   <div class="net-controls">
-    <button class="ctrl active" id="cAll">All flows</button>
-    <button class="ctrl" id="cCross">Cross-border only</button>
-    <button class="ctrl" id="cFlows">Hide flows</button>
-    <button class="ctrl" id="cRotate">Pause spin</button>
+    <button class="ctrl active" id="cRotate">Pause spin</button>
   </div>
   <div class="net-tooltip" id="netTooltip"></div>
 </div>
@@ -83,13 +83,9 @@ window._hsTimeline = createTimeline;
   <div class="sett-tooltip" id="settTooltip"></div>
 </div>
 
-<!-- Shared: Topbar -->
+<!-- Secondary toolbar (below ModuleChrome) -->
 <header class="topbar">
-  <div class="brand">
-    <div class="mark"><img src="../../assets/phaeron-wordmark.png" alt="Phaeron" style="height:52px;width:auto;display:block;mix-blend-mode:multiply;"></div>
-    <div class="gradline"></div>
-    <div class="sub" id="topbarSub">Market Presence · 2025</div>
-  </div>
+  <div class="view-label" id="topbarSub">Market Presence · 2025</div>
   <div id="pulse-module-subnav" data-module="market-intelligence" data-view="presence" data-layout="inline"></div>
   <div class="spacer"></div>
   <!-- Research-only controls (hidden in network mode) -->
@@ -109,7 +105,6 @@ window._hsTimeline = createTimeline;
     <button class="btn-ghost" id="saveBtn" title="Download a backup of all your country data">Save backup</button>
     <button class="btn-ghost" id="loadBtn" title="Load a previously saved backup file">Load backup</button>
   </div>
-  <a href="/ui/" id="homeBtn" style="display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-1);padding:7px 13px;border-radius:8px;background:var(--bg);border:1px solid var(--line);cursor:pointer;text-decoration:none;box-shadow:var(--shadow-soft);white-space:nowrap;flex-shrink:0;" title="Pulse Home" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--ink)'" onmouseout="this.style.borderColor='var(--line)';this.style.color='var(--ink-1)'"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>&#8592; Pulse Home</a>
 </header>
 
 <!-- Research Mode UI (hidden in network mode) -->

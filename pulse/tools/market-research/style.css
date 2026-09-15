@@ -54,23 +54,16 @@ body{
 
 /* ---------- top bar ---------- */
 .topbar{
-  position:fixed;z-index:20;top:0;left:0;right:0;
-  display:flex;align-items:center;gap:20px;padding:14px 24px;
+  position:fixed;z-index:20;top:72px;left:0;right:0;
+  display:flex;align-items:center;gap:16px;padding:10px 24px;
   background:linear-gradient(180deg, rgba(245,248,251,0.96), rgba(245,248,251,0.55) 70%, transparent);
   backdrop-filter:blur(8px);
 }
-.brand{display:flex;flex-direction:column;line-height:1.05;min-width:0}
-.brand .mark{display:flex;align-items:center;gap:9px}
-.brand .logo{
-  font-size:18px;font-weight:300;letter-spacing:0.30em;color:var(--ink-strong);
-  text-transform:uppercase;
+.view-label{
+  font-size:11px;font-weight:600;color:var(--ink-2);
+  letter-spacing:0.14em;font-family:var(--mono, ui-monospace, monospace);text-transform:uppercase;
+  white-space:nowrap;
 }
-.brand .logo b{font-weight:300;position:relative}
-.brand .gradline{
-  height:3px;width:100%;margin-top:6px;border-radius:3px;
-  background:linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%);
-}
-.brand .sub{font-size:10px;color:var(--ink-2);letter-spacing:0.18em;margin-top:6px;font-family:var(--mono);text-transform:uppercase}
 .topbar .spacer{flex:1}
 
 .search-wrap{position:relative;width:270px;max-width:32vw}

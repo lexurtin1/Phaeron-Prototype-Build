@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uiRoot = path.resolve(__dirname, '../../pulse/ui');
 const islandsDir = path.join(uiRoot, 'islands');
 
-const islands = ['nav', 'account', 'intelligence', 'globe'];
+const islands = ['nav', 'chrome', 'account', 'intelligence', 'globe'];
 
 for (const name of islands) {
   const htmlPath = path.join(islandsDir, `${name}.html`);

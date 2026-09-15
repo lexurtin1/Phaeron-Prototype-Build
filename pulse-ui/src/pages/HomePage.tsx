@@ -2,6 +2,7 @@ import SoftAurora from '@/bits/SoftAurora/SoftAurora';
 import BlurText from '@/bits/BlurText/BlurText';
 import { PulseHeader } from '@/components/PulseHeader';
 import { ToolGrid } from '@/components/ToolGrid';
+import { IntelligenceOrbPanel } from '@/components/IntelligenceOrbPanel';
 
 function greetingLabel() {
   const now = new Date();
@@ -46,7 +47,11 @@ export function HomePage() {
               Network live
             </div>
           </div>
-          <ToolGrid />
+
+          <div className="home-modules">
+            <ToolGrid />
+            <IntelligenceOrbPanel />
+          </div>
         </main>
       </div>
     </div>

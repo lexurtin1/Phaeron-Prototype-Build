@@ -18,6 +18,7 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'),
         marketplace: path.resolve(__dirname, 'marketplace.html'),
         'island-nav': path.resolve(__dirname, 'islands/nav.html'),
+        'island-chrome': path.resolve(__dirname, 'islands/chrome.html'),
         'island-account': path.resolve(__dirname, 'islands/account.html'),
         'island-intelligence': path.resolve(__dirname, 'islands/intelligence.html'),
         'island-globe': path.resolve(__dirname, 'islands/globe.html'),

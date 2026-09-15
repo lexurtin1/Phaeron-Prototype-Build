@@ -69,7 +69,7 @@
 }
 
 .shell {
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 72px);
   display: grid;
   place-items: center;
   padding: 40px 24px;

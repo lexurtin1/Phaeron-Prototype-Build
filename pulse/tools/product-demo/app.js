@@ -329,7 +329,7 @@ function switchToOrderRouting() {
     GROUPS.forEach(g=>{
       const halo=ns('ellipse',{
         id:`hs-island-${g.role}`,
-        cx:g.gx,cy:g.gy,rx:108,ry:82,
+        cx:g.gx,cy:g.gy,rx:86,ry:62,
         fill:`url(#hs-island-${g.role}-grad)`,
       });
       halo.style.opacity=String(ISLAND_OP_BEFORE);
@@ -346,16 +346,16 @@ function switchToOrderRouting() {
       const eco=ns('g',{id:`hs-eco-${g.role}`,'data-role':g.role,transform:`translate(${g.gx},${g.gy}) rotate(${rot})`});
 
       eco.appendChild(ns('ellipse',{
-        rx:'90',ry:'56',fill:col,'fill-opacity':'0.06',stroke:col,'stroke-width':'7',opacity:'0.2',
+        rx:'70',ry:'40',fill:col,'fill-opacity':'0.06',stroke:col,'stroke-width':'6',opacity:'0.18',
       }));
       eco.appendChild(ns('ellipse',{
         id:`hs-orbit-${g.role}`,
-        rx:'90',ry:'56',fill:'none',stroke:col,'stroke-width':'2.4',
-        'stroke-dasharray':'7 9','stroke-linecap':'round',opacity:'0.82',
+        rx:'70',ry:'40',fill:'none',stroke:col,'stroke-width':'2.2',
+        'stroke-dasharray':'6 8','stroke-linecap':'round',opacity:'0.82',
       }));
       eco.appendChild(ns('ellipse',{
-        rx:'64',ry:'38',fill:'none',stroke:col,'stroke-width':'1.6',
-        'stroke-dasharray':'4 7','stroke-linecap':'round',opacity:'0.5',
+        rx:'50',ry:'28',fill:'none',stroke:col,'stroke-width':'1.5',
+        'stroke-dasharray':'3 6','stroke-linecap':'round',opacity:'0.48',
       }));
 
       const xs=[-SPREAD,0,SPREAD];
@@ -365,8 +365,8 @@ function switchToOrderRouting() {
       }
 
       if(!reduceMotion){
-        const outer=ellipseLoop(90,56,false);
-        const inner=ellipseLoop(64,38,true);
+        const outer=ellipseLoop(70,40,false);
+        const inner=ellipseLoop(50,28,true);
         const outerDur=3.4+gi*0.28;
         const innerDur=4.6+gi*0.2;
         for(let t=0;t<3;t++){
@@ -638,7 +638,7 @@ function switchToOrderRouting() {
     if(bAuto){bAuto.classList.toggle('active',autoMode);bAuto.setAttribute('aria-pressed',String(autoMode));}
   }
 
-  // Auto: hold Before 3s → transition ~1.5s → hold After 3s → transition back ~1.2s
+  // Auto: hold Before 1.6s → transition ~1s → hold After 1.6s → transition back ~0.9s
   function stopAuto(){
     clearAutoTimers();
   }
@@ -651,15 +651,15 @@ function switchToOrderRouting() {
         scheduleAuto(()=>{
           if(!autoMode||!inView)return;
           transitionToBefore();
-          scheduleAuto(runAutoCycle,1200);
-        },3000+1500);
-      },3000);
+          scheduleAuto(runAutoCycle,900);
+        },1600+1000);
+      },1600);
     }else{
       scheduleAuto(()=>{
         if(!autoMode||!inView)return;
         transitionToBefore();
-        scheduleAuto(runAutoCycle,1200);
-      },3000);
+        scheduleAuto(runAutoCycle,900);
+      },1600);
     }
   }
   function restartAuto(){

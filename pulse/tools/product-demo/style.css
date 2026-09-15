@@ -24,20 +24,17 @@ html, body { margin: 0; height: 100%; background: #f5f8fb; }
 
 /* ===== TOPBAR ===== */
 .topbar {
-  position: fixed;
+  position: relative;
   top: 0; left: 0; right: 0;
-  height: 68px;
+  height: 52px;
   background: #fff;
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 0 28px;
-  z-index: 20;
-  box-shadow: 0 1px 4px rgba(15, 34, 48, 0.06);
-}
-.topbar .home-btn {
-  margin-left: auto;
+  z-index: 19;
+  box-shadow: none;
 }
 .topbar-left {
   display: flex;
@@ -83,7 +80,7 @@ html, body { margin: 0; height: 100%; background: #f5f8fb; }
 /* ===== HUB & SPOKE OVERLAY ===== */
 #hubSpokeUI {
   position: fixed;
-  inset: 0;
+  inset: 124px 0 0 0;
   z-index: 12;
   background: linear-gradient(180deg, #fbfdfe 0%, #F2F5FA 100%);
   display: none;
@@ -99,7 +96,7 @@ html, body { margin: 0; height: 100%; background: #f5f8fb; }
   width: 100%;
   max-width: 1560px;
   margin: 0 auto;
-  padding: 80px 52px 22px;
+  padding: 28px 52px 22px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;

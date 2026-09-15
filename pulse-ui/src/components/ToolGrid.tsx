@@ -1,9 +1,9 @@
-import { PULSE_TOOLS } from '@/lib/tools';
+import { PULSE_CARD_TOOLS } from '@/lib/tools';
 
 export function ToolGrid() {
   return (
     <div className="tool-grid">
-      {PULSE_TOOLS.map((tool) => (
+      {PULSE_CARD_TOOLS.map((tool) => (
         <a key={tool.id} href={tool.href} className="tool-card">
           <span className="card-num">{tool.num}</span>
           <div className="card-icon">{tool.icon}</div>

@@ -856,7 +856,7 @@ document.getElementById('loadBtn').addEventListener('click',()=>{
 // Extra state for combined app (globe, world, selectedISO, hoverFeat, MODE, FILTERS
 // are already declared above by the research globe code)
 let currentMode = 'network';
-let netSpin = true, netFlowsOn = true, netArcMode = 'all';
+let netSpin = true, netFlowsOn = false, netArcMode = 'all';
 let netNodeById = {};
 let netMouse = {x:0, y:0};
 let ctrl = null;   // globe.js OrbitControls reference
@@ -879,7 +879,7 @@ function netArcTip(a){const tip=document.getElementById('netTooltip');tip.innerH
 
 function netApplyArcs(){const DATA=window.CALASTONE_FLOWS;if(!netFlowsOn){globe.arcsData([]);return;}const arcs=DATA.arcs.filter(a=>!a.intra);globe.arcsData(netArcMode==='cross'?arcs:arcs);}
 function netIgnite(){const DATA=window.CALASTONE_FLOWS;const allArcs=DATA.arcs.filter(a=>!a.intra);const sorted=[...allArcs].sort((a,b)=>b.orders-a.orders);let shown=[];const batch=Math.ceil(sorted.length/14);let idx=0;(function step(){shown=shown.concat(sorted.slice(idx,idx+batch));idx+=batch;if(netFlowsOn&&currentMode==='network')globe.arcsData(netArcMode==='cross'?shown.filter(a=>!a.intra):shown);if(idx<sorted.length)setTimeout(step,75);})();}
-function netCountUp(target){const el=document.getElementById('heroCount'),dur=1600,t0=performance.now();function tick(now){const p=Math.min(1,(now-t0)/dur);const e=1-Math.pow(1-p,3);el.innerHTML=fmtShort(Math.round(target*e))+'<span class="unit">orders</span>';if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);}
+function netCountUp(target){const el=document.getElementById('heroCount'),dur=1600,t0=performance.now();function tick(now){const p=Math.min(1,(now-t0)/dur);const e=1-Math.pow(1-p,3);el.innerHTML=fmtShort(Math.round(target*e))+'<span class="unit">markets</span>';if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);}
 
 /* ================================================================
    ============  MODE SWITCHING  ==================================
@@ -894,20 +894,22 @@ function switchToNetwork(){
   toggleActiveClass('globeSwitchNetwork', true);
   toggleActiveClass('globeSwitchResearch', false);
   toggleActiveClass('globeSwitchHubSpoke', false);
-  document.getElementById('topbarSub').textContent='Global Network · 2025';
+  document.getElementById('topbarSub').textContent='Market Presence · 2025';
   hideNetTip();hideSettTip();document.body.style.cursor='';
   const DATA=window.CALASTONE_FLOWS;const maxArc=DATA.meta.maxArc,maxNode=DATA.meta.maxNode;
   try{const m=globe.globeMaterial();if(m.color&&m.color.set)m.color.set('#eef5f9');if(m.emissive&&m.emissive.set){m.emissive.set('#e8f1f6');m.emissiveIntensity=0.85;}if('shininess'in m)m.shininess=0;m.needsUpdate=true;}catch(e){}
   globe.showAtmosphere(true).atmosphereColor('#9fc6d8').atmosphereAltitude(0.2)
     .polygonsData(window.CALASTONE_GEO.features).polygonCapColor(f=>netLandColor(f)).polygonSideColor(()=>'rgba(150,170,190,0.25)').polygonStrokeColor(()=>'rgba(120,150,180,0.3)').polygonAltitude(0.006).polygonsTransitionDuration(300)
-    .pointsData(DATA.nodes).pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(()=>'#0b79ae').pointAltitude(0.008).pointRadius(d=>0.28+1.0*Math.sqrt(d.total/maxNode)).pointResolution(14)
-    .labelsData(DATA.nodes.filter(n=>n.total>3e6)).labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.name).labelSize(0.9).labelDotRadius(0).labelColor(()=>'rgba(11,121,174,0.9)').labelResolution(2).labelAltitude(0.012)
+    .pointsData([]).pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(()=>'#0b79ae').pointAltitude(0.008).pointRadius(d=>0.28+1.0*Math.sqrt(d.total/maxNode)).pointResolution(14)
+    .labelsData([]).labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.name).labelSize(0.9).labelDotRadius(0).labelColor(()=>'rgba(11,121,174,0.9)').labelResolution(2).labelAltitude(0.012)
     .arcsData([]).arcStartLat(d=>d.startLat).arcStartLng(d=>d.startLng).arcEndLat(d=>d.endLat).arcEndLng(d=>d.endLng).arcColor(d=>netArcColor(d)).arcStroke(d=>0.18+1.5*Math.sqrt(d.orders/maxArc)).arcAltitudeAutoScale(0.5).arcDashLength(0.45).arcDashGap(0.6).arcDashInitialGap(()=>Math.random()).arcDashAnimateTime(d=>Math.max(1400,5200-3600*Math.sqrt(d.orders/maxArc))).arcsTransitionDuration(0)
     .onPolygonHover(f=>{if(officeLayerCalastone||officeLayerSSC){hideNetTip();document.body.style.cursor='';return;}const n=f&&netNodeById[f.properties.iso2];document.body.style.cursor=n?'pointer':'';globe.polygonAltitude(ff=>ff===f&&n?0.02:0.006);if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
     .onPolygonClick(null).onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
-    .onArcHover(a=>{document.body.style.cursor=a?'pointer':'';if(a){netArcTip(a);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}});
+    .onArcHover(null);
   if(ctrl&&netSpin)ctrl.autoRotate=true;
-  netApplyArcs();
+  // Presence heatmap: polygons only — never paint corridor arcs
+  netFlowsOn=false;
+  globe.arcsData([]);
 }
 
 function switchToResearch(){
@@ -984,13 +986,13 @@ function init(){
   // Start in network mode
   switchToNetwork();
 
-  // Network stats
+  // Presence heatmap stats (country heat — no corridor arcs)
   document.getElementById('heroCountries').textContent=DATA.meta.countries;
   document.getElementById('heroCorridors').textContent=DATA.meta.corridors;
   document.getElementById('mInter').textContent=fmtShort(DATA.meta.interCountryVol);
   document.getElementById('mMapped').textContent=DATA.meta.mappedPct+'%';
-  document.getElementById('legnote').textContent=`${fmtShort(DATA.meta.liveTotal)} live orders · ${DATA.meta.countries} countries · ${DATA.meta.corridors} corridors · test excluded`;
-  netCountUp(DATA.meta.liveTotal);
+  document.getElementById('legnote').textContent=`${DATA.meta.countries} countries · ${fmtShort(DATA.meta.liveTotal)} orders underpin heat · corridors not drawn`;
+  netCountUp(DATA.meta.countries);
 
   // Research mode ready
   renderLegend();initFilters();afterFilter();
@@ -1009,12 +1011,10 @@ function init(){
   if(researchSwitch)researchSwitch.addEventListener('click',()=>{if(currentMode!=='research')switchToResearch();});
 
   // Network flow controls
-  const cAll=document.getElementById('cAll'),cCross=document.getElementById('cCross'),
-        cFlows=document.getElementById('cFlows'),cRotate=document.getElementById('cRotate');
-  cAll.onclick=()=>{netArcMode='all';cAll.classList.add('active');cCross.classList.remove('active');netApplyArcs();};
-  cCross.onclick=()=>{netArcMode='cross';cCross.classList.add('active');cAll.classList.remove('active');netApplyArcs();};
-  cFlows.onclick=()=>{netFlowsOn=!netFlowsOn;cFlows.textContent=netFlowsOn?'Hide flows':'Show flows';cFlows.classList.toggle('active',!netFlowsOn);cAll.classList.toggle('active',netFlowsOn&&netArcMode==='all');cCross.classList.toggle('active',netFlowsOn&&netArcMode==='cross');netApplyArcs();};
-  cRotate.onclick=()=>{netSpin=!netSpin;ctrl.autoRotate=netSpin;cRotate.textContent=netSpin?'Pause spin':'Resume spin';};
+  const cRotate=document.getElementById('cRotate');
+  if(cRotate){
+    cRotate.onclick=()=>{netSpin=!netSpin;if(ctrl)ctrl.autoRotate=netSpin;cRotate.textContent=netSpin?'Pause spin':'Resume spin';};
+  }
 }
 /* Research mode polygon handlers, chat bot, and ISO mapping */
 let hoverFeat=null;
@@ -1587,7 +1587,7 @@ switchToResearch = function() {
     GROUPS.forEach(g=>{
       const halo=ns('ellipse',{
         id:`hs-island-${g.role}`,
-        cx:g.gx,cy:g.gy,rx:108,ry:82,
+        cx:g.gx,cy:g.gy,rx:86,ry:62,
         fill:`url(#hs-island-${g.role}-grad)`,
       });
       halo.style.opacity=String(ISLAND_OP_BEFORE);
@@ -1604,16 +1604,16 @@ switchToResearch = function() {
       const eco=ns('g',{id:`hs-eco-${g.role}`,'data-role':g.role,transform:`translate(${g.gx},${g.gy}) rotate(${rot})`});
 
       eco.appendChild(ns('ellipse',{
-        rx:'90',ry:'56',fill:col,'fill-opacity':'0.06',stroke:col,'stroke-width':'7',opacity:'0.2',
+        rx:'70',ry:'40',fill:col,'fill-opacity':'0.06',stroke:col,'stroke-width':'6',opacity:'0.18',
       }));
       eco.appendChild(ns('ellipse',{
         id:`hs-orbit-${g.role}`,
-        rx:'90',ry:'56',fill:'none',stroke:col,'stroke-width':'2.4',
-        'stroke-dasharray':'7 9','stroke-linecap':'round',opacity:'0.82',
+        rx:'70',ry:'40',fill:'none',stroke:col,'stroke-width':'2.2',
+        'stroke-dasharray':'6 8','stroke-linecap':'round',opacity:'0.82',
       }));
       eco.appendChild(ns('ellipse',{
-        rx:'64',ry:'38',fill:'none',stroke:col,'stroke-width':'1.6',
-        'stroke-dasharray':'4 7','stroke-linecap':'round',opacity:'0.5',
+        rx:'50',ry:'28',fill:'none',stroke:col,'stroke-width':'1.5',
+        'stroke-dasharray':'3 6','stroke-linecap':'round',opacity:'0.48',
       }));
 
       const xs=[-SPREAD,0,SPREAD];
@@ -1623,8 +1623,8 @@ switchToResearch = function() {
       }
 
       if(!reduceMotion){
-        const outer=ellipseLoop(90,56,false);
-        const inner=ellipseLoop(64,38,true);
+        const outer=ellipseLoop(70,40,false);
+        const inner=ellipseLoop(50,28,true);
         const outerDur=3.4+gi*0.28;
         const innerDur=4.6+gi*0.2;
         for(let t=0;t<3;t++){
@@ -1896,7 +1896,7 @@ switchToResearch = function() {
     if(bAuto){bAuto.classList.toggle('active',autoMode);bAuto.setAttribute('aria-pressed',String(autoMode));}
   }
 
-  // Auto: hold Before 3s → transition ~1.5s → hold After 3s → transition back ~1.2s
+  // Auto: hold Before 1.6s → transition ~1s → hold After 1.6s → transition back ~0.9s
   function stopAuto(){
     clearAutoTimers();
   }
@@ -1909,15 +1909,15 @@ switchToResearch = function() {
         scheduleAuto(()=>{
           if(!autoMode||!inView)return;
           transitionToBefore();
-          scheduleAuto(runAutoCycle,1200);
-        },3000+1500);
-      },3000);
+          scheduleAuto(runAutoCycle,900);
+        },1600+1000);
+      },1600);
     }else{
       scheduleAuto(()=>{
         if(!autoMode||!inView)return;
         transitionToBefore();
-        scheduleAuto(runAutoCycle,1200);
-      },3000);
+        scheduleAuto(runAutoCycle,900);
+      },1600);
     }
   }
   function restartAuto(){
@@ -1993,6 +1993,7 @@ switchToResearch = function() {
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',wireButtons);}
   else{wireButtons();}
 })();
+
 
 
 

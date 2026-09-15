@@ -1,17 +1,18 @@
+import { RadialNav } from '@/components/RadialNav';
+
 export function PulseHeader() {
   return (
-    <header className="pulse-header">
-      <div className="ph-brand">
-        <a href="/ui/" className="ph-brand-link">
-          <img src="/assets/phaeron-wordmark.png" alt="Phaeron" />
+    <header className="pulse-header module-chrome">
+      <div className="module-chrome-left">
+        <div className="module-chrome-brand">
+          <img src="/assets/phaeron-wordmark.png" alt="Phaeron" className="module-chrome-logo" />
+          <span className="module-chrome-divider" aria-hidden />
+          <span className="module-chrome-title">Pulse</span>
+        </div>
+        <a href="/tools/system-architecture/index.html" className="module-chrome-arch">
+          System Architecture
         </a>
-        <span className="divider" aria-hidden />
-        <span className="pulse-label">Pulse</span>
       </div>
-
-      <a href="/tools/system-architecture/index.html" className="ph-arch-link">
-        System Architecture
-      </a>
 
       <div className="ph-search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -21,14 +22,17 @@ export function PulseHeader() {
         <input type="search" placeholder="Search workspaces, accounts, markets…" aria-label="Search" />
       </div>
 
-      <div className="ph-user">
-        <div className="ph-user-name">
-          <strong>Alex Curtin</strong>
-          <span>Sales · EMEA</span>
+      <div className="module-chrome-right">
+        <div className="ph-user">
+          <div className="ph-user-name">
+            <strong>Alex Curtin</strong>
+            <span>Sales · EMEA</span>
+          </div>
+          <div className="ph-avatar">
+            <img src="/assets/Headshot.png" alt="Alex Curtin" />
+          </div>
         </div>
-        <div className="ph-avatar">
-          <img src="/assets/Headshot.png" alt="Alex Curtin" />
-        </div>
+        <RadialNav />
       </div>
     </header>
   );
