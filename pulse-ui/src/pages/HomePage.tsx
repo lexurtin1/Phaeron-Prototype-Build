@@ -42,10 +42,6 @@ export function HomePage() {
                 stepDuration={0.32}
               />
             </div>
-            <div className="live-badge">
-              <span className="live-dot" />
-              Network live
-            </div>
           </div>
 
           <div className="home-modules">

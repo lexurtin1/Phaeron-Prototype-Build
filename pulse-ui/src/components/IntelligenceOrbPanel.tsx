@@ -15,18 +15,17 @@ export function IntelligenceOrbPanel() {
       className="intel-orb-panel"
       aria-label="Open Phaeron Intelligence"
     >
-      <div className="intel-orb-stage" aria-hidden>
+      <div className="intel-orb-disc" aria-hidden>
         <div className="intel-orb-scale">
           <ThinkingOrb
             state={reduced ? 'breathing' : 'working'}
             size={64}
-            theme="light"
+            theme="dark"
             speed={reduced ? 0 : 1.05}
           />
         </div>
       </div>
       <div className="intel-orb-copy">
-        <div className="intel-orb-eyebrow">Module 05</div>
         <h2>Phaeron Intelligence</h2>
         <p>Ask anything about Phaeron products, markets, and relationships.</p>
       </div>
