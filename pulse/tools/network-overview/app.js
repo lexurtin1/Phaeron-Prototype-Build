@@ -191,60 +191,36 @@ let PRESENCE_ISO3 = new Set();
 const PRESENCE_HOTSPOTS = {
   POL:'new_entry', CZE:'rising', ROU:'new_entry', HUN:'rising', GRC:'rising',
 };
-/** City client-concentration hotspots (soft heatmap + small cores). */
-const CLIENT_HOTSPOTS = [
-  { city:'London',      lat:51.5074, lng:-0.1278,  clients:142, color:'#9F1239', iso:'GBR' },
-  { city:'Berlin',      lat:52.5200, lng:13.4050,  clients:118, color:'#DC143C', iso:'DEU' },
-  { city:'Paris',       lat:48.8566, lng:2.3522,   clients:96,  color:'#E11D48', iso:'FRA' },
-  { city:'Dublin',      lat:53.3498, lng:-6.2603,  clients:84,  color:'#BE123C', iso:'IRL' },
-  { city:'Luxembourg',  lat:49.6116, lng:6.1319,   clients:78,  color:'#F43F5E', iso:'LUX' },
-  { city:'Frankfurt',   lat:50.1109, lng:8.6821,   clients:64,  color:'#FB7185', iso:'DEU' },
-  { city:'Amsterdam',   lat:52.3676, lng:4.9041,   clients:52,  color:'#FDA4AF', iso:'NLD' },
-  { city:'Zurich',      lat:47.3769, lng:8.5417,   clients:41,  color:'#FCA5A5', iso:'CHE' },
-  { city:'Milan',       lat:45.4642, lng:9.1900,   clients:36,  color:'#FECACA', iso:'ITA' },
-  { city:'Madrid',      lat:40.4168, lng:-3.7038,  clients:33,  color:'#FECACA', iso:'ESP' },
-  { city:'Stockholm',   lat:59.3293, lng:18.0686,  clients:29,  color:'#FEE2E2', iso:'SWE' },
-  { city:'Warsaw',      lat:52.2297, lng:21.0122,  clients:27,  color:'#FEE2E2', iso:'POL' },
-  { city:'New York',    lat:40.7128, lng:-74.0060, clients:58,  color:'#FB7185', iso:'USA' },
-  { city:'Singapore',   lat:1.3521,  lng:103.8198, clients:47,  color:'#FDA4AF', iso:'SGP' },
-  { city:'Hong Kong',   lat:22.3193, lng:114.1694, clients:39,  color:'#FCA5A5', iso:'HKG' },
-  { city:'Sydney',      lat:-33.8688,lng:151.2093, clients:31,  color:'#FECACA', iso:'AUS' },
-];
-const CLIENT_HOTSPOT_MAX = Math.max(...CLIENT_HOTSPOTS.map(h=>h.clients));
+/** Presence ARR (£m equiv.) — drives whole-country colour importance. */
+const PRESENCE_ARR_M = {
+  GBR:48.2, LUX:26.8, IRL:23.8, DEU:18.9, FRA:15.9, USA:9.7, NLD:8.0,
+  ITA:6.4, CHE:6.0, ESP:5.0, SGP:4.8, BEL:3.5, DNK:3.1, SWE:3.0, AUT:2.7,
+  AUS:2.5, TWN:2.6, FIN:2.0, POL:1.8, PRT:1.5, NOR:1.4, CZE:1.2, GRC:0.9,
+  HUN:0.8, ROU:0.6, HKG:0.6, SVK:0.4,
+};
+const PRESENCE_ARR_MAX = Math.max(...Object.values(PRESENCE_ARR_M));
 
-/** Kernel samples for globe.gl heatmapsData — soft density, not solid bubbles. */
-function buildClientHeatPoints(){
-  const samples=[];
-  const offsets=[
-    [0,0,1],
-    [0.55,0.15,0.42],[ -0.4,0.45,0.38],[0.3,-0.5,0.36],[ -0.35,-0.3,0.32],
-    [0.7,-0.25,0.22],[ -0.65,0.1,0.2],[0.15,0.7,0.2],[ -0.1,-0.7,0.18],
-  ];
-  CLIENT_HOTSPOTS.forEach(h=>{
-    const intensity=h.clients/CLIENT_HOTSPOT_MAX;
-    const spread=0.55+1.1*intensity; // degrees
-    offsets.forEach(([dlat,dlng,w])=>{
-      samples.push([
-        h.lat+dlat*spread,
-        h.lng+dlng*spread,
-        h.clients*w,
-      ]);
-    });
-  });
-  return samples;
+let presencePulseRaf = null;
+let presencePulseT = 0;
+let hoveredPresenceISO = null;
+
+function presenceArrNorm(iso){
+  if(!iso||!PRESENCE_ISO3.has(iso)) return 0;
+  const v = PRESENCE_ARR_M[iso];
+  if(v==null) return 0.08;
+  /* sqrt so mid-tier markets stay readable on the gradient */
+  return Math.sqrt(v/PRESENCE_ARR_MAX);
 }
-const CLIENT_HEAT_POINTS = buildClientHeatPoints();
 
-function clientHeatColor(t){
-  t=Math.max(0,Math.min(1,t));
-  /* pale blush → deep Phaeron crimson; keep low end faintly visible */
+function presenceRevenueColor(t, pulseBoost){
+  t = Math.max(0, Math.min(1, t + (pulseBoost||0)*0.18));
   const stops=[
-    [0.00,[254,242,242,0.00]],
-    [0.12,[254,226,226,0.28]],
-    [0.32,[252,165,165,0.48]],
-    [0.55,[244,63,94,0.62]],
-    [0.78,[190,18,60,0.78]],
-    [1.00,[127,18,57,0.90]],
+    [0.00,[254,226,226]],
+    [0.22,[252,165,165]],
+    [0.45,[251,113,133]],
+    [0.68,[225,29,72]],
+    [0.88,[159,18,57]],
+    [1.00,[88,12,38]],
   ];
   let a=stops[0], b=stops[stops.length-1];
   for(let i=0;i<stops.length-1;i++){
@@ -254,11 +230,20 @@ function clientHeatColor(t){
   const r=Math.round(a[1][0]+(b[1][0]-a[1][0])*u);
   const g=Math.round(a[1][1]+(b[1][1]-a[1][1])*u);
   const bl=Math.round(a[1][2]+(b[1][2]-a[1][2])*u);
-  const alpha=a[1][3]+(b[1][3]-a[1][3])*u;
-  return `rgba(${r},${g},${bl},${alpha.toFixed(3)})`;
+  return `rgba(${r},${g},${bl},0.90)`;
 }
 
-let presencePulseRaf = null;
+function presencePolyAltitude(f){
+  const iso=featISO(f);
+  if(!iso||!PRESENCE_ISO3.has(iso)) return 0.006;
+  let alt=0.008+0.012*presenceArrNorm(iso);
+  if(PRESENCE_HOTSPOTS[iso]==='new_entry'){
+    const pulse=0.5+0.5*Math.sin(presencePulseT);
+    alt=0.012+0.032*pulse;
+  }
+  if(iso===hoveredPresenceISO) alt=Math.max(alt,0.034);
+  return alt;
+}
 
 function toggleActiveClass(id, isActive, className='active'){
   const el=document.getElementById(id);
@@ -285,7 +270,7 @@ function hexA(hex,a){const h=hex.replace('#','');return`rgba(${parseInt(h.slice(
 
 function officeHeatmapColor(f){
   const iso=featISO(f);
-  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(198,210,222,0.92)';
+  if(iso&&PRESENCE_ISO3.has(iso)) return presenceRevenueColor(presenceArrNorm(iso), 0);
   return 'rgba(228,234,240,0.88)';
 }
 function polyCapColor(f){
@@ -936,9 +921,10 @@ function netArcRGB(t){t=Math.max(0,Math.min(1,t));for(let i=0;i<netCstops.length
 function netArcColor(d){const maxArc=window.CALASTONE_FLOWS.meta.maxArc;const[r,g,b]=netArcRGB(Math.sqrt(d.orders/maxArc));return `rgba(${r},${g},${b},${0.45+0.45*Math.sqrt(d.orders/maxArc)})`;}
 function netLandColor(f){
   const iso=featISO(f);
-  /* Quiet land tint — city hotspots carry the colour story */
-  if(iso&&PRESENCE_ISO3.has(iso))return 'rgba(198,210,222,0.92)';
-  return 'rgba(228,234,240,0.88)';
+  if(!iso||!PRESENCE_ISO3.has(iso)) return 'rgba(228,234,240,0.88)';
+  const isNew=PRESENCE_HOTSPOTS[iso]==='new_entry';
+  const boost=isNew?(0.5+0.5*Math.sin(presencePulseT)):0;
+  return presenceRevenueColor(presenceArrNorm(iso), boost);
 }
 
 const fmtNet=n=>n.toLocaleString('en-GB');
@@ -973,28 +959,42 @@ function switchToNetwork(){
   const DATA=window.CALASTONE_FLOWS;const maxArc=DATA.meta.maxArc,maxNode=DATA.meta.maxNode;
   try{const m=globe.globeMaterial();if(m.color&&m.color.set)m.color.set('#eef5f9');if(m.emissive&&m.emissive.set){m.emissive.set('#e8f1f6');m.emissiveIntensity=0.85;}if('shininess'in m)m.shininess=0;m.needsUpdate=true;}catch(e){}
   globe.showAtmosphere(true).atmosphereColor('#9fc6d8').atmosphereAltitude(0.2)
-    .polygonsData(window.CALASTONE_GEO.features).polygonCapColor(f=>netLandColor(f)).polygonSideColor(()=>'rgba(150,170,190,0.25)').polygonStrokeColor(()=>'rgba(120,150,180,0.28)').polygonAltitude(0.006).polygonsTransitionDuration(300)
-    .heatmapsData([CLIENT_HEAT_POINTS])
-      .heatmapPointLat(p=>p[0]).heatmapPointLng(p=>p[1]).heatmapPointWeight(p=>p[2])
-      .heatmapBandwidth(4.8).heatmapColorFn(clientHeatColor).heatmapColorSaturation(1.35)
-      .heatmapBaseAltitude(0.012).heatmapTopAltitude(0.28)
-    .pointsData(CLIENT_HOTSPOTS).pointLat(d=>d.lat).pointLng(d=>d.lng)
-      .pointColor(()=>'rgba(127,29,29,0.95)').pointAltitude(0.014)
-      .pointRadius(d=>0.1+0.16*Math.sqrt(d.clients/CLIENT_HOTSPOT_MAX)).pointResolution(10)
-    .labelsData(CLIENT_HOTSPOTS.filter(h=>h.clients>=96))
-      .labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.city)
-      .labelSize(0.55).labelDotRadius(0).labelColor(()=>'rgba(71,20,35,0.78)').labelResolution(2).labelAltitude(0.022)
+    .polygonsData(window.CALASTONE_GEO.features)
+      .polygonCapColor(f=>netLandColor(f))
+      .polygonSideColor(()=>'rgba(150,170,190,0.25)')
+      .polygonStrokeColor(()=>'rgba(120,150,180,0.32)')
+      .polygonAltitude(f=>presencePolyAltitude(f))
+      .polygonsTransitionDuration(0)
+    .heatmapsData([]).pointsData([]).labelsData([])
     .arcsData([]).arcStartLat(d=>d.startLat).arcStartLng(d=>d.startLng).arcEndLat(d=>d.endLat).arcEndLng(d=>d.endLng).arcColor(d=>netArcColor(d)).arcStroke(d=>0.18+1.5*Math.sqrt(d.orders/maxArc)).arcAltitudeAutoScale(0.5).arcDashLength(0.45).arcDashGap(0.6).arcDashInitialGap(()=>Math.random()).arcDashAnimateTime(d=>Math.max(1400,5200-3600*Math.sqrt(d.orders/maxArc))).arcsTransitionDuration(0)
-    .onPolygonHover(f=>{const iso=f&&featISO(f);const present=iso&&PRESENCE_ISO3.has(iso);document.body.style.cursor=present?'pointer':'';globe.polygonAltitude(ff=>{const id=featISO(ff);if(ff===f&&present)return 0.02;return 0.006;});if(present){const tip=document.getElementById('netTooltip');tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-sub">Phaeron market · click for briefing</div>`;tip.style.opacity=1;posNetTip();if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPolygonHover(f=>{
+      const iso=f&&featISO(f);
+      const present=iso&&PRESENCE_ISO3.has(iso);
+      hoveredPresenceISO=present?iso:null;
+      document.body.style.cursor=present?'pointer':'';
+      if(present){
+        const arr=PRESENCE_ARR_M[iso];
+        const arrLabel=arr!=null?`£${arr.toFixed(1)}m ARR equiv.`:(PRESENCE_BRIEFINGS[iso]&&PRESENCE_BRIEFINGS[iso].value)||'Presence market';
+        const tip=document.getElementById('netTooltip');
+        const hot=PRESENCE_HOTSPOTS[iso];
+        const signal=hot==='new_entry'?' · New entry':hot==='rising'?' · Rising':'';
+        tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-big">${arrLabel}</div><div class="tt-sub">Phaeron market${signal} · click for briefing</div>`;
+        tip.style.opacity=1;posNetTip();
+        if(ctrl)ctrl.autoRotate=false;
+      }else{
+        hideNetTip();
+        if(ctrl&&netSpin)ctrl.autoRotate=true;
+      }
+    })
     .onPolygonClick(f=>{if(f)openPresenceBriefing(f);})
-    .onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){clientHotspotTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
-    .onPointClick(n=>{if(n&&n.iso){const feat=(window.CALASTONE_GEO.features||[]).find(f=>featISO(f)===n.iso);if(feat)openPresenceBriefing(feat);}})
+    .onPointHover(null)
+    .onPointClick(null)
     .onArcHover(null);
   if(ctrl&&netSpin)ctrl.autoRotate=true;
-  // Soft density heatmap + small city cores — no bubbly point spheres
   netFlowsOn=false;
   globe.arcsData([]);
-  stopPresencePulse();
+  hoveredPresenceISO=null;
+  startPresencePulse();
 }
 
 function switchToResearch(){
@@ -1015,6 +1015,7 @@ function switchToResearch(){
     .heatmapsData([]).pointsData([]).arcsData([]).labelsData([])
     .onPolygonHover(handleHover).onPolygonClick(handleClick).onPointHover(null).onArcHover(null);
   if(ctrl)ctrl.autoRotate=false;
+  hoveredPresenceISO=null;
   stopPresencePulse();
   closePresenceBriefing();
   refreshGlobe();
@@ -1079,7 +1080,7 @@ function init(){
   document.getElementById('mInter').textContent=fmtShort(DATA.meta.interCountryVol);
   document.getElementById('mMapped').textContent=DATA.meta.mappedPct+'%';
   const leg=document.getElementById('legnote');
-  if(leg)leg.textContent=`Density heatmap · ${CLIENT_HOTSPOTS.length} cities · ${PRESENCE_ISO3.size} presence markets`;
+  if(leg)leg.textContent=`Country fill = ARR importance · new markets pulse · ${PRESENCE_ISO3.size} presence markets`;
   netCountUp(PRESENCE_ISO3.size||DATA.meta.countries);
 
   // Research mode ready
@@ -1310,19 +1311,31 @@ const PRESENCE_BRIEFINGS = {
 
 function stopPresencePulse(){
   if(presencePulseRaf){cancelAnimationFrame(presencePulseRaf);presencePulseRaf=null;}
+  presencePulseT=0;
 }
 function startPresencePulse(){
-  /* Deprecated: polygon pulse caused shimmering monochrome — city points only */
   stopPresencePulse();
+  if(!globe||currentMode!=='network') return;
+  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    presencePulseT=0;
+    globe.polygonCapColor(f=>netLandColor(f));
+    globe.polygonAltitude(f=>presencePolyAltitude(f));
+    return;
+  }
+  const t0=performance.now();
+  function tick(now){
+    if(currentMode!=='network'||!globe){presencePulseRaf=null;return;}
+    /* ~1.8s cycle — altitude + colour boost on new_entry markets only */
+    presencePulseT=((now-t0)/900)*Math.PI;
+    globe.polygonCapColor(f=>netLandColor(f));
+    globe.polygonAltitude(f=>presencePolyAltitude(f));
+    presencePulseRaf=requestAnimationFrame(tick);
+  }
+  presencePulseRaf=requestAnimationFrame(tick);
 }
 
-function clientHotspotTip(n){
-  const tip=document.getElementById('netTooltip');
-  if(!tip||!n)return;
-  tip.innerHTML=`<div class="tt-route">${n.city}</div><div class="tt-big">${n.clients}</div><div class="tt-sub">client concentration · click for market briefing</div>`;
-  tip.style.opacity=1;
-  posNetTip();
-}
+function clientHotspotTip(){ /* city hotspots retired — country fill carries the story */ }
 
 function closePresenceBriefing(){
   const d=document.getElementById('presenceDrawer');
@@ -1340,6 +1353,10 @@ function openPresenceBriefing(f){
     sales:'EMEA desk · London',
     news:['Coverage expanding across European network markets.'],
   };
+  const arrM=PRESENCE_ARR_M[iso];
+  const valueHtml=arrM!=null
+    ? `${brief.value}<div class="presence-arr-equiv">£${arrM.toFixed(1)}m ARR equiv.</div>`
+    : brief.value;
   const office=CALASTONE_OFFICES.find(o=>NAME_TO_ISO[o.country]===iso);
   const hot=PRESENCE_HOTSPOTS[iso];
   const signal=hot?(hot==='new_entry'?'New market entry':'Rising activity'):'Established presence';
@@ -1355,7 +1372,7 @@ function openPresenceBriefing(f){
       <div class="ctry-region">${iso} · ${signal}</div>
     </div>
     <div class="scroll presence-brief">
-      <div class="section"><div class="s-title">Presence value</div><div class="presence-value">${brief.value}</div></div>
+      <div class="section"><div class="s-title">Presence value</div><div class="presence-value">${valueHtml}</div></div>
       <div class="section"><div class="s-title">Top customers</div><ul class="presence-list">${cust}</ul></div>
       <div class="section"><div class="s-title">Salesperson stationed</div><div class="presence-sales">${brief.sales}</div></div>
       ${office?`<div class="section"><div class="s-title">Office</div><div class="presence-office">${office.name} · ${office.city}${office.address?'<br>'+office.address:''}</div></div>`:''}
@@ -1419,11 +1436,13 @@ function applyOfficeLayers() {
   if (!globe) return;
   const data = officeLayerCalastone ? CALASTONE_OFFICES : [];
 
-  /* Presence mode: soft client heatmap + small city cores; pins follow toggle */
+  /* Presence mode: whole-country ARR colour; new entries pulse via startPresencePulse */
   if (currentMode === 'network') {
-    globe.heatmapsData([CLIENT_HEAT_POINTS]);
-    globe.pointsData(CLIENT_HOTSPOTS);
+    globe.heatmapsData([]);
+    globe.pointsData([]);
+    globe.labelsData([]);
     globe.polygonCapColor(f => netLandColor(f));
+    globe.polygonAltitude(f => presencePolyAltitude(f));
   } else if (currentMode === 'research') {
     refreshGlobe();
   }
@@ -2116,6 +2135,8 @@ function switchToHubSpoke(){
   window._productNavShow&&window._productNavShow();
   if(ctrl)ctrl.autoRotate=false;
   hideNetTip();document.body.style.cursor='';
+  hoveredPresenceISO=null;
+  stopPresencePulse();
   window._hsShow&&window._hsShow();
 }
 
@@ -2137,6 +2158,8 @@ function switchToOrderRouting(){
   const _hub=document.querySelector('.pn-hex-hub');if(_hub)_hub.style.animation='none';
   if(ctrl)ctrl.autoRotate=false;
   hideNetTip();document.body.style.cursor='';
+  hoveredPresenceISO=null;
+  stopPresencePulse();
 
   const ui=document.getElementById('orderRoutingUI');if(!ui)return;
   const frame=document.getElementById('orFlowFrame');

@@ -172,6 +172,7 @@ body{
 .drawer .ctry-region{font-size:11px;color:var(--ink-2);font-family:var(--mono);letter-spacing:0.05em;margin-top:4px}
 .presence-drawer{z-index:35;top:72px;height:calc(100vh - 72px)}
 .presence-brief .presence-value{font-size:22px;font-weight:700;color:var(--ink-strong);letter-spacing:-0.02em}
+.presence-brief .presence-arr-equiv{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:6px;letter-spacing:0}
 .presence-brief .presence-sales,.presence-brief .presence-office{font-size:14px;line-height:1.5;color:var(--ink-1)}
 .presence-brief .presence-list{margin:0;padding-left:18px}
 .presence-brief .presence-list li{margin:6px 0;font-size:13.5px;line-height:1.45;color:var(--ink-1)}
@@ -441,6 +442,14 @@ body{
 .gradline-net{width:40px;height:3px;border-radius:2px;background:linear-gradient(90deg, #0C1A2E 0%, #1B3A6B 62%, #2F5285 88%, #9F1239 100%)}
 .gradline-net.thin{width:22px;height:2px;opacity:0.6}
 .nodemark{width:12px;height:12px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px rgba(38,145,159,0.18);flex:0 0 auto}
+.nodemark.pulse-mark{animation:presenceLegPulse 1.8s ease-in-out infinite}
+@keyframes presenceLegPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 3px rgba(244,63,94,0.22)}
+  50%{transform:scale(1.18);box-shadow:0 0 0 6px rgba(244,63,94,0.12)}
+}
+@media (prefers-reduced-motion: reduce){
+  .nodemark.pulse-mark{animation:none}
+}
 .legdiv{height:1px;background:var(--line);margin:12px 0 10px}
 .legnote{font-size:10px;color:var(--ink-2);line-height:1.5;max-width:200px}
 .net-controls{position:fixed;left:34px;bottom:30px;z-index:10;display:flex;gap:9px}

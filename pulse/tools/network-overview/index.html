@@ -33,19 +33,20 @@ window._hsTimeline = createTimeline;
 <div id="networkUI" style="display:none">
   <div class="hero" id="hero">
     <div class="count" id="heroCount">0<span class="unit">markets</span></div>
-    <div class="cap">client concentration hotspots across Phaeron's markets — city colour shows where clients cluster (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
+    <div class="cap">presence markets coloured by ARR importance — deeper crimson means higher revenue (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
     <div class="meta">
       <div class="m"><div class="v" id="mInter">—</div><div class="k">Cross-border volume</div></div>
       <div class="m"><div class="v" id="mMapped">—</div><div class="k">Mapped coverage</div></div>
     </div>
   </div>
-  <div class="hint-net">drag · zoom · hover a city hotspot</div>
+  <div class="hint-net">drag · zoom · hover a presence country</div>
   <div class="net-legend">
-    <h4>Client heatmap</h4>
-    <div class="legrow"><span class="nodemark" style="background:#9F1239"></span> Highest density</div>
+    <h4>Presence ARR</h4>
+    <div class="legrow"><span class="nodemark" style="background:#581226"></span> Highest revenue</div>
     <div class="legrow"><span class="nodemark" style="background:#E11D48"></span> High</div>
-    <div class="legrow"><span class="nodemark" style="background:#FB7185"></span> Moderate</div>
+    <div class="legrow"><span class="nodemark" style="background:#FB7185"></span> Mid</div>
     <div class="legrow"><span class="nodemark" style="background:#FECACA"></span> Emerging</div>
+    <div class="legrow"><span class="nodemark pulse-mark" style="background:#F43F5E"></span> New entry · pulses</div>
     <div class="legdiv"></div>
     <div class="legnote" id="legnote"></div>
   </div>
