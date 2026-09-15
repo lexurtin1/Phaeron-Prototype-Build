@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Phaeron · Product Demo</title>
+<title>Phaeron · Studio · Product Demo</title>
 <script type="module">
 import { animate, stagger, createTimeline } from 'https://esm.sh/animejs';
 window._hsAnimate = animate;
@@ -15,6 +15,7 @@ window._hsTimeline = createTimeline;
 <link rel="stylesheet" href="../../design-system/tokens/spacing.css">
 <link rel="stylesheet" href="../../design-system/tokens/effects.css">
 <link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -24,8 +25,9 @@ window._hsTimeline = createTimeline;
   <div class="topbar-left">
     <img src="../../assets/phaeron-wordmark.png" alt="Phaeron" class="topbar-logo">
     <span class="topbar-divider">·</span>
-    <span class="topbar-title">Product Demo</span>
+    <span class="topbar-title">Studio</span>
   </div>
+  <div id="pulse-module-subnav" data-module="studio" data-view="product-demo" data-layout="inline"></div>
   <a href="/ui/" class="home-btn">&#8592; Pulse Home</a>
 </div>
 
@@ -113,6 +115,7 @@ window._hsTimeline = createTimeline;
 </div>
 
 <script src="./app.js"></script>
+<script src="../../shared/module-subnav.js"></script>
 <script src="../../favicon-pulse.js"></script>
 </body>
 </html>

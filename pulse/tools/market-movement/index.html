@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phaeron · Market Movement</title>
+<title>Phaeron · Market Signals</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
 
 <style>
 /* ============================================================
@@ -299,6 +300,7 @@ body{
 #app.brazil-mode .legend,
 #app.brazil-mode .pills,
 #app.brazil-mode #pulse-home-btn{display:none}
+#app.brazil-mode #pulse-module-subnav{display:none}
 #brazil-map{position:absolute;inset:0;background:var(--bg-top)}
 #brazil-map .maplibregl-ctrl-attrib{font-family:'Inter',sans-serif;font-size:10px}
 
@@ -413,6 +415,7 @@ body{
     <div class="subbrand">Market Intelligence · 2026</div>
   </div>
 
+  <div id="pulse-module-subnav" data-module="market-intelligence" data-view="signals" data-layout="floating"></div>
   <a id="pulse-home-btn" href="/ui/">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -480,6 +483,7 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/deck.gl@9.1.13/dist.min.js"></script>
+<script src="../../shared/module-subnav.js"></script>
 <script src="../../favicon-pulse.js"></script>
 
 <script>

@@ -15,6 +15,7 @@ window._hsTimeline = createTimeline;
 <link rel="stylesheet" href="../../design-system/tokens/spacing.css">
 <link rel="stylesheet" href="../../design-system/tokens/effects.css">
 <link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -87,8 +88,9 @@ window._hsTimeline = createTimeline;
   <div class="brand">
     <div class="mark"><img src="../../assets/phaeron-wordmark.png" alt="Phaeron" style="height:52px;width:auto;display:block;mix-blend-mode:multiply;"></div>
     <div class="gradline"></div>
-    <div class="sub" id="topbarSub">Global Network · 2025</div>
+    <div class="sub" id="topbarSub">Market Presence · 2025</div>
   </div>
+  <div id="pulse-module-subnav" data-module="market-intelligence" data-view="presence" data-layout="inline"></div>
   <div class="spacer"></div>
   <!-- Research-only controls (hidden in network mode) -->
   <div id="researchTopbarControls" style="display:none;align-items:center;gap:12px;flex-wrap:wrap">
@@ -370,6 +372,7 @@ window.dispatchEvent(new CustomEvent('mp-ready'));
 </script>
 
 <script src="../../../hand-controls.js"></script>
+<script src="../../shared/module-subnav.js"></script>
 <script src="../../favicon-pulse.js"></script>
 
 </body>

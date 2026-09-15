@@ -1,6 +1,6 @@
 /* auto-generated — do not edit */
 (function () {
-  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-CUcA9nFc.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/tools-B08GRJKB.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-BwjbUsY5.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-nav.js"}];
+  var tags = [{"type":"link","href":"/ui/assets/pulse-ui-CUcA9nFc.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/tools-BVcKMrUl.js","rel":"modulepreload"},{"type":"link","href":"/ui/assets/pulse-ui-BwjbUsY5.css","rel":"stylesheet"},{"type":"script","src":"/ui/islands/island-nav.js"}];
   tags.forEach(function (t) {
     if (t.type === 'link') {
       if (document.querySelector('link[href="' + t.href + '"]')) return;
