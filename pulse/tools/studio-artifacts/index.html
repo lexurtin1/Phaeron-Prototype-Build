@@ -6,7 +6,7 @@
 <title>Phaeron · Studio · Artifacts</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../design-system/tokens/colors.css">
 <link rel="stylesheet" href="../../design-system/tokens/typography.css">
 <link rel="stylesheet" href="../../design-system/tokens/spacing.css">
@@ -23,42 +23,78 @@
   <div id="pulse-module-subnav" data-module="studio" data-view="artifacts" data-layout="inline"></div>
 </div>
 
-<div class="app">
-  <div class="artifacts-shell">
-    <div class="da-head">
-      <h1>Artifacts</h1>
-      <p>Generate branded reports from Salesforce exports and internal data files</p>
-    </div>
-    <div class="da-cols">
-      <div class="da-left">
-        <span class="eyebrow">Templates</span>
-        <div id="tplList"></div>
-        <button class="create-tpl"><i data-lucide="plus"></i>Create Custom Template</button>
-        <span class="eyebrow" style="display:block;padding:0 4px 10px">Upload Data</span>
-        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload file">
-          <i data-lucide="upload-cloud"></i>
-          <div class="dz-label">Drop a Salesforce export here, or click to browse</div>
-          <div class="dz-sub">Accepts .csv, .xlsx</div>
-        </div>
-        <div class="file-loaded" id="fileLoaded">
-          <div class="fl-row">
-            <div class="fl-ico"><i data-lucide="file-spreadsheet"></i></div>
-            <div class="fl-meta">
-              <div class="fl-name" id="flName">SFDC_Opportunity_Export.xlsx</div>
-              <div class="fl-size" id="flSize">142 KB · 4 opportunities</div>
+<div class="app" id="artifactsApp">
+
+  <!-- ── LANDING ── -->
+  <section class="landing" id="landingView">
+    <div class="landing-center">
+      <h1 class="landing-title">What should we create?</h1>
+      <div class="create-box">
+        <div class="composer">
+          <textarea id="landingPrompt" rows="2" placeholder="Sketch a pipeline report, TLDR, or deck for the commercial team…" aria-label="Describe the artifact"></textarea>
+          <div class="composer-bar">
+            <div class="composer-left">
+              <button type="button" class="icon-chip" id="attachBtn" aria-label="Attach file"><i data-lucide="plus"></i></button>
+              <span class="ds-chip"><span class="ds-swatch" aria-hidden="true"></span>Phaeron Design System</span>
+            </div>
+            <div class="composer-right">
+              <button type="button" class="send-btn" id="landingSend" aria-label="Create"><i data-lucide="arrow-up"></i></button>
             </div>
           </div>
-          <button class="analyse-btn" id="analyseBtn"><i data-lucide="sparkles"></i>Generate artifact</button>
         </div>
-      </div>
-      <div class="da-right" id="reportOutput">
-        <div class="report-empty" id="reportEmpty">
-          <div class="re-ico"><i data-lucide="file-bar-chart"></i></div>
-          <p>Select a template and upload a file to create an artifact</p>
+        <div class="tpl-section">
+          <div class="tpl-label">Choose a template</div>
+          <div class="tpl-strip" id="tplStrip" role="list"></div>
         </div>
       </div>
     </div>
-  </div>
+
+    <div class="recent-panel">
+      <div class="recent-head">
+        <div class="recent-tabs" role="tablist">
+          <button type="button" class="rtab active" data-tab="projects">Recent artifacts</button>
+          <button type="button" class="rtab" data-tab="templates">Templates</button>
+        </div>
+        <div class="recent-tools">
+          <label class="search-wrap">
+            <i data-lucide="search"></i>
+            <input type="search" id="recentSearch" placeholder="Search…" aria-label="Search artifacts" />
+          </label>
+        </div>
+      </div>
+      <div class="recent-list" id="recentList"></div>
+    </div>
+  </section>
+
+  <!-- ── WORKSPACE ── -->
+  <section class="workspace" id="workspaceView" hidden>
+    <aside class="ws-chat">
+      <div class="ws-chat-head">
+        <button type="button" class="back-btn" id="backHome"><i data-lucide="arrow-left"></i>Artifacts</button>
+        <span class="ws-tpl-pill" id="wsTplPill">Report</span>
+      </div>
+      <div class="ws-thread" id="wsThread"></div>
+      <div class="ws-composer">
+        <textarea id="wsPrompt" rows="2" placeholder="Refine the artifact…" aria-label="Message"></textarea>
+        <button type="button" class="send-btn" id="wsSend" aria-label="Send"><i data-lucide="arrow-up"></i></button>
+      </div>
+    </aside>
+    <main class="ws-canvas">
+      <div class="ws-canvas-bar">
+        <div class="ws-canvas-title" id="wsCanvasTitle">Artifact preview</div>
+        <div class="ws-canvas-actions">
+          <button type="button" class="rep-btn" id="expPdf"><i data-lucide="file-down"></i>Export</button>
+          <button type="button" class="rep-btn" id="cpLink"><i data-lucide="link"></i>Copy link</button>
+        </div>
+      </div>
+      <div class="ws-canvas-body" id="reportOutput">
+        <div class="report-empty">
+          <div class="re-ico"><i data-lucide="sparkles"></i></div>
+          <p>Your artifact will appear here</p>
+        </div>
+      </div>
+    </main>
+  </section>
 </div>
 
 <div class="toast" id="toast"><i data-lucide="check-circle-2"></i><span id="toastMsg"></span></div>

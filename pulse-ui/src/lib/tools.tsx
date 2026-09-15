@@ -103,6 +103,48 @@ export function IntelligenceIcon({ size = 54 }: IconProps) {
   );
 }
 
+/** Compact orb mark for radial nav — echoes the home ThinkingOrb without WebGL. */
+export function IntelligenceOrbIcon({ size = 22 }: IconProps) {
+  const gid = `intelOrb-${size}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
+      <defs>
+        <radialGradient id={gid} cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#5B7AAB" />
+          <stop offset="55%" stopColor="#1B3A6B" />
+          <stop offset="100%" stopColor="#0C1A2E" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="15" fill={`url(#${gid})`} />
+      <ellipse
+        cx="24"
+        cy="24"
+        rx="15"
+        ry="6.5"
+        transform="rotate(-28 24 24)"
+        stroke="#9F1239"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        opacity="0.85"
+        fill="none"
+      />
+      <ellipse
+        cx="24"
+        cy="24"
+        rx="15"
+        ry="6.5"
+        transform="rotate(38 24 24)"
+        stroke="#ffffff"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.35"
+        fill="none"
+      />
+      <circle cx="18" cy="17" r="2.2" fill="#ffffff" opacity="0.55" />
+    </svg>
+  );
+}
+
 export function AccountsIcon({ size = 54 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden>
@@ -209,7 +251,7 @@ export const RADIAL_DESTINATIONS: NavDestination[] = [
   },
   { id: 'reporting-mi', label: 'Reporting and MI', href: '/tools/reporting-mi/index.html', icon: <ReportingIcon size={22} /> },
   { id: 'studio', label: 'Studio', href: '/tools/product-demo/index.html', icon: <DemoIcon size={22} /> },
-  { id: 'intelligence', label: 'Phaeron Intelligence', href: INTELLIGENCE_HREF, icon: <IntelligenceIcon size={22} /> },
+  { id: 'intelligence', label: 'Phaeron Intelligence', href: INTELLIGENCE_HREF, icon: <IntelligenceOrbIcon size={22} /> },
 ];
 
 /** Fan destinations (FAB itself is Home). */
