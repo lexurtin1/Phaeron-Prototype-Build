@@ -1,5 +1,6 @@
 # React Bits / Vite app
 node_modules/
-dist/
+# Only ignore this package's Vite output — not vendored library dist folders
+/dist/
 *.local
 .DS_Store
