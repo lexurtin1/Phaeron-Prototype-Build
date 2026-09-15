@@ -9,13 +9,6 @@
   const navyMid = MI.colors.navyMid;
   const crimson = MI.colors.crimson;
 
-  function fmtShort(n) {
-    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'bn';
-    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'm';
-    if (n >= 1e3) return (n / 1e3).toFixed(0) + 'k';
-    return String(n);
-  }
-
   function fillText(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
@@ -25,9 +18,15 @@
     fillText('kpi-pipeline', MI.openPipelineLabel);
     fillText('kpi-pipeline-sub', MI.openDealCount + ' open Opportunities');
     fillText('kpi-markets', String(MI.presenceMarketCount));
-    fillText('kpi-markets-sub', MI.network.corridors + ' corridors · ' + MI.network.mappedPct + '% mapped');
-    fillText('kpi-volume', fmtShort(MI.network.liveTotal));
-    fillText('kpi-volume-sub', 'orders · ' + MI.network.year);
+    fillText('kpi-markets-sub', 'Europe, APAC & US hubs');
+    fillText('kpi-products', String(MI.products.live));
+    fillText('kpi-products-sub', MI.products.names.slice(0, 3).join(' · ') + '…');
+    fillText('kpi-clients', MI.products.activeClients.toLocaleString('en-GB'));
+    fillText('kpi-clients-sub', 'Active client accounts');
+    fillText('kpi-arr', MI.presenceArrLabel);
+    fillText('kpi-arr-sub', 'Presence ARR · £m equiv.');
+    fillText('kpi-winrate', MI.products.winRatePct + '%');
+    fillText('kpi-winrate-sub', 'Trailing 12-month win rate');
     fillText('kpi-etf', MI.etfWeightedLabel);
     fillText('kpi-etf-sub', 'ETF weighted · ' + MI.etfTotalLabel + ' total');
   }
@@ -35,26 +34,74 @@
   function renderArrChart() {
     const el = document.getElementById('mi-arr-chart');
     if (!el) return;
+    const events = MI.arrTrend.events || [];
+    const pointAnnotations = events.map((ev) => ({
+      x: ev.month,
+      y: ev.y,
+      marker: {
+        size: 7,
+        fillColor: ev.tone === 'down' ? crimson : '#1E9E6A',
+        strokeColor: '#fff',
+        strokeWidth: 2,
+      },
+      label: {
+        borderColor: ev.tone === 'down' ? crimson : '#1E9E6A',
+        offsetY: ev.tone === 'down' ? 18 : -12,
+        style: {
+          color: '#fff',
+          background: ev.tone === 'down' ? crimson : '#1E9E6A',
+          fontSize: '11px',
+          fontWeight: 600,
+          padding: { left: 6, right: 6, top: 3, bottom: 3 },
+        },
+        text: ev.label,
+      },
+    }));
+
     new ApexCharts(el, {
-      chart: { type: 'area', height: 320, fontFamily: 'Inter, sans-serif', toolbar: { show: false } },
+      chart: { type: 'area', height: 340, fontFamily: 'Inter, sans-serif', toolbar: { show: false }, zoom: { enabled: false } },
       series: [{ name: 'Presence ARR (£m equiv.)', data: MI.arrTrend.series }],
       xaxis: { categories: MI.arrTrend.labels, labels: { style: { colors: '#566571' } } },
       yaxis: {
+        min: 145,
+        max: 185,
+        tickAmount: 5,
         labels: {
           style: { colors: '#566571' },
-          formatter: (v) => '£' + v + 'm',
+          formatter: (v) => '£' + Number(v).toFixed(0) + 'm',
         },
       },
       colors: [navy],
       fill: {
         type: 'gradient',
-        gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 90, 100] },
+        gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 90, 100] },
       },
       stroke: { curve: 'smooth', width: 3 },
       dataLabels: { enabled: false },
       grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
-      tooltip: { y: { formatter: (v) => '£' + v + 'm' } },
+      annotations: { points: pointAnnotations },
+      tooltip: {
+        shared: true,
+        y: { formatter: (v) => '£' + Number(v).toFixed(1) + 'm' },
+        custom: undefined,
+      },
     }).render();
+
+    const legend = document.getElementById('mi-arr-events');
+    if (legend) {
+      legend.innerHTML = events
+        .map(
+          (ev) =>
+            '<li><span class="mi-event-dot mi-event-' +
+            ev.tone +
+            '"></span><strong>' +
+            ev.month +
+            '</strong> — ' +
+            ev.label +
+            '</li>'
+        )
+        .join('');
+    }
   }
 
   function renderStageDonut() {

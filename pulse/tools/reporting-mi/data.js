@@ -69,13 +69,16 @@
   /* Intelligence briefing publishes £2.18m weighted — keep that published MI figure */
   const etfWeightedK = 2180;
 
-  const network = {
+  const presence = {
+    markets: 51,
     year: 2025,
-    liveTotal: 273276093,
-    countries: 51,
-    corridors: 321,
-    mappedPct: 97.9,
-    interCountryVol: 109780526,
+  };
+
+  const products = {
+    live: 6,
+    names: ['Order Routing', 'ETF Servicing', 'Settlements', 'Data Services', 'Distribution', 'Reporting'],
+    winRatePct: 34,
+    activeClients: 1075,
   };
 
   const presenceMarkets = [
@@ -92,6 +95,8 @@
     { iso: 'ESP', name: 'Spain', valueLabel: '€5.9m ARR', arrMGbp: 5.0, sales: 'Camille Renard · Paris' },
     { iso: 'AUS', name: 'Australia', valueLabel: 'A$4.8m ARR', arrMGbp: 2.5, sales: 'Tom Riley · Sydney' },
   ];
+
+  const presenceArrTotalM = Math.round(presenceMarkets.reduce((s, m) => s + m.arrMGbp, 0) * 10) / 10;
 
   const clientHotspots = [
     { city: 'London', clients: 142, color: '#9F1239', iso: 'GBR', band: 'Highest' },
@@ -117,10 +122,17 @@
     opportunities.filter((d) => d.stage === stage).reduce((s, d) => s + d.valueM, 0)
   );
 
-  /* Simulated ARR trend (£m) — directionally consistent with presence rollup */
+  /* Presence ARR trend (£m equiv.) — realistic ups/downs, not a straight climb */
   const arrTrend = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-    series: [168, 172, 175, 179, 184, 188, 192, 196, 201],
+    series: [152.4, 158.1, 154.6, 161.2, 169.8, 165.3, 172.0, 168.7, 176.0],
+    events: [
+      { month: 'Mar', y: 154.6, label: 'UK platform churn', tone: 'down' },
+      { month: 'May', y: 169.8, label: 'Poland market entry', tone: 'up' },
+      { month: 'Jun', y: 165.3, label: 'FX / euro drag', tone: 'down' },
+      { month: 'Jul', y: 172.0, label: 'Berlin coverage live', tone: 'up' },
+      { month: 'Sep', y: 176.0, label: 'ETF Servicing expansion', tone: 'up' },
+    ],
   };
 
   global.PHAERON_MI = {
@@ -135,9 +147,12 @@
     etfWeightedK,
     etfWeightedLabel: '£' + (etfWeightedK / 1000).toFixed(2) + 'm',
     etfDealCount: etfPipeline.length,
-    network,
+    presence,
+    products,
+    presenceArrTotalM,
+    presenceArrLabel: '£' + presenceArrTotalM.toFixed(1) + 'm',
     presenceMarkets,
-    presenceMarketCount: network.countries,
+    presenceMarketCount: presence.markets,
     clientHotspots,
     stageOrder,
     stageValuesM,

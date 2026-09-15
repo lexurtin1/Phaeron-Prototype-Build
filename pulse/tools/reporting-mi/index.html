@@ -29,7 +29,7 @@
   <main class="mi-main">
     <div class="px-1 pt-4 pb-2">
       <h1 class="text-2xl font-bold text-gray-900">Management overview</h1>
-      <p class="mt-1 text-sm text-gray-500">Pipeline, presence, and network KPIs for Phaeron — funds industry MI.</p>
+      <p class="mt-1 text-sm text-gray-500">Pipeline, presence, and product KPIs for Phaeron — funds industry MI.</p>
     </div>
 
     <!-- KPI strip -->
@@ -41,16 +41,16 @@
         <p class="mt-2 text-sm font-medium mi-kpi-delta">Aligned with Opportunities module</p>
       </div>
       <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
-        <p class="text-sm font-medium text-gray-500">Presence markets</p>
-        <p id="kpi-markets" class="mt-2 text-3xl font-bold text-gray-900">—</p>
-        <p id="kpi-markets-sub" class="mt-1 text-sm text-gray-500">—</p>
-        <p class="mt-2 text-sm font-medium text-primary-700">Market Presence globe</p>
+        <p class="text-sm font-medium text-gray-500">Presence ARR</p>
+        <p id="kpi-arr" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-arr-sub" class="mt-1 text-sm text-gray-500">—</p>
+        <p class="mt-2 text-sm font-medium text-primary-700">Top markets roll-up</p>
       </div>
       <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
-        <p class="text-sm font-medium text-gray-500">Network volume</p>
-        <p id="kpi-volume" class="mt-2 text-3xl font-bold text-gray-900">—</p>
-        <p id="kpi-volume-sub" class="mt-1 text-sm text-gray-500">—</p>
-        <p class="mt-2 text-sm font-medium text-primary-700">Live order flow</p>
+        <p class="text-sm font-medium text-gray-500">Products live</p>
+        <p id="kpi-products" class="mt-2 text-3xl font-bold text-gray-900">—</p>
+        <p id="kpi-products-sub" class="mt-1 text-sm text-gray-500">—</p>
+        <p class="mt-2 text-sm font-medium text-primary-700">Core product set</p>
       </div>
       <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
         <p class="text-sm font-medium text-gray-500">ETF weighted pipeline</p>
@@ -65,10 +65,11 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-lg font-semibold text-gray-900">Presence ARR trend</h3>
-            <p class="text-sm text-gray-500">£m equivalent · leadership view</p>
+            <p class="text-sm text-gray-500">£m equivalent · with market events</p>
           </div>
         </div>
         <div id="mi-arr-chart"></div>
+        <ul id="mi-arr-events" class="mi-arr-events" aria-label="ARR trend events"></ul>
       </div>
       <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
         <h3 class="mb-1 text-lg font-semibold text-gray-900">Pipeline by stage</h3>
