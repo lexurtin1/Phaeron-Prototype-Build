@@ -9,17 +9,6 @@ export function PulseHeader() {
           <span className="module-chrome-divider" aria-hidden />
           <span className="module-chrome-title">Pulse</span>
         </div>
-        <a href="/tools/system-architecture/index.html" className="module-chrome-arch">
-          System Architecture
-        </a>
-      </div>
-
-      <div className="ph-search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <circle cx="11" cy="11" r="7" stroke="#9aa6b0" strokeWidth="2" />
-          <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#9aa6b0" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <input type="search" placeholder="Search workspaces, accounts, markets…" aria-label="Search" />
       </div>
 
       <div className="module-chrome-right">

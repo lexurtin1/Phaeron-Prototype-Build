@@ -313,6 +313,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .network-vis{
   width:100%;max-width:280px;margin:8px auto 4px;
   display:flex;align-items:center;justify-content:center;
+  min-height:140px;
 }
 .network-vis .brand-mark{
   width:min(220px,70%);
@@ -321,6 +322,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   mix-blend-mode:multiply;
   opacity:0.92;
 }
+#intel-empty-orb{
+  display:grid;
+  place-items:center;
+  width:160px;
+  height:160px;
+  line-height:0;
+}
+#intel-empty-orb canvas,
+.intel-chat-orb canvas{
+  display:block;
+  transform:scale(2.1);
+  transform-origin:center;
+}
+.intel-chat-orb{display:grid;place-items:center;line-height:0}
 /* source toggle colour coding */
 .ctx-toggle[data-ctx="Salesforce"].on{background:#1B3A6B;border-color:#1B3A6B}
 .ctx-toggle[data-ctx="Contracts"].on{background:#22323D;border-color:#22323D}
@@ -329,6 +344,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .ctx-toggle[data-ctx="Billing"].on{background:#5B7AAB;border-color:#5B7AAB}
 .ctx-toggle[data-ctx="Procedures"].on{background:#566571;border-color:#566571}
 .network-vis .brand-mark{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .35s both}
+#intel-empty-orb{animation:fadeScaleUp .55s cubic-bezier(.34,1.56,.64,1) .35s both}
 
 /* suggest chips */
 .chips-area{width:100%;max-width:540px;margin-top:20px}
@@ -753,6 +769,7 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 <body>
 <div id="pulse-react-chrome" data-title="Phaeron Intelligence"></div>
 <script src="/ui/islands/load-chrome.js"></script>
+<script src="/ui/islands/load-intelligence.js"></script>
 <div class="app">
 
   <header class="topbar topbar-secondary">
@@ -789,11 +806,11 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
           <span class="chev"><i data-lucide="chevron-down"></i></span>
         </button>
         <div class="recent-list" id="recentList">
-          <button class="recent-item" data-hist="digitalTA"><i data-lucide="message-square"></i><span>Digital TA rollout status</span></button>
-          <button class="recent-item" data-hist="blackrock"><i data-lucide="message-square"></i><span>BlackRock billing &amp; renewal</span></button>
-          <button class="recent-item" data-hist="lng"><i data-lucide="message-square"></i><span>L&amp;G relationship review</span></button>
-          <button class="recent-item" data-hist="pipeline"><i data-lucide="message-square"></i><span>Q3 ETF pipeline weighting</span></button>
-          <button class="recent-item" data-hist="thailand"><i data-lucide="message-square"></i><span>Thailand network presence</span></button>
+          <button class="recent-item" data-hist="atlas"><i data-lucide="message-square"></i><span>Atlas Assistant status</span></button>
+          <button class="recent-item" data-hist="blackrock"><i data-lucide="message-square"></i><span>BlackRock billing model</span></button>
+          <button class="recent-item" data-hist="hotspots"><i data-lucide="message-square"></i><span>Client concentration hotspots</span></button>
+          <button class="recent-item" data-hist="pipeline"><i data-lucide="message-square"></i><span>Open Opportunities pipeline</span></button>
+          <button class="recent-item" data-hist="hl"><i data-lucide="message-square"></i><span>Hargreaves Lansdowne relationship</span></button>
         </div>
       </div>
       <div class="sidebar-foot">
@@ -825,9 +842,9 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
               <div class="empty-chat" id="emptyChat">
                 <div class="proto-badge"><span class="proto-dot"></span>Internal Prototype · Commercial Preview</div>
 
-                <!-- company brand -->
+                <!-- home ThinkingOrb -->
                 <div class="network-vis" id="networkVis" aria-hidden="true">
-                  <img class="brand-mark" src="/assets/phaeron-wordmark.png" alt="Phaeron" width="220" height="48" />
+                  <div id="intel-empty-orb"></div>
                 </div>
 
                 <h1>What would you like to know?</h1>
@@ -835,11 +852,11 @@ table.rep-table tbody tr:hover{background:var(--c-tint)}
 
                 <div class="chips-area">
                   <div class="chips-grid">
-                    <button class="suggest-chip" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
+                    <button class="suggest-chip" data-q="What's the status of Atlas Assistant?"><i data-lucide="sparkles"></i>What's the status of Atlas Assistant?</button>
                     <button class="suggest-chip" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
-                    <button class="suggest-chip chip-extra" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
-                    <button class="suggest-chip chip-extra" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this ISIN?</button>
-                    <button class="suggest-chip chip-extra" data-q="Give me a relationship snapshot for CTN 303"><i data-lucide="contact-round"></i>Relationship snapshot for CTN 303</button>
+                    <button class="suggest-chip chip-extra" data-q="Where is client concentration highest?"><i data-lucide="map-pin"></i>Where is client concentration highest?</button>
+                    <button class="suggest-chip chip-extra" data-q="Summarise our open Opportunities pipeline"><i data-lucide="briefcase"></i>Summarise our open Opportunities pipeline</button>
+                    <button class="suggest-chip chip-extra" data-q="Relationship status with Hargreaves Lansdowne"><i data-lucide="handshake"></i>Relationship status with Hargreaves Lansdowne</button>
                   </div>
                   <button class="chip-more-btn" id="chipMoreBtn">More examples →</button>
                 </div>
@@ -954,14 +971,14 @@ const now = ()=> new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2
 
 /* entrance animations handled via CSS @keyframes above */
 
-/* ───────────────────── empty-state brand mark ───────────────────── */
+/* ───────────────────── empty-state orb ───────────────────── */
 function animateNetwork(){
-  anime({targets:'.network-vis .brand-mark', scale:[0.92,1], opacity:[0,0.92], duration:520, delay:280, easing:'easeOutBack'});
+  anime({targets:'#intel-empty-orb', scale:[0.92,1], opacity:[0,1], duration:520, delay:280, easing:'easeOutBack'});
 }
 animateNetwork();
 
 function flashNodes(){
-  anime({targets:'.network-vis .brand-mark', scale:[1,1.04,1], duration:420, easing:'easeInOutSine'});
+  anime({targets:'#intel-empty-orb', scale:[1,1.04,1], duration:420, easing:'easeInOutSine'});
 }
 
 /* ───────────────────── chip expand ───────────────────── */
@@ -1039,11 +1056,11 @@ $('#recentHead').addEventListener('click',()=>{
 
 /* ───────────────────── historical chat loader ───────────────────── */
 const HISTORY = {
-  digitalTA:{ q:'What stage is Digital TA at?',          key:'digitalTA', stamp:'Yesterday, 14:32' },
-  blackrock: { q:'How are we charging BlackRock?',        key:'blackrock',  stamp:'Monday, 09:18'   },
-  lng:       { q:'Relationship status with Legal &amp; General', key:'lng', stamp:'Tuesday, 11:04' },
-  pipeline:  { q:'Q3 ETF pipeline weighting',             key:'pipeline',   stamp:'Wednesday, 16:51'},
-  thailand:  { q:'Thailand network presence',             key:'thailand',   stamp:'Thursday, 10:27' }
+  atlas:    { q:"What's the status of Atlas Assistant?", key:'atlas', stamp:'Yesterday, 14:32' },
+  blackrock:{ q:'How are we charging BlackRock?', key:'blackrock', stamp:'Monday, 09:18' },
+  hotspots: { q:'Where is client concentration highest?', key:'hotspots', stamp:'Tuesday, 11:04' },
+  pipeline: { q:'Summarise our open Opportunities pipeline', key:'pipeline', stamp:'Wednesday, 16:51' },
+  hl:       { q:'Relationship status with Hargreaves Lansdowne', key:'hl', stamp:'Thursday, 10:27' }
 };
 
 function loadChat(histKey){
@@ -1240,12 +1257,12 @@ function renderSources(sources){
    it is a classic script and the feature is a module. */
 function cannedKey(q){
   const t = q.toLowerCase();
-  if(/digital ta/.test(t)) return 'digitalTA';
+  if(/atlas assistant|atlas/.test(t)) return 'atlas';
   if(/blackrock/.test(t)) return 'blackrock';
+  if(/concentration|hotspot|london|berlin|paris/.test(t)) return 'hotspots';
+  if(/opportunit|pipeline|£14\.5|14\.5m/.test(t)) return 'pipeline';
+  if(/hargreaves|lansdowne|\bhl\b/.test(t)) return 'hl';
   if(/legal and general|legal & general|l&g|l & g/.test(t)) return 'lng';
-  if(/thailand/.test(t)) return 'thailand';
-  if(/goldman|isin/.test(t)) return 'isin';
-  if(/pipeline|etf/.test(t)) return 'pipeline';
   return null;
 }
 window.cannedKey = cannedKey;
@@ -1256,23 +1273,23 @@ function resolve(q){
 }
 
 const ANS = {
-  digitalTA:{
-    html:`<p>Here's the current status of <strong>Digital TA</strong>, pulled from the live Jira board and the latest product update.</p>
+  atlas:{
+    html:`<p>Here's the current status of <strong>Atlas Assistant</strong> — Phaeron Intelligence for company questions.</p>
     <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="git-branch"></i></div><div class="ic-titles"><div class="t">Digital TA</div><div class="s">Product · Transfer Agency modernisation</div></div><span class="pill green">In Build</span></div>
+      <div class="ic-head"><div class="ic-ico"><i data-lucide="sparkles"></i></div><div class="ic-titles"><div class="t">Atlas Assistant</div><div class="s">Product · Phaeron Intelligence</div></div><span class="pill green">Live</span></div>
       <div class="ic-grid">
-        <div class="ic-cell"><div class="lbl">Stage</div><div class="val">Phase 2 — Build &amp; Integration</div></div>
-        <div class="ic-cell"><div class="lbl">Owner</div><div class="val">David McGuiness (Product)</div></div>
-        <div class="ic-cell"><div class="lbl">Target GA</div><div class="val">Q4 FY26</div></div>
-        <div class="ic-cell"><div class="lbl">Pilot Clients</div><div class="val">3 confirmed</div></div>
+        <div class="ic-cell"><div class="lbl">Stage</div><div class="val">Commercial preview · internal</div></div>
+        <div class="ic-cell"><div class="lbl">Owner</div><div class="val">Product · Intelligence</div></div>
+        <div class="ic-cell"><div class="lbl">Coverage</div><div class="val">CRM · Billing · Presence · Pipeline</div></div>
+        <div class="ic-cell"><div class="lbl">Active users</div><div class="val lg">48</div></div>
       </div>
-      <div class="ic-foot"><i data-lucide="external-link"></i>DTA-412 · Settlement engine integration · updated 2 days ago</div>
+      <div class="ic-foot"><i data-lucide="external-link"></i>Atlas · company analyst · markets, clients, relationships</div>
     </div>
-    <p>The build is on track against the Q4 GA target. Two of three pilot clients have signed integration SoWs; the third is pending legal sign-off. The open risk is the NSCC batch-window dependency, currently flagged amber on the board.</p>`,
+    <p>Atlas is live for the commercial preview cohort. It answers from Salesforce, billing, contracts and presence data — not product-ops boards. Next milestone is broader EMEA rollout once the Opportunities and Presence packs are signed off.</p>`,
     sources:[
-      {system:'Jira',icon:'git-branch',title:'DTA-412 — Settlement engine integration',snippet:'Epic at 68% complete. 4 stories in progress, 1 blocked pending NSCC sandbox access.',time:'2 days ago'},
-      {system:'Procedures',icon:'book-open',title:'Digital TA — Product Brief v4',snippet:'Phase 2 covers build and integration of the digital transfer agency settlement layer.',time:'1 week ago'},
-      {system:'Salesforce',icon:'cloud',title:'Digital TA Pilot — Opportunities',snippet:'3 linked opportunities tagged "DTA Pilot". 2 at Closed Won, 1 at Negotiation.',time:'4 days ago'}
+      {system:'Jira',icon:'git-branch',title:'ATL-210 — Intelligence preview cohort',snippet:'48 internal users enabled. Feedback sprint closes Friday.',time:'2 days ago'},
+      {system:'Procedures',icon:'book-open',title:'Atlas Assistant — Product brief',snippet:'Company analyst for markets, clients, relationships and performance.',time:'1 week ago'},
+      {system:'Salesforce',icon:'cloud',title:'Atlas usage — pilot accounts',snippet:'Top intents: pipeline, billing, presence hotspots.',time:'Updated daily'}
     ]
   },
   blackrock:{
@@ -1280,18 +1297,72 @@ const ANS = {
     <div class="info-card">
       <div class="ic-head"><div class="ic-ico"><i data-lucide="receipt"></i></div><div class="ic-titles"><div class="t">BlackRock</div><div class="s">Billing · Enterprise tier</div></div><span class="pill green">Current</span></div>
       <div class="ic-grid">
-        <div class="ic-cell"><div class="lbl">Contract Tier</div><div class="val">Enterprise — Network + Data</div></div>
-        <div class="ic-cell"><div class="lbl">Pricing Model</div><div class="val">Per-message + annual platform fee</div></div>
+        <div class="ic-cell"><div class="lbl">Contract Tier</div><div class="val">Enterprise — Platform + Data</div></div>
+        <div class="ic-cell"><div class="lbl">Pricing Model</div><div class="val">Platform fee + usage bands</div></div>
         <div class="ic-cell"><div class="lbl">Current MRR</div><div class="val lg">£284k</div></div>
         <div class="ic-cell"><div class="lbl">Renewal Date</div><div class="val">31 Mar 2027</div></div>
       </div>
       <div class="ic-foot"><i data-lucide="file-text"></i>BlackRock — SLA Contract v3.2 · clause 4.1 (Charges)</div>
     </div>
-    <p>BlackRock sits on the Enterprise tier with a blended model: a fixed annual platform fee plus per-message routing charges that step down across volume bands. The contract auto-renews unless either party gives 90 days' notice, so the practical renewal-conversation window opens around <strong>December 2026</strong>.</p>`,
+    <p>BlackRock sits on the Enterprise tier with a blended model: a fixed annual platform fee plus usage charges that step down across volume bands. The contract auto-renews unless either party gives 90 days' notice, so the practical renewal-conversation window opens around <strong>December 2026</strong>.</p>`,
     sources:[
-      {system:'Contracts',icon:'file-text',title:'BlackRock — SLA Contract v3.2',snippet:'Clause 4.1: charges comprise an annual platform fee plus per-message routing fees on a banded schedule.',time:'Signed Apr 2024'},
-      {system:'Billing',icon:'receipt',title:'BlackRock — May invoice run',snippet:'Latest invoice £284,100. Per-message volume 11.2m, within band 3.',time:'3 weeks ago'},
+      {system:'Contracts',icon:'file-text',title:'BlackRock — SLA Contract v3.2',snippet:'Clause 4.1: annual platform fee plus banded usage charges.',time:'Signed Apr 2024'},
+      {system:'Billing',icon:'receipt',title:'BlackRock — May invoice run',snippet:'Latest invoice £284,100. Within band 3.',time:'3 weeks ago'},
       {system:'Salesforce',icon:'cloud',title:'BlackRock — Account record',snippet:'Renewal 31 Mar 2027. Account Owner: Ben Carew Gibbs. Health: Green.',time:'Updated weekly'}
+    ]
+  },
+  hotspots:{
+    html:`<p>Client concentration is strongest in <strong>London</strong>, then <strong>Berlin</strong> and <strong>Paris</strong> — matching the Market Presence heatmap.</p>
+    <div class="info-card">
+      <div class="ic-head"><div class="ic-ico"><i data-lucide="map-pin"></i></div><div class="ic-titles"><div class="t">Client concentration</div><div class="s">Market Presence · city heatmap</div></div><span class="pill green">Live</span></div>
+      <div class="ic-grid">
+        <div class="ic-cell"><div class="lbl">London</div><div class="val lg">142 clients</div></div>
+        <div class="ic-cell"><div class="lbl">Berlin</div><div class="val lg">118 clients</div></div>
+        <div class="ic-cell"><div class="lbl">Paris</div><div class="val">96 clients</div></div>
+        <div class="ic-cell"><div class="lbl">Presence markets</div><div class="val">51</div></div>
+      </div>
+      <div class="ic-foot"><i data-lucide="globe"></i>Density heatmap · crimson = highest concentration</div>
+    </div>
+    <p>London leads on client count; Berlin is the hottest continental cluster. Presence ARR across top markets sits around <strong>£176m</strong> equivalent. Open Market Presence for the full city list and briefing drawer.</p>`,
+    sources:[
+      {system:'PowerBI',icon:'bar-chart-3',title:'Client density by city',snippet:'London 142 · Berlin 118 · Paris 96 · Dublin 84 · Luxembourg 78.',time:'Updated daily'},
+      {system:'Salesforce',icon:'cloud',title:'Account geo roll-up',snippet:'EMEA concentration aligned with presence hotspot colours.',time:'Updated weekly'}
+    ]
+  },
+  pipeline:{
+    html:`<p>I've pulled the <strong>open Opportunities</strong> book — the same four deals as the Opportunities module.</p>
+    <div class="info-card">
+      <div class="ic-head"><div class="ic-ico"><i data-lucide="briefcase"></i></div><div class="ic-titles"><div class="t">Open Opportunities</div><div class="s">Salesforce · 4 deals</div></div><span class="pill green">Live</span></div>
+      <div class="ic-grid">
+        <div class="ic-cell"><div class="lbl">Total pipeline</div><div class="val lg">£14.5m</div></div>
+        <div class="ic-cell"><div class="lbl">Hargreaves Lansdowne</div><div class="val">£5.2m · Proposal Sent</div></div>
+        <div class="ic-cell"><div class="lbl">FNZ Group</div><div class="val">£4.8m · Negotiation</div></div>
+        <div class="ic-cell"><div class="lbl">Pershing + Transact</div><div class="val">£2.9m + £1.6m</div></div>
+      </div>
+      <div class="ic-foot"><i data-lucide="arrow-right"></i>Open Opportunities or Reporting → Pipeline for the full table</div>
+    </div>
+    <p>FNZ moved to Negotiation this week; HL remains the largest deal at Proposal Sent. Weighted pressure sits in Proposal and Negotiation — Discovery is only Transact at £1.6m.</p>`,
+    sources:[
+      {system:'Salesforce',icon:'cloud',title:'Opportunities — open book',snippet:'4 deals · £14.5m. Owner Alex Curtin on all four.',time:'Updated today'},
+      {system:'PowerBI',icon:'bar-chart-3',title:'Pipeline by stage',snippet:'Discovery £1.6m · Proposal Sent £8.1m · Negotiation £4.8m.',time:'Updated daily'}
+    ]
+  },
+  hl:{
+    html:`<p>Here's the relationship picture for <strong>Hargreaves Lansdowne</strong> — highest-value open opportunity.</p>
+    <div class="info-card">
+      <div class="ic-head"><div class="ic-ico"><i data-lucide="handshake"></i></div><div class="ic-titles"><div class="t">Hargreaves Lansdowne</div><div class="s">Opportunity · £5.2m</div></div><span class="pill amber">Proposal Sent</span></div>
+      <div class="ic-grid">
+        <div class="ic-cell"><div class="lbl">Owner</div><div class="val">Alex Curtin</div></div>
+        <div class="ic-cell"><div class="lbl">Stage</div><div class="val">Proposal Sent</div></div>
+        <div class="ic-cell"><div class="lbl">Next meeting</div><div class="val">Tue 1 Jul · 10:00</div></div>
+        <div class="ic-cell"><div class="lbl">Signal</div><div class="val lg">FCA review</div></div>
+      </div>
+      <div class="ic-foot"><i data-lucide="clipboard-list"></i>Proposal with COO · Granola notes confirm T+1 as a live concern</div>
+    </div>
+    <p>HL is the largest open deal. Shares moved on the FCA platform fee review — use cost and modernisation angles before the 1 July commercial review with the COO and procurement.</p>`,
+    sources:[
+      {system:'Salesforce',icon:'cloud',title:'HL — Opportunity £5.2m',snippet:'Proposal Sent. Owner Alex Curtin. Meeting Tue 1 Jul.',time:'3 days ago'},
+      {system:'Procedures',icon:'book-open',title:'Granola — COO briefing notes',snippet:'Internal champion confirmed. T+1 readiness raised as a priority.',time:'17 June'}
     ]
   },
   lng:{
@@ -1306,78 +1377,21 @@ const ANS = {
       </div>
       <div class="ic-foot"><i data-lucide="clipboard-list"></i>QBR notes · 3 open actions · next review scheduled</div>
     </div>
-    <p>The relationship is solid but flagged <strong>Watch</strong> this quarter: LGIM raised latency concerns on cross-border corridors at the last QBR, and a competitor approached them on data services. Worth a proactive check-in before the next review.</p>`,
+    <p>The relationship is solid but flagged <strong>Watch</strong> this quarter after latency concerns at the last QBR. Worth a proactive check-in before the next review.</p>`,
     sources:[
-      {system:'Salesforce',icon:'cloud',title:'LGIM — Account & activity',snippet:'Last activity QBR 12 days ago. 3 open tasks. Engagement score trending down from 81 to 72.',time:'Updated daily'},
-      {system:'Procedures',icon:'book-open',title:'LGIM QBR — Meeting notes',snippet:'Client raised latency on APAC corridors. Action: latency analysis owed by Phaeron this week.',time:'12 days ago'},
-      {system:'Contracts',icon:'file-text',title:'LGIM — Master Services Agreement',snippet:'Network + Transaction Management. Renewal Sept 2026.',time:'Signed 2022'}
-    ]
-  },
-  thailand:{
-    html:`<p>Here's Phaeron's <strong>Thailand</strong> presence, drawn from the network registry and partnerships log.</p>
-    <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="map-pin"></i></div><div class="ic-titles"><div class="t">Thailand</div><div class="s">Geographic presence · APAC</div></div><span class="pill green">Live</span></div>
-      <div class="ic-grid">
-        <div class="ic-cell"><div class="lbl">Live Products</div><div class="val">Order Routing, Settlements</div></div>
-        <div class="ic-cell"><div class="lbl">Local Headcount</div><div class="val">4 (Singapore-supported)</div></div>
-        <div class="ic-cell"><div class="lbl">Active Corridors</div><div class="val lg">7</div></div>
-        <div class="ic-cell"><div class="lbl">Key Partner</div><div class="val">2 local TAs</div></div>
-      </div>
-      <div class="ic-foot"><i data-lucide="network"></i>7 live corridors · APAC cluster · SG hub coverage</div>
-    </div>
-    <p>Thailand runs through the Singapore hub rather than a standalone office, with Order Routing and Settlements live across 7 corridors. There's an open opportunity to extend Data Services, contingent on local regulatory clarity around cross-border distribution.</p>`,
-    sources:[
-      {system:'PowerBI',icon:'bar-chart-3',title:'APAC Network — Corridor registry',snippet:'Thailand: 7 active corridors, 2 connected transfer agents, products Order Routing + Settlements.',time:'Updated monthly'},
-      {system:'Procedures',icon:'book-open',title:'APAC partnerships — Thailand',snippet:'Coverage provided from Singapore hub. Two local TA partners onboarded.',time:'2 months ago'}
-    ]
-  },
-  isin:{
-    html:`<p>Here's the fund / ISIN summary for the <strong>Goldman Sachs</strong> record matched to your query.</p>
-    <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="fingerprint"></i></div><div class="ic-titles"><div class="t">GS Global Equity Fund</div><div class="s">ISIN · LU1234567890</div></div><span class="pill green">Active</span></div>
-      <div class="ic-grid">
-        <div class="ic-cell"><div class="lbl">Relationship Manager</div><div class="val">Luke May</div></div>
-        <div class="ic-cell"><div class="lbl">Counterparties</div><div class="val">14 distributors</div></div>
-        <div class="ic-cell"><div class="lbl">Active Products</div><div class="val">Order Routing, Settlements</div></div>
-        <div class="ic-cell"><div class="lbl">30d Volume</div><div class="val lg">38,200</div></div>
-      </div>
-      <div class="ic-foot"><i data-lucide="fingerprint"></i>LU1234567890 · 14 counterparties routing live</div>
-    </div>
-    <p>This ISIN is actively routing with Goldman as the fund manager and Luke May as RM. 14 distributor counterparties transact against it, predominantly through Order Routing. No settlement exceptions flagged in the last 30 days.</p>`,
-    sources:[
-      {system:'Salesforce',icon:'cloud',title:'GS Global Equity — Fund record',snippet:'RM Luke May. 14 active counterparties. Products: Order Routing, Settlements.',time:'Updated daily'},
-      {system:'PowerBI',icon:'bar-chart-3',title:'ISIN LU1234567890 — Flow',snippet:'30-day routed volume 38,200 orders. No settlement exceptions.',time:'Updated hourly'}
-    ]
-  },
-  pipeline:{
-    html:`<p>I've pulled the <strong>ETF pipeline</strong> from the latest Salesforce opportunity export. Here's the headline; the full breakdown is best viewed as a report.</p>
-    <div class="info-card">
-      <div class="ic-head"><div class="ic-ico"><i data-lucide="bar-chart-2"></i></div><div class="ic-titles"><div class="t">ETF Servicing Pipeline</div><div class="s">Salesforce · 9 open opportunities</div></div><span class="pill green">Q3 FY26</span></div>
-      <div class="ic-grid">
-        <div class="ic-cell"><div class="lbl">Total Pipeline</div><div class="val lg">£4.62m</div></div>
-        <div class="ic-cell"><div class="lbl">Weighted</div><div class="val lg">£2.18m</div></div>
-        <div class="ic-cell"><div class="lbl">Open Opps</div><div class="val">9</div></div>
-        <div class="ic-cell"><div class="lbl">Avg Probability</div><div class="val">47%</div></div>
-      </div>
-      <div class="ic-foot"><i data-lucide="arrow-right"></i>Open Data Analysis → ETF Pipeline Analysis for the full report</div>
-    </div>
-    <p>ETF Servicing remains the dominant line at roughly <strong>48% of weighted pipeline</strong>. Switch to <strong>Data Analysis</strong> and run the ETF Pipeline Analysis template to see the full stage breakdown with probability-weighted revenue.</p>`,
-    sources:[
-      {system:'Salesforce',icon:'cloud',title:'SFDC Opportunity Export — Q3',snippet:'9 open ETF opportunities. Total £4.62m, weighted £2.18m across 5 stages.',time:'Exported today'},
-      {system:'PowerBI',icon:'bar-chart-3',title:'Pipeline dashboard — ETF',snippet:'ETF Servicing ≈48% of weighted pipeline; Order Routing ≈26%.',time:'Updated daily'}
+      {system:'Salesforce',icon:'cloud',title:'LGIM — Account & activity',snippet:'Last activity QBR 12 days ago. Engagement score 72.',time:'Updated daily'},
+      {system:'Procedures',icon:'book-open',title:'LGIM QBR — Meeting notes',snippet:'Client raised service latency. Analysis owed this week.',time:'12 days ago'}
     ]
   },
   generic:(q)=>({
-    html:`<p>I searched across all connected sources for <strong>"${esc(q)}"</strong> but couldn't pull a definitive answer yet.</p>
-    <div class="dev-note"><strong>Still in development</strong> — live query coverage is expanding. Right now I can answer a growing set of topics; anything outside that returns here for now.</div>
-    <p style="margin-top:12px;font-size:13px;color:var(--c-text-muted)">Try one of these questions I can answer today:</p>
+    html:`<p>I looked across CRM, billing, presence and pipeline for <strong>${q.replace(/</g,'&lt;')}</strong>.</p>
+    <p>Try one of these company questions:</p>
     <div class="inline-suggests">
-      <button class="inline-suggest" data-q="What stage is Digital TA at?"><i data-lucide="git-branch"></i>What stage is Digital TA at?</button>
+      <button class="inline-suggest" data-q="What's the status of Atlas Assistant?"><i data-lucide="sparkles"></i>What's the status of Atlas Assistant?</button>
       <button class="inline-suggest" data-q="How are we charging BlackRock?"><i data-lucide="receipt"></i>How are we charging BlackRock?</button>
-      <button class="inline-suggest" data-q="Relationship status with Legal &amp; General"><i data-lucide="handshake"></i>Relationship status with Legal &amp; General</button>
-      <button class="inline-suggest" data-q="Thailand network presence"><i data-lucide="map-pin"></i>Thailand network presence</button>
-      <button class="inline-suggest" data-q="Who is the RM for this Goldman ISIN?"><i data-lucide="fingerprint"></i>Who is the RM for this Goldman ISIN?</button>
-      <button class="inline-suggest" data-q="Q3 ETF pipeline weighting"><i data-lucide="bar-chart-2"></i>Q3 ETF pipeline weighting</button>
+      <button class="inline-suggest" data-q="Where is client concentration highest?"><i data-lucide="map-pin"></i>Where is client concentration highest?</button>
+      <button class="inline-suggest" data-q="Summarise our open Opportunities pipeline"><i data-lucide="briefcase"></i>Summarise our open Opportunities pipeline</button>
+      <button class="inline-suggest" data-q="Relationship status with Hargreaves Lansdowne"><i data-lucide="handshake"></i>Relationship status with Hargreaves Lansdowne</button>
     </div>`,
     sources:[]
   })
@@ -1385,13 +1399,13 @@ const ANS = {
 
 /* ───────────────────── DATA ANALYSIS ───────────────────── */
 const TEMPLATES = [
-  {id:'etf',name:'ETF Pipeline Analysis',icon:'trending-up',desc:'Analyses Salesforce pipeline by fund type, stage, AUM, and close probability.',input:'Salesforce Opportunity Export (.csv/.xlsx)'},
+  {id:'opps',name:'Opportunities Pipeline Analysis',icon:'briefcase',desc:'Analyses open Opportunities by stage, value and owner.',input:'Salesforce Opportunity Export (.csv/.xlsx)'},
   {id:'health',name:'Client Relationship Health',icon:'heart-pulse',desc:'Scores engagement, last contact, open actions and risk flags from account activity.',input:'Salesforce Account/Activity Export (.csv)'},
-  {id:'revenue',name:'Revenue by Product Line',icon:'pie-chart',desc:'MRR breakdown across Transaction Management, Digital TA, Network and Data Services.',input:'Billing Export (.csv/.xlsx)'},
+  {id:'revenue',name:'Revenue by Client Tier',icon:'pie-chart',desc:'MRR breakdown across Enterprise, Growth and Standard clients.',input:'Billing Export (.csv/.xlsx)'},
   {id:'jira',name:'Jira Sprint Summary',icon:'git-branch',desc:'Completed vs in-progress vs blocked, velocity, top blockers and team workload.',input:'Jira CSV Export (.csv)'},
-  {id:'flow',name:'Fund Flow Dashboard',icon:'waves',desc:'Net flow by fund, top 5 movers and flagged anomalies from PowerBI data.',input:'PowerBI CSV Export (.csv)'}
+  {id:'presence',name:'Presence ARR Dashboard',icon:'map-pin',desc:'Presence ARR and client concentration by market and city.',input:'Presence / CRM Export (.csv)'}
 ];
-let selectedTpl = 'etf';
+let selectedTpl = 'opps';
 
 function renderTemplates(){
   $('#tplList').innerHTML = TEMPLATES.map(t=>`
@@ -1422,15 +1436,10 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');fi
 $('#analyseBtn').addEventListener('click',runAnalysis);
 
 const PIPELINE = [
-  {name:'Vanguard — ETF Servicing EU',fund:'Equity',aum:920,stage:'Closing/Won',prob:90,value:840,close:'2026-07-18'},
-  {name:'iShares — APAC Settlement',fund:'Equity',aum:1340,stage:'Negotiation',prob:65,value:710,close:'2026-08-30'},
-  {name:'Amundi — Fixed Income ETF',fund:'Fixed Income',aum:610,stage:'Proposal',prob:45,value:520,close:'2026-09-22'},
-  {name:'State Street — Network EU',fund:'Multi-Asset',aum:780,stage:'Negotiation',prob:60,value:480,close:'2026-08-12'},
-  {name:'Invesco — ETF Data Services',fund:'Equity',aum:430,stage:'Proposal',prob:40,value:360,close:'2026-10-05'},
-  {name:'DWS Xtrackers — Routing',fund:'Fixed Income',aum:520,stage:'Discovery',prob:25,value:410,close:'2026-11-14'},
-  {name:'WisdomTree — Commodities',fund:'Commodity',aum:290,stage:'Discovery',prob:20,value:300,close:'2026-12-01'},
-  {name:'L&G — Index ETF Servicing',fund:'Equity',aum:680,stage:'Closing/Won',prob:85,value:560,close:'2026-07-29'},
-  {name:'Fidelity — Active ETF',fund:'Multi-Asset',aum:540,stage:'Proposal',prob:50,value:440,close:'2026-09-30'}
+  {name:'Hargreaves Lansdowne — Platform',fund:'Wealth',aum:145,stage:'Proposal Sent',prob:55,value:5200,close:'2026-07-01'},
+  {name:'FNZ Group — Connectivity',fund:'Platform',aum:210,stage:'Negotiation',prob:70,value:4800,close:'2026-09-30'},
+  {name:'Pershing — API Consolidation',fund:'Custody',aum:320,stage:'Proposal Sent',prob:50,value:2900,close:'2026-07-07'},
+  {name:'Transact — Network Discovery',fund:'Platform',aum:73,stage:'Discovery',prob:25,value:1600,close:'2026-07-03'}
 ];
 
 let charts={};
@@ -1453,16 +1462,16 @@ function renderReport(){
   const total = PIPELINE.reduce((a,b)=>a+b.value,0);
   const weighted = Math.round(PIPELINE.reduce((a,b)=>a+b.value*b.prob/100,0));
   const avgProb = Math.round(PIPELINE.reduce((a,b)=>a+b.prob,0)/PIPELINE.length);
-  const won = PIPELINE.filter(p=>p.stage==='Closing/Won').reduce((a,b)=>a+b.value,0);
-  const stages=['Discovery','Proposal','Negotiation','Closing/Won'];
+  const late = PIPELINE.filter(p=>p.stage==='Negotiation'||p.stage==='Proposal Sent').reduce((a,b)=>a+b.value,0);
+  const stages=['Discovery','Proposal Sent','Negotiation'];
   const stageW = stages.map(s=> Math.round(PIPELINE.filter(p=>p.stage===s).reduce((a,b)=>a+b.value*b.prob/100,0)));
 
   out.innerHTML = `
   <div class="report" id="report">
     <div class="rep-header" style="opacity:0">
       <div class="rh-meta">
-        <div class="rh-title">ETF Pipeline Analysis</div>
-        <div class="rh-sub">${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}<span class="sep">·</span>SFDC_Opportunity_Export_Q3.xlsx<span class="sep">·</span>9 opportunities</div>
+        <div class="rh-title">Opportunities Pipeline Analysis</div>
+        <div class="rh-sub">${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}<span class="sep">·</span>SFDC_Opportunity_Export.xlsx<span class="sep">·</span>4 opportunities</div>
       </div>
       <div class="rep-actions">
         <button class="rep-btn" id="expPdf"><i data-lucide="file-down"></i>Export PDF</button>
@@ -1472,7 +1481,7 @@ function renderReport(){
     </div>
 
     <div class="rep-section" style="opacity:0">
-      <div class="exec-summary">The Q3 ETF pipeline holds <strong>${fmtGBP(total)}</strong> across 9 open opportunities, with a probability-weighted value of <strong>${fmtGBP(weighted)}</strong>. ETF Servicing on equity funds dominates, and two late-stage deals (Vanguard, L&amp;G) account for the bulk of near-term expected revenue. Average win probability sits at <strong>${avgProb}%</strong>.</div>
+      <div class="exec-summary">The open Opportunities book holds <strong>${fmtGBP(total)}</strong> across 4 deals, with a probability-weighted value of <strong>${fmtGBP(weighted)}</strong>. Hargreaves Lansdowne and FNZ account for most of the book. Average win probability sits at <strong>${avgProb}%</strong>.</div>
     </div>
 
     <div class="rep-section">
@@ -1481,7 +1490,7 @@ function renderReport(){
         <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${total}" data-fmt="gbp">${fmtGBP(total)}</div><div class="k-lbl">Total Pipeline</div><div class="k-delta up"><i data-lucide="arrow-up"></i>12%</div></div>
         <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${weighted}" data-fmt="gbp">${fmtGBP(weighted)}</div><div class="k-lbl">Weighted Value</div><div class="k-delta up"><i data-lucide="arrow-up"></i>8%</div></div>
         <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${avgProb}" data-fmt="pct">${avgProb}%</div><div class="k-lbl">Avg Probability</div><div class="k-delta down"><i data-lucide="arrow-down"></i>3%</div></div>
-        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${won}" data-fmt="gbp">${fmtGBP(won)}</div><div class="k-lbl">Near-Term (Won)</div><div class="k-delta up"><i data-lucide="arrow-up"></i>21%</div></div>
+        <div class="kpi" style="opacity:0"><div class="k-val" data-raw="${late}" data-fmt="gbp">${fmtGBP(late)}</div><div class="k-lbl">Proposal + Negotiation</div><div class="k-delta up"><i data-lucide="arrow-up"></i>21%</div></div>
       </div>
     </div>
 
@@ -1496,12 +1505,12 @@ function renderReport(){
         <table class="rep-table" id="oppTable">
           <thead><tr>
             <th data-k="name" data-t="str"><span class="th-in">Opportunity<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="fund" data-t="str"><span class="th-in">Fund Type<i data-lucide="chevrons-up-down"></i></span></th>
+            <th data-k="fund" data-t="str"><span class="th-in">Segment<i data-lucide="chevrons-up-down"></i></span></th>
             <th data-k="stage" data-t="str"><span class="th-in">Stage<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="aum" data-t="num" class="num"><span class="th-in">AUM (£m)<i data-lucide="chevrons-up-down"></i></span></th>
+            <th data-k="aum" data-t="num" class="num"><span class="th-in">AUM (£bn)<i data-lucide="chevrons-up-down"></i></span></th>
             <th data-k="prob" data-t="num" class="num"><span class="th-in">Prob.<i data-lucide="chevrons-up-down"></i></span></th>
             <th data-k="value" data-t="num" class="num"><span class="th-in">Value (£k)<i data-lucide="chevrons-up-down"></i></span></th>
-            <th data-k="close" data-t="str" class="num"><span class="th-in">Close<i data-lucide="chevrons-up-down"></i></span></th>
+            <th data-k="close" data-t="str" class="num"><span class="th-in">Next date<i data-lucide="chevrons-up-down"></i></span></th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -1511,9 +1520,9 @@ function renderReport(){
     <div class="rep-section" style="opacity:0">
       <div class="rs-title">Flags &amp; Alerts</div>
       <div class="flags-card">
-        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Two Discovery-stage deals close this quarter</div><div class="fl-d">DWS Xtrackers and WisdomTree are at Discovery (20–25%) but carry close dates inside Q3 — timelines look optimistic.</div></div></div>
-        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Concentration risk in late stage</div><div class="fl-d">68% of near-term weighted value sits in just two opportunities (Vanguard, L&amp;G). Slippage on either materially moves the quarter.</div></div></div>
-        <div class="flag-row crit"><div class="fl-ic"><i data-lucide="octagon-alert"></i></div><div class="fl-txt"><div class="fl-h">Stale probability on Amundi</div><div class="fl-d">Amundi Fixed Income ETF probability unchanged for 6 weeks despite an advanced proposal — likely under-scored. Confirm with the RM.</div></div></div>
+        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">HL commercial review this week</div><div class="fl-d">Hargreaves Lansdowne (£5.2m, Proposal Sent) has a COO meeting on 1 July — FCA fee review is a live hook.</div></div></div>
+        <div class="flag-row warn"><div class="fl-ic"><i data-lucide="alert-triangle"></i></div><div class="fl-txt"><div class="fl-h">Concentration in two deals</div><div class="fl-d">HL and FNZ are ~69% of pipeline value. Slippage on either moves the quarter.</div></div></div>
+        <div class="flag-row crit"><div class="fl-ic"><i data-lucide="octagon-alert"></i></div><div class="fl-txt"><div class="fl-h">FNZ legal review still open</div><div class="fl-d">Negotiation is progressing, but the data-sharing clause needs to clear before the Q3 close target holds.</div></div></div>
       </div>
     </div>
 
@@ -1521,9 +1530,9 @@ function renderReport(){
       <div class="rs-title">AI Commentary</div>
       <div class="commentary">
         <div class="cm-head"><div class="cm-av">C</div><div class="cm-who">Phaeron Intelligence</div></div>
-        <p>The shape of this pipeline is healthy but <strong>top-heavy</strong>. Equity ETF Servicing is doing the heavy lifting, which is consistent with where Phaeron's volume-weighted share is strongest, but it also means the quarter's outcome hinges on a small number of late-stage deals converting on schedule.</p>
-        <p>The clearest action is to <strong>re-baseline the two Discovery-stage deals</strong> with Q3 close dates. Separately, Amundi looks under-scored: lifting it to a realistic probability would add roughly £100k of weighted value.</p>
-        <p>If Vanguard and L&amp;G both land on time, the quarter clears comfortably; the risk is timing, not demand.</p>
+        <p>This book matches the Opportunities module: four live deals, <strong>£14.5m</strong> total. Momentum is in Proposal and Negotiation; Transact is the only Discovery deal.</p>
+        <p>Prioritise the <strong>HL COO review</strong> and the <strong>FNZ legal unblock</strong>. Pershing is stable at Proposal Sent ahead of procurement on 7 July.</p>
+        <p>If HL and FNZ hold schedule, the quarter is in good shape — risk is conversion timing, not pipeline depth.</p>
       </div>
     </div>
   </div>`;
@@ -1595,7 +1604,7 @@ function buildOppTable(){
     const {k,dir}=sortState;
     rows.sort((a,b)=>typeof a[k]==='string'?dir*a[k].localeCompare(b[k]):dir*(a[k]-b[k]));
   }
-  const stageClass={'Discovery':'stage-disc','Proposal':'stage-prop','Negotiation':'stage-neg','Closing/Won':'stage-cw'};
+  const stageClass={'Discovery':'stage-disc','Proposal Sent':'stage-prop','Negotiation':'stage-neg','Closing/Won':'stage-cw'};
   tb.innerHTML=rows.map(r=>`
     <tr style="opacity:0">
       <td>${r.name}</td><td>${r.fund}</td>
@@ -1620,10 +1629,10 @@ function buildOppTable(){
 
 function wireReportButtons(){
   $('#expCsv').onclick=()=>{
-    const header=['Opportunity','Fund Type','Stage','AUM_m','Probability_pct','Value_k','Close Date'];
+    const header=['Opportunity','Segment','Stage','AUM_bn','Probability_pct','Value_k','Next Date'];
     const lines=[header.join(',')].concat(PIPELINE.map(p=>[`"${p.name}"`,p.fund,`"${p.stage}"`,p.aum,p.prob,p.value,p.close].join(',')));
     const blob=new Blob([lines.join('\n')],{type:'text/csv'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ETF_Pipeline_Analysis.csv'; a.click(); URL.revokeObjectURL(a.href);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Opportunities_Pipeline_Analysis.csv'; a.click(); URL.revokeObjectURL(a.href);
     toast('CSV exported');
   };
   $('#expPdf').onclick=()=>{ toast('Opening print dialog…'); setTimeout(()=>window.print(),300); };

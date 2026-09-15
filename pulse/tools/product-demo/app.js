@@ -189,14 +189,14 @@ function switchToOrderRouting() {
     const base=rad(g.angle);
     g.gx=CX+RING*Math.cos(base);g.gy=CY+RING*Math.sin(base);
     const tan=base+Math.PI/2;
-    g.nodes=[-1,0,1].map(k=>({role:g.role,x:g.gx+k*SPREAD*Math.cos(tan),y:g.gy+k*SPREAD*Math.sin(tan)}));
+    g.nodes=[-0.55,0.55].map(k=>({role:g.role,x:g.gx+k*SPREAD*Math.cos(tan),y:g.gy+k*SPREAD*Math.sin(tan)}));
   });
   const NODES=GROUPS.flatMap(g=>g.nodes);
   // Intra-group edges only — siloed islands, no cross-system mesh
   const INTRA=[];
   GROUPS.forEach(g=>{
-    const [a,b,c]=g.nodes;
-    INTRA.push([a,b],[b,c]);
+    const [a,b]=g.nodes;
+    if(a&&b) INTRA.push([a,b]);
   });
 
   let isAfter=false, hovered=null, autoMode=true, svgReady=false, inView=true;
@@ -237,33 +237,6 @@ function switchToOrderRouting() {
     opA.setAttribute('attributeName','opacity');
     opA.setAttribute('values',`0;${maxOp};${maxOp};0`);
     opA.setAttribute('keyTimes','0;0.12;0.85;1');
-    opA.setAttribute('dur',`${dur}s`);
-    opA.setAttribute('repeatCount','indefinite');
-    opA.setAttribute('begin',`${begin}s`);
-    pg.appendChild(opA);
-    parent.appendChild(pg);
-  }
-
-  function ellipseLoop(rx,ry,rev){
-    const sweep=rev?0:1;
-    return `M ${-rx} 0 A ${rx} ${ry} 0 1 ${sweep} ${rx} 0 A ${rx} ${ry} 0 1 ${sweep} ${-rx} 0`;
-  }
-
-  function addOrbitToken(parent,pathD,col,dur,begin,maxOp){
-    const pg=ns('g',{opacity:'0'});
-    const mot=document.createElementNS(svgNS,'animateMotion');
-    mot.setAttribute('path',pathD);
-    mot.setAttribute('dur',`${dur}s`);
-    mot.setAttribute('repeatCount','indefinite');
-    mot.setAttribute('begin',`${begin}s`);
-    mot.setAttribute('rotate','0');
-    pg.appendChild(mot);
-    pg.appendChild(ns('circle',{r:'6.5',fill:col}));
-    pg.appendChild(ns('circle',{r:'2.4',fill:'#fff',opacity:'0.95'}));
-    const opA=document.createElementNS(svgNS,'animate');
-    opA.setAttribute('attributeName','opacity');
-    opA.setAttribute('values',`0;${maxOp};${maxOp};0`);
-    opA.setAttribute('keyTimes','0;0.08;0.9;1');
     opA.setAttribute('dur',`${dur}s`);
     opA.setAttribute('repeatCount','indefinite');
     opA.setAttribute('begin',`${begin}s`);
@@ -337,7 +310,7 @@ function switchToOrderRouting() {
     GROUPS.forEach(g=>{
       const halo=ns('ellipse',{
         id:`hs-island-${g.role}`,
-        cx:g.gx,cy:g.gy,rx:86,ry:62,
+        cx:g.gx,cy:g.gy,rx:72,ry:48,
         fill:`url(#hs-island-${g.role}-grad)`,
       });
       halo.style.opacity=String(ISLAND_OP_BEFORE);
@@ -345,46 +318,10 @@ function switchToOrderRouting() {
     });
     svg.appendChild(islandG);
 
-    // Closed data ecosystems built here; appended after nodes so rings/tokens stay visible
+    // Placeholder eco group kept for transition code (no orbit rings)
     const ecoG=ns('g',{id:'hs-eco-g'});
-    ecoG.style.cssText='pointer-events:none;opacity:1';
-    GROUPS.forEach((g,gi)=>{
-      const col=swatch[g.role];
-      const rot=g.angle+90;
-      const eco=ns('g',{id:`hs-eco-${g.role}`,'data-role':g.role,transform:`translate(${g.gx},${g.gy}) rotate(${rot})`});
-
-      eco.appendChild(ns('ellipse',{
-        rx:'70',ry:'40',fill:col,'fill-opacity':'0.06',stroke:col,'stroke-width':'6',opacity:'0.18',
-      }));
-      eco.appendChild(ns('ellipse',{
-        id:`hs-orbit-${g.role}`,
-        rx:'70',ry:'40',fill:'none',stroke:col,'stroke-width':'2.2',
-        'stroke-dasharray':'6 8','stroke-linecap':'round',opacity:'0.82',
-      }));
-      eco.appendChild(ns('ellipse',{
-        rx:'50',ry:'28',fill:'none',stroke:col,'stroke-width':'1.5',
-        'stroke-dasharray':'3 6','stroke-linecap':'round',opacity:'0.48',
-      }));
-
-      const xs=[-SPREAD,0,SPREAD];
-      for(let i=0;i<2;i++){
-        const ln=ns('line',{x1:xs[i],y1:0,x2:xs[i+1],y2:0,stroke:col,'stroke-width':'2',opacity:'0.45'});
-        eco.appendChild(ln);
-      }
-
-      if(!reduceMotion){
-        const outer=ellipseLoop(70,40,false);
-        const inner=ellipseLoop(50,28,true);
-        const outerDur=3.4+gi*0.28;
-        const innerDur=4.6+gi*0.2;
-        for(let t=0;t<3;t++){
-          addOrbitToken(eco,outer,col,outerDur.toFixed(2),(t*outerDur/3).toFixed(2),0.95);
-        }
-        addOrbitToken(eco,inner,col,innerDur.toFixed(2),'0.35',0.8);
-      }
-
-      ecoG.appendChild(eco);
-    });
+    ecoG.style.cssText='pointer-events:none;opacity:0';
+    svg.appendChild(ecoG);
 
     // hub glow — hidden initially
     const glow=ns('circle',{id:'hs-hub-glow',cx:CX,cy:CY,r:145,fill:'url(#hg-bg-glow)'});
@@ -439,7 +376,6 @@ function switchToOrderRouting() {
       nodeG.appendChild(g);
     });
     svg.appendChild(nodeG);
-    svg.appendChild(ecoG); // orbits + tokens above nodes so ecosystems read clearly
 
     // labels
     const labelG=ns('g');
