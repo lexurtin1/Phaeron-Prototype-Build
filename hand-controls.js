@@ -533,7 +533,8 @@ function setStatus(text, icon) {
 
 /* ── UI construction ─────────────────────────────────────────────────────── */
 function buildUI() {
-  /* ---- Topbar toggle button ---- */
+  /* ---- Topbar / chrome Gestures button ---- */
+  const chromeSlot = document.getElementById('pulse-chrome-gestures');
   const topbar = document.querySelector('.topbar');
   const spacer = topbar?.querySelector('.spacer');
 
@@ -543,8 +544,13 @@ function buildUI() {
   btn.title     = 'Hand gesture globe control (requires webcam)';
   btn.textContent = '✋ Gestures';
 
-  if (spacer) topbar.insertBefore(btn, spacer);
-  else if (topbar) topbar.appendChild(btn);
+  if (chromeSlot) {
+    chromeSlot.appendChild(btn);
+  } else if (spacer) {
+    topbar.insertBefore(btn, spacer);
+  } else if (topbar) {
+    topbar.appendChild(btn);
+  }
 
   /* ---- Floating status panel ---- */
   const panel = document.createElement('div');
@@ -644,9 +650,28 @@ function buildUI() {
   });
 }
 
-/* ── Boot (classic script at end of <body> — DOM is already parsed) ─────── */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', buildUI);
-} else {
-  buildUI();
+/* ── Boot — wait for ModuleChrome gestures slot when present ─────────────── */
+function bootHandControls() {
+  const mount = () => {
+    if (document.getElementById('hcToggleBtn')) return;
+    buildUI();
+  };
+
+  const tryMount = (attempt = 0) => {
+    const wantsChrome = document.getElementById('pulse-react-chrome')?.getAttribute('data-gestures') === 'true';
+    const slot = document.getElementById('pulse-chrome-gestures');
+    if (!wantsChrome || slot || attempt > 40) {
+      mount();
+      return;
+    }
+    setTimeout(() => tryMount(attempt + 1), 50);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => tryMount());
+  } else {
+    tryMount();
+  }
 }
+
+bootHandControls();

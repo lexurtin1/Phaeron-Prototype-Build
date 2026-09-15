@@ -212,6 +212,9 @@ export const RADIAL_DESTINATIONS: NavDestination[] = [
   { id: 'intelligence', label: 'Phaeron Intelligence', href: INTELLIGENCE_HREF, icon: <IntelligenceIcon size={22} /> },
 ];
 
+/** Fan destinations (FAB itself is Home). */
+export const RADIAL_MODULE_DESTINATIONS: NavDestination[] = RADIAL_DESTINATIONS.filter((d) => d.id !== 'home');
+
 export const PULSE_NAV = [
   { label: 'Home', href: '/ui/' },
   { label: 'Opportunities', href: '/tools/account-tracker/index.html' },

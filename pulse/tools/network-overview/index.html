@@ -20,7 +20,7 @@ window._hsTimeline = createTimeline;
 </head>
 <body>
 
-<div id="pulse-react-chrome" data-title="Market Intelligence"></div>
+<div id="pulse-react-chrome" data-title="Market Intelligence" data-module="market-intelligence" data-view="presence" data-gestures="true"></div>
 <script src="/ui/islands/load-chrome.js"></script>
 
 <!-- Shared: Loader -->
@@ -33,7 +33,7 @@ window._hsTimeline = createTimeline;
 <div id="networkUI" style="display:none">
   <div class="hero" id="hero">
     <div class="count" id="heroCount">0<span class="unit">markets</span></div>
-    <div class="cap">with measurable network presence in 2025 — heat shows relative strength across <b id="heroCountries">—</b> countries (<b id="heroCorridors">—</b> active corridors mapped).</div>
+    <div class="cap">with Phaeron office presence highlighted — navy countries show where we are (<b id="heroCountries">—</b> markets · <b id="heroCorridors">—</b> corridors mapped).</div>
     <div class="meta">
       <div class="m"><div class="v" id="mInter">—</div><div class="k">Cross-border volume</div></div>
       <div class="m"><div class="v" id="mMapped">—</div><div class="k">Mapped coverage</div></div>
@@ -41,10 +41,9 @@ window._hsTimeline = createTimeline;
   </div>
   <div class="hint-net">drag · zoom · hover a country</div>
   <div class="net-legend">
-    <h4>Market presence · country heat</h4>
-    <div class="legrow"><span class="gradline-net thin"></span> Lighter presence</div>
-    <div class="legrow"><span class="gradline-net"></span> Stronger presence</div>
-    <div class="legrow"><span class="nodemark" style="opacity:.35"></span> No mapped presence</div>
+    <h4>Phaeron presence</h4>
+    <div class="legrow"><span class="nodemark" style="background:#1B3A6B"></span> Phaeron presence</div>
+    <div class="legrow"><span class="nodemark" style="opacity:.35"></span> No office / not mapped</div>
     <div class="legdiv"></div>
     <div class="legnote" id="legnote"></div>
   </div>
@@ -83,29 +82,26 @@ window._hsTimeline = createTimeline;
   <div class="sett-tooltip" id="settTooltip"></div>
 </div>
 
-<!-- Secondary toolbar (below ModuleChrome) -->
-<header class="topbar">
-  <div class="view-label" id="topbarSub">Market Presence · 2025</div>
-  <div id="pulse-module-subnav" data-module="market-intelligence" data-view="presence" data-layout="inline"></div>
-  <div class="spacer"></div>
-  <!-- Research-only controls (hidden in network mode) -->
-  <div id="researchTopbarControls" style="display:none;align-items:center;gap:12px;flex-wrap:wrap">
-    <div class="search-wrap">
-      <span class="ico">⌕</span>
-      <input id="search" type="text" placeholder="Search market…" autocomplete="off" />
-      <div class="suggestions" id="suggestions"></div>
-    </div>
-    <div class="mode-seg" id="modeSeg">
-      <button data-mode="opportunity" class="active">Opportunity</button>
-      <button data-mode="hub">Hub Maturity</button>
-      <button data-mode="automation">Automation</button>
-      <button data-mode="classification">Classification</button>
-    </div>
-    <button class="btn-ghost" id="filterBtn"><span>Filters</span><span class="badge" id="filterBadge" style="display:none">0</span></button>
-    <button class="btn-ghost" id="saveBtn" title="Download a backup of all your country data">Save backup</button>
-    <button class="btn-ghost" id="loadBtn" title="Load a previously saved backup file">Load backup</button>
+<!-- Hidden subtitle target kept for mode-switch JS -->
+<div id="topbarSub" hidden>Market Presence · 2025</div>
+
+<!-- Research-only floating controls (visible in research mode) -->
+<div id="researchTopbarControls" class="research-float-controls" style="display:none">
+  <div class="search-wrap">
+    <span class="ico">⌕</span>
+    <input id="search" type="text" placeholder="Search market…" autocomplete="off" />
+    <div class="suggestions" id="suggestions"></div>
   </div>
-</header>
+  <div class="mode-seg" id="modeSeg">
+    <button data-mode="opportunity" class="active">Opportunity</button>
+    <button data-mode="hub">Hub Maturity</button>
+    <button data-mode="automation">Automation</button>
+    <button data-mode="classification">Classification</button>
+  </div>
+  <button class="btn-ghost" id="filterBtn"><span>Filters</span><span class="badge" id="filterBadge" style="display:none">0</span></button>
+  <button class="btn-ghost" id="saveBtn" title="Download a backup of all your country data">Save backup</button>
+  <button class="btn-ghost" id="loadBtn" title="Load a previously saved backup file">Load backup</button>
+</div>
 
 <!-- Research Mode UI (hidden in network mode) -->
 <div id="researchUI" style="display:none">
@@ -163,39 +159,21 @@ window._hsTimeline = createTimeline;
   <div class="hint">drag to rotate · scroll to zoom · click a market for the snapshot</div>
 </div>
 
-<!-- ===== OFFICE LAYER TOGGLE PANEL (visible in both globe modes) ===== -->
-<!-- To use actual PNGs: place phaeron-logo.png and ssc-logo.png in the project folder -->
-<!-- and replace the .olp-brand / .olp-ssc-wrap divs with <img src="..." class="olp-logo"> -->
+<!-- ===== OFFICE LAYER TOGGLE PANEL (Phaeron offices) ===== -->
 <div class="office-layer-panel" id="officeLayerPanel"
      role="region" aria-label="Office location layers">
   <div class="olp-head">Office Locations</div>
 
-  <!-- Phaeron row -->
   <div class="olp-row">
     <label class="switch" title="Toggle Phaeron offices">
-      <input type="checkbox" id="toggleCalastone"
+      <input type="checkbox" id="toggleCalastone" checked
              aria-label="Show Phaeron offices">
       <span class="track"></span>
     </label>
     <span class="olp-dot" style="background:#9F1239"></span>
     <div class="olp-brand">
       <span class="olp-brand-name" style="color:#1B3A6B">PHAERON</span>
-      <span class="olp-brand-sub">An SS&amp;C Company</span>
-    </div>
-  </div>
-
-  <!-- SS&C row -->
-  <div class="olp-row">
-    <label class="switch" title="Toggle SS&amp;C offices">
-      <input type="checkbox" id="toggleSSC"
-             aria-label="Show SS&amp;C offices">
-      <span class="track" style="--sw-chk:#1b7fc4"></span>
-    </label>
-    <span class="olp-dot" style="background:#1b7fc4"></span>
-    <div class="olp-ssc-wrap">
-      <span class="olp-ssc-text">SS</span>
-      <span class="olp-ssc-bar"></span>
-      <span class="olp-ssc-text">&amp;C</span>
+      <span class="olp-brand-sub">Office examples</span>
     </div>
   </div>
 </div>

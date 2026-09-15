@@ -23,7 +23,34 @@
   align-items: center;
   gap: 16px;
   min-width: 0;
-  flex: 1;
+  flex: 0 1 auto;
+}
+
+.module-chrome-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: visible;
+}
+
+.pulse-module-subnav--chrome {
+  position: relative;
+  top: auto;
+  right: auto;
+  z-index: 1;
+}
+
+.chrome-gestures-slot {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.chrome-gestures-slot:empty {
+  display: none;
 }
 
 .module-chrome-brand {
@@ -107,22 +134,30 @@
   z-index: 3;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(27, 58, 107, 0.18);
+  border: 1px solid rgba(47, 82, 133, 0.45);
   border-radius: 50%;
-  background: #0C1A2E;
+  background: #1B3A6B;
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 8px 24px -10px rgba(12, 26, 46, 0.55);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  text-decoration: none;
+  box-shadow:
+    0 0 0 3px rgba(47, 82, 133, 0.18),
+    0 0 22px rgba(47, 82, 133, 0.45),
+    0 10px 24px -10px rgba(27, 58, 107, 0.55);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
 .radial-nav-fab:hover {
   transform: scale(1.04);
-  box-shadow: 0 12px 28px -10px rgba(12, 26, 46, 0.6);
+  background: #2F5285;
+  box-shadow:
+    0 0 0 4px rgba(47, 82, 133, 0.22),
+    0 0 28px rgba(47, 82, 133, 0.55),
+    0 12px 28px -10px rgba(27, 58, 107, 0.6);
 }
 
 .radial-nav.is-open .radial-nav-fab {
-  background: #1B3A6B;
+  background: #2F5285;
 }
 
 .radial-nav-items {
@@ -184,6 +219,31 @@
   overflow: visible;
 }
 
+.chrome-gestures-slot .gm-btn {
+  background: #fff;
+  border: 1px solid #dde4ea;
+  border-radius: 8px;
+  color: #566571;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.chrome-gestures-slot .gm-btn:hover {
+  color: #0C1A2E;
+  border-color: #1B3A6B;
+}
+
+.chrome-gestures-slot .gm-btn.active {
+  color: #fff;
+  background: #1B3A6B;
+  border-color: #1B3A6B;
+}
+
 @media (max-width: 860px) {
   .module-chrome {
     padding: 0 14px;
@@ -201,6 +261,10 @@
   }
 
   .module-chrome-arch {
+    display: none;
+  }
+
+  .module-chrome-center {
     display: none;
   }
 }

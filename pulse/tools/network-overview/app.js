@@ -184,8 +184,8 @@ const LEGENDS = {
 
 let MODE='opportunity', world=null, globe=null, selectedISO=null;
 const FILTERS={region:'',cls:'',hub:'',tier:'',net:'',highopp:false};
-let officeLayerCalastone = false, officeLayerSSC = false;
-let CALASTONE_ISO3 = new Set(), SSC_ISO3 = new Set();
+let officeLayerCalastone = true;
+let CALASTONE_ISO3 = new Set();
 
 function toggleActiveClass(id, isActive, className='active'){
   const el=document.getElementById(id);
@@ -212,15 +212,11 @@ function hexA(hex,a){const h=hex.replace('#','');return`rgba(${parseInt(h.slice(
 
 function officeHeatmapColor(f){
   const iso=featISO(f);
-  const inCal=officeLayerCalastone&&iso&&CALASTONE_ISO3.has(iso);
-  const inSSC=officeLayerSSC&&iso&&SSC_ISO3.has(iso);
-  if(inCal&&inSSC)return hexA('#00C4A7',0.88);
-  if(inCal)return hexA('#9F1239',0.88);
-  if(inSSC)return hexA('#1b7fc4',0.88);
-  return 'rgba(214,224,232,0.92)';
+  if(iso&&CALASTONE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
+  return 'rgba(214,224,232,0.88)';
 }
 function polyCapColor(f){
-  if(officeLayerCalastone||officeLayerSSC)return officeHeatmapColor(f);
+  if(officeLayerCalastone)return officeHeatmapColor(f);
   const rec=recordFor(f);
   if(!passesFilters(rec)) return 'rgba(190,205,216,0.30)';
   if(!rec) return 'rgba(205,216,225,0.70)';
@@ -865,7 +861,11 @@ let ctrl = null;   // globe.js OrbitControls reference
 const netCstops=[[0,[11,121,174]],[0.4,[27,150,170]],[0.72,[38,160,140]],[1,[105,160,103]]];
 function netArcRGB(t){t=Math.max(0,Math.min(1,t));for(let i=0;i<netCstops.length-1;i++){const[p0,c0]=netCstops[i],[p1,c1]=netCstops[i+1];if(t>=p0&&t<=p1){const u=(t-p0)/(p1-p0);return[Math.round(c0[0]+(c1[0]-c0[0])*u),Math.round(c0[1]+(c1[1]-c0[1])*u),Math.round(c0[2]+(c1[2]-c0[2])*u)];}}return netCstops[3][1];}
 function netArcColor(d){const maxArc=window.CALASTONE_FLOWS.meta.maxArc;const[r,g,b]=netArcRGB(Math.sqrt(d.orders/maxArc));return `rgba(${r},${g},${b},${0.45+0.45*Math.sqrt(d.orders/maxArc)})`;}
-function netLandColor(f){const n=netNodeById[f.properties.iso2];if(!n)return 'rgba(214,224,232,0.92)';const maxNode=window.CALASTONE_FLOWS.meta.maxNode;const t=Math.pow(n.total/maxNode,0.4);const[r,g,b]=netArcRGB(t);const base=[233,242,247],k=0.2+0.8*t;let cr=base[0]+(r-base[0])*k,cg=base[1]+(g-base[1])*k,cb=base[2]+(b-base[2])*k;const dark=1-0.42*t;return `rgba(${Math.round(cr*dark)},${Math.round(cg*dark)},${Math.round(cb*dark)},0.96)`;}
+function netLandColor(f){
+  const iso=featISO(f);
+  if(iso&&CALASTONE_ISO3.has(iso))return 'rgba(27,58,107,0.92)';
+  return 'rgba(214,224,232,0.88)';
+}
 
 const fmtNet=n=>n.toLocaleString('en-GB');
 const fmtShort=n=>n>=1e9?(n/1e9).toFixed(2)+'bn':n>=1e6?(n/1e6).toFixed(1)+'m':n>=1e3?(n/1e3).toFixed(0)+'k':''+n;
@@ -894,7 +894,7 @@ function switchToNetwork(){
   toggleActiveClass('globeSwitchNetwork', true);
   toggleActiveClass('globeSwitchResearch', false);
   toggleActiveClass('globeSwitchHubSpoke', false);
-  document.getElementById('topbarSub').textContent='Market Presence · 2025';
+  const _tb=document.getElementById('topbarSub');if(_tb)_tb.textContent='Market Presence · 2025';
   hideNetTip();hideSettTip();document.body.style.cursor='';
   const DATA=window.CALASTONE_FLOWS;const maxArc=DATA.meta.maxArc,maxNode=DATA.meta.maxNode;
   try{const m=globe.globeMaterial();if(m.color&&m.color.set)m.color.set('#eef5f9');if(m.emissive&&m.emissive.set){m.emissive.set('#e8f1f6');m.emissiveIntensity=0.85;}if('shininess'in m)m.shininess=0;m.needsUpdate=true;}catch(e){}
@@ -903,7 +903,7 @@ function switchToNetwork(){
     .pointsData([]).pointLat(d=>d.lat).pointLng(d=>d.lng).pointColor(()=>'#0b79ae').pointAltitude(0.008).pointRadius(d=>0.28+1.0*Math.sqrt(d.total/maxNode)).pointResolution(14)
     .labelsData([]).labelLat(d=>d.lat).labelLng(d=>d.lng).labelText(d=>d.name).labelSize(0.9).labelDotRadius(0).labelColor(()=>'rgba(11,121,174,0.9)').labelResolution(2).labelAltitude(0.012)
     .arcsData([]).arcStartLat(d=>d.startLat).arcStartLng(d=>d.startLng).arcEndLat(d=>d.endLat).arcEndLng(d=>d.endLng).arcColor(d=>netArcColor(d)).arcStroke(d=>0.18+1.5*Math.sqrt(d.orders/maxArc)).arcAltitudeAutoScale(0.5).arcDashLength(0.45).arcDashGap(0.6).arcDashInitialGap(()=>Math.random()).arcDashAnimateTime(d=>Math.max(1400,5200-3600*Math.sqrt(d.orders/maxArc))).arcsTransitionDuration(0)
-    .onPolygonHover(f=>{if(officeLayerCalastone||officeLayerSSC){hideNetTip();document.body.style.cursor='';return;}const n=f&&netNodeById[f.properties.iso2];document.body.style.cursor=n?'pointer':'';globe.polygonAltitude(ff=>ff===f&&n?0.02:0.006);if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
+    .onPolygonHover(f=>{const iso=f&&featISO(f);const present=iso&&CALASTONE_ISO3.has(iso);document.body.style.cursor=present?'pointer':'';globe.polygonAltitude(ff=>ff===f&&present?0.02:0.006);if(present){const n=netNodeById[f.properties.iso2];if(n)netNodeTip(n);else{const tip=document.getElementById('netTooltip');tip.innerHTML=`<div class="tt-route">${f.properties.name||'Market'}</div><div class="tt-sub">Phaeron office presence</div>`;tip.style.opacity=1;posNetTip();}if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
     .onPolygonClick(null).onPointHover(n=>{document.body.style.cursor=n?'pointer':'';if(n){netNodeTip(n);if(ctrl)ctrl.autoRotate=false;}else{hideNetTip();if(ctrl&&netSpin)ctrl.autoRotate=true;}})
     .onArcHover(null);
   if(ctrl&&netSpin)ctrl.autoRotate=true;
@@ -922,7 +922,7 @@ function switchToResearch(){
   toggleActiveClass('globeSwitchNetwork', false);
   toggleActiveClass('globeSwitchResearch', true);
   toggleActiveClass('globeSwitchHubSpoke', false);
-  document.getElementById('topbarSub').textContent='Global Order-Routing Atlas';
+  const _tb=document.getElementById('topbarSub');if(_tb)_tb.textContent='Global Order-Routing Atlas';
   hideNetTip();hideSettTip();document.body.style.cursor='';
   try{const m=globe.globeMaterial();if(m.color&&m.color.set)m.color.set('#eaf1f6');if(m.emissive&&m.emissive.set){m.emissive.set('#dce8f0');m.emissiveIntensity=0.4;}if('shininess'in m)m.shininess=0.5;m.needsUpdate=true;}catch(e){}
   globe.showAtmosphere(true).atmosphereColor('#7fb8d8').atmosphereAltitude(0.16)
@@ -986,13 +986,14 @@ function init(){
   // Start in network mode
   switchToNetwork();
 
-  // Presence heatmap stats (country heat — no corridor arcs)
-  document.getElementById('heroCountries').textContent=DATA.meta.countries;
+  // Presence heatmap stats — Phaeron office countries
+  document.getElementById('heroCountries').textContent=String(CALASTONE_ISO3.size||DATA.meta.countries);
   document.getElementById('heroCorridors').textContent=DATA.meta.corridors;
   document.getElementById('mInter').textContent=fmtShort(DATA.meta.interCountryVol);
   document.getElementById('mMapped').textContent=DATA.meta.mappedPct+'%';
-  document.getElementById('legnote').textContent=`${DATA.meta.countries} countries · ${fmtShort(DATA.meta.liveTotal)} orders underpin heat · corridors not drawn`;
-  netCountUp(DATA.meta.countries);
+  const leg=document.getElementById('legnote');
+  if(leg)leg.textContent=`${CALASTONE_ISO3.size} Phaeron office countries · markers show city examples`;
+  netCountUp(CALASTONE_ISO3.size||DATA.meta.countries);
 
   // Research mode ready
   renderLegend();initFilters();afterFilter();
@@ -1019,8 +1020,8 @@ function init(){
 /* Research mode polygon handlers, chat bot, and ISO mapping */
 let hoverFeat=null;
 function handleHover(f,prev){if(prev)prev.__hover=false;if(hoverFeat&&hoverFeat!==f)hoverFeat.__hover=false;hoverFeat=f;document.getElementById('globeViz').style.cursor=f?'pointer':'grab';if(f)f.__hover=true;refreshGlobe();if(!f)hideTooltip();}
-document.getElementById('globeViz').addEventListener('mousemove',e=>{if(hoverFeat&&!officeLayerCalastone&&!officeLayerSSC)showTooltip(hoverFeat,e.clientX,e.clientY);else hideTooltip();});
-function handleClick(f){if(!f)return;if(officeLayerCalastone||officeLayerSSC)return;selectedISO=featISO(f);const c=centroid(f);if(c)globe.pointOfView({lat:c.lat,lng:c.lng,altitude:1.7},1100);refreshGlobe();openDrawer(f);if(EDIT_MODE)console.log('Record:',recordFor(f)||('No profile for '+featISO(f)));}
+document.getElementById('globeViz').addEventListener('mousemove',e=>{if(hoverFeat&&!officeLayerCalastone)showTooltip(hoverFeat,e.clientX,e.clientY);else hideTooltip();});
+function handleClick(f){if(!f)return;if(officeLayerCalastone)return;selectedISO=featISO(f);const c=centroid(f);if(c)globe.pointOfView({lat:c.lat,lng:c.lng,altitude:1.7},1100);refreshGlobe();openDrawer(f);if(EDIT_MODE)console.log('Record:',recordFor(f)||('No profile for '+featISO(f)));}
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('modalVeil').classList.contains('open')){closeModal();return;}closeDrawer();document.getElementById('filterPanel').classList.remove('open');document.getElementById('filterBtn').classList.remove('active');}});
 
 /* ================================================================
@@ -1154,12 +1155,10 @@ const NAME_TO_ISO={
   "Romania":"ROU","Pakistan":"PAK"
 };
 
-init();
-
 /* ================================================================
-   OFFICE LAYER — Phaeron & SS&C switchable globe overlays
+   OFFICE LAYER — Phaeron office overlays
    ================================================================
-   To update office data: edit CALASTONE_OFFICES or SSC_OFFICES below.
+   To update office data: edit CALASTONE_OFFICES below.
    Each entry: { company, name, city, country, address, lat, lng }
    lat/lng are WGS-84 decimal degrees.
    ================================================================ */
@@ -1183,119 +1182,14 @@ const CALASTONE_OFFICES = [
    lat:39.7392,lng:-104.9903},
 ];
 
-const SSC_OFFICES = [
-  /* United States */
-  {company:'SS&C',name:'Atlanta',city:'Atlanta',country:'United States',lat:33.7490,lng:-84.3880},
-  {company:'SS&C',name:'Bellevue',city:'Bellevue',country:'United States',lat:47.6101,lng:-122.2015},
-  {company:'SS&C',name:'Boston',city:'Boston',country:'United States',lat:42.3601,lng:-71.0589},
-  {company:'SS&C',name:'Braintree',city:'Braintree',country:'United States',lat:42.2084,lng:-71.0023},
-  {company:'SS&C',name:'Bridgeton',city:'Bridgeton',country:'United States',lat:38.8475,lng:-90.1437},
-  {company:'SS&C',name:'Chicago',city:'Chicago',country:'United States',lat:41.8781,lng:-87.6298},
-  {company:'SS&C',name:'Dallas',city:'Dallas',country:'United States',lat:32.7767,lng:-96.7970},
-  {company:'SS&C',name:'Denver',city:'Denver',country:'United States',lat:39.7392,lng:-104.9903},
-  {company:'SS&C',name:'Dublin (OH)',city:'Dublin',country:'United States',lat:40.1120,lng:-83.1141},
-  {company:'SS&C',name:'Edina',city:'Edina',country:'United States',lat:44.8797,lng:-93.3499},
-  {company:'SS&C',name:'Evansville',city:'Evansville',country:'United States',lat:37.9716,lng:-87.5711},
-  {company:'SS&C',name:'Fort Worth',city:'Fort Worth',country:'United States',lat:32.7555,lng:-97.3308},
-  {company:'SS&C',name:'Garden City',city:'Garden City',country:'United States',lat:40.7268,lng:-73.6335},
-  {company:'SS&C',name:'Jacksonville',city:'Jacksonville',country:'United States',lat:30.3322,lng:-81.6557},
-  {company:'SS&C',name:'Kansas City',city:'Kansas City',country:'United States',lat:39.0997,lng:-94.5786},
-  {company:'SS&C',name:'Kaysville',city:'Kaysville',country:'United States',lat:41.0352,lng:-111.9383},
-  {company:'SS&C',name:'Los Angeles',city:'Los Angeles',country:'United States',lat:34.0522,lng:-118.2437},
-  {company:'SS&C',name:'New York',city:'New York',country:'United States',lat:40.7128,lng:-74.0060},
-  {company:'SS&C',name:'Sacramento',city:'Sacramento',country:'United States',lat:38.5816,lng:-121.4944},
-  {company:'SS&C',name:'San Antonio',city:'San Antonio',country:'United States',lat:29.4241,lng:-98.4936},
-  {company:'SS&C',name:'San Francisco',city:'San Francisco',country:'United States',lat:37.7749,lng:-122.4194},
-  {company:'SS&C',name:'Sandy Hook',city:'Sandy Hook',country:'United States',lat:40.4696,lng:-74.0099},
-  {company:'SS&C',name:'Skillman',city:'Skillman',country:'United States',lat:40.4221,lng:-74.6643},
-  {company:'SS&C',name:'Stamford',city:'Stamford',country:'United States',lat:41.0534,lng:-73.5387},
-  {company:'SS&C',name:'Union',city:'Union',country:'United States',lat:40.6976,lng:-74.2693},
-  {company:'SS&C',name:'Waltham',city:'Waltham',country:'United States',lat:42.3765,lng:-71.2356},
-  {company:'SS&C',name:'White Plains',city:'White Plains',country:'United States',lat:41.0340,lng:-73.7629},
-  {company:'SS&C',name:'Yorktown Heights',city:'Yorktown Heights',country:'United States',lat:41.2701,lng:-73.7929},
-  /* United Kingdom */
-  {company:'SS&C',name:'Basildon',city:'Basildon',country:'United Kingdom',lat:51.5757,lng:0.4882},
-  {company:'SS&C',name:'Belfast',city:'Belfast',country:'United Kingdom',lat:54.5973,lng:-5.9301},
-  {company:'SS&C',name:'Bolton',city:'Bolton',country:'United Kingdom',lat:53.5780,lng:-2.4282},
-  {company:'SS&C',name:'Bracknell',city:'Bracknell',country:'United Kingdom',lat:51.4144,lng:-0.7537},
-  {company:'SS&C',name:'Bristol',city:'Bristol',country:'United Kingdom',lat:51.4545,lng:-2.5879},
-  {company:'SS&C',name:'Burnley',city:'Burnley',country:'United Kingdom',lat:53.7890,lng:-2.2486},
-  {company:'SS&C',name:'Chelmsford',city:'Chelmsford',country:'United Kingdom',lat:51.7356,lng:0.4685},
-  {company:'SS&C',name:'Lichfield',city:'Lichfield',country:'United Kingdom',lat:52.6836,lng:-1.8271},
-  {company:'SS&C',name:'London',city:'London',country:'United Kingdom',lat:51.5195,lng:-0.0932},
-  {company:'SS&C',name:'Stirling',city:'Stirling',country:'United Kingdom',lat:56.1165,lng:-3.9369},
-  {company:'SS&C',name:'Surbiton',city:'Surbiton',country:'United Kingdom',lat:51.3944,lng:-0.3060},
-  {company:'SS&C',name:'Warrington',city:'Warrington',country:'United Kingdom',lat:53.3900,lng:-2.5970},
-  /* Australia */
-  {company:'SS&C',name:'Brisbane',city:'Brisbane',country:'Australia',lat:-27.4698,lng:153.0251},
-  {company:'SS&C',name:'Hobart',city:'Hobart',country:'Australia',lat:-42.8821,lng:147.3272},
-  {company:'SS&C',name:'Melbourne',city:'Melbourne',country:'Australia',lat:-37.8136,lng:144.9631},
-  {company:'SS&C',name:'Newcastle West',city:'Newcastle West',country:'Australia',lat:-32.9283,lng:151.7817},
-  {company:'SS&C',name:'Parramatta',city:'Parramatta',country:'Australia',lat:-33.8148,lng:151.0017},
-  {company:'SS&C',name:'Sydney',city:'Sydney',country:'Australia',lat:-33.8688,lng:151.2093},
-  {company:'SS&C',name:'Wollongong',city:'Wollongong',country:'Australia',lat:-34.4278,lng:150.8931},
-  /* India */
-  {company:'SS&C',name:'Bangalore',city:'Bangalore',country:'India',lat:12.9716,lng:77.5946},
-  {company:'SS&C',name:'Gandhinagar',city:'Gandhinagar',country:'India',lat:23.2156,lng:72.6369},
-  {company:'SS&C',name:'Gurugram',city:'Gurugram',country:'India',lat:28.4595,lng:77.0266},
-  {company:'SS&C',name:'Hyderabad',city:'Hyderabad',country:'India',lat:17.3850,lng:78.4867},
-  {company:'SS&C',name:'Mumbai',city:'Mumbai',country:'India',lat:19.0760,lng:72.8777},
-  {company:'SS&C',name:'Pune',city:'Pune',country:'India',lat:18.5204,lng:73.8567},
-  {company:'SS&C',name:'Thane',city:'Thane',country:'India',lat:19.2183,lng:72.9781},
-  /* Canada */
-  {company:'SS&C',name:'Halifax',city:'Halifax',country:'Canada',lat:44.6488,lng:-63.5752},
-  {company:'SS&C',name:'Kitchener',city:'Kitchener',country:'Canada',lat:43.4516,lng:-80.4925},
-  {company:'SS&C',name:'Montreal',city:'Montreal',country:'Canada',lat:45.5017,lng:-73.5673},
-  {company:'SS&C',name:'Toronto',city:'Toronto',country:'Canada',lat:43.6532,lng:-79.3832},
-  /* China */
-  {company:'SS&C',name:'Beijing',city:'Beijing',country:'China',lat:39.9042,lng:116.4074},
-  {company:'SS&C',name:'Shanghai',city:'Shanghai',country:'China',lat:31.2304,lng:121.4737},
-  /* Germany */
-  {company:'SS&C',name:'Frankfurt',city:'Frankfurt',country:'Germany',lat:50.1109,lng:8.6821},
-  {company:'SS&C',name:'Munich',city:'Munich',country:'Germany',lat:48.1351,lng:11.5820},
-  /* United Arab Emirates */
-  {company:'SS&C',name:'Abu Dhabi',city:'Abu Dhabi',country:'United Arab Emirates',lat:24.4539,lng:54.3773},
-  {company:'SS&C',name:'Dubai',city:'Dubai',country:'United Arab Emirates',lat:25.2048,lng:55.2708},
-  /* Rest of world — one or two cities each */
-  {company:'SS&C',name:'Amsterdam',city:'Amsterdam',country:'Netherlands',lat:52.3676,lng:4.9041},
-  {company:'SS&C',name:'Bangkok',city:'Bangkok',country:'Thailand',lat:13.7563,lng:100.5018},
-  {company:'SS&C',name:'Bucharest',city:'Bucharest',country:'Romania',lat:44.4268,lng:26.1025},
-  {company:'SS&C',name:'Copenhagen',city:'Copenhagen',country:'Denmark',lat:55.6761,lng:12.5683},
-  {company:'SS&C',name:'Dublin',city:'Dublin',country:'Ireland',lat:53.3498,lng:-6.2603},
-  {company:'SS&C',name:'Hong Kong',city:'Hong Kong',country:'Hong Kong',lat:22.2760,lng:114.1720},
-  {company:'SS&C',name:'Johannesburg',city:'Johannesburg',country:'South Africa',lat:-26.2041,lng:28.0473},
-  {company:'SS&C',name:'Karachi',city:'Karachi',country:'Pakistan',lat:24.8607,lng:67.0011},
-  {company:'SS&C',name:'Kuala Lumpur',city:'Kuala Lumpur',country:'Malaysia',lat:3.1390,lng:101.6869},
-  {company:'SS&C',name:'Luxembourg',city:'Luxembourg',country:'Luxembourg',lat:49.6117,lng:6.1319},
-  {company:'SS&C',name:'Madrid',city:'Madrid',country:'Spain',lat:40.4168,lng:-3.7038},
-  {company:'SS&C',name:'Mexico City',city:'Mexico City',country:'Mexico',lat:19.4326,lng:-99.1332},
-  {company:'SS&C',name:'Milan',city:'Milan',country:'Italy',lat:45.4654,lng:9.1859},
-  {company:'SS&C',name:'Oslo',city:'Oslo',country:'Norway',lat:59.9139,lng:10.7522},
-  {company:'SS&C',name:'Paris',city:'Paris',country:'France',lat:48.8566,lng:2.3522},
-  {company:'SS&C',name:'Riyadh',city:'Riyadh',country:'Saudi Arabia',lat:24.6877,lng:46.7219},
-  {company:'SS&C',name:'Sao Paulo',city:'Sao Paulo',country:'Brazil',lat:-23.5505,lng:-46.6333},
-  {company:'SS&C',name:'Seoul',city:'Seoul',country:'South Korea',lat:37.5665,lng:126.9780},
-  {company:'SS&C',name:'Singapore',city:'Singapore',country:'Singapore',lat:1.3521,lng:103.8198},
-  {company:'SS&C',name:'Stockholm',city:'Stockholm',country:'Sweden',lat:59.3293,lng:18.0686},
-  {company:'SS&C',name:'Taipei City',city:'Taipei City',country:'Taiwan',lat:25.0330,lng:121.5654},
-  {company:'SS&C',name:'Tokyo',city:'Tokyo',country:'Japan',lat:35.6762,lng:139.6503},
-  {company:'SS&C',name:'Vienna',city:'Vienna',country:'Austria',lat:48.2082,lng:16.3738},
-  {company:'SS&C',name:'Zurich',city:'Zurich',country:'Switzerland',lat:47.3769,lng:8.5417},
-  /* Small territories — pins shown, may not appear as globe polygons */
-  {company:'SS&C',name:'Bermuda',city:'Bermuda',country:'Bermuda',lat:32.3078,lng:-64.7505},
-  {company:'SS&C',name:'Grand Cayman',city:'Grand Cayman',country:'Cayman Islands',lat:19.3133,lng:-81.2546},
-  {company:'SS&C',name:'St. Helier',city:'St. Helier',country:'Jersey',lat:49.1858,lng:-2.1064},
-];
 
 /* ---- build ISO3 presence sets from office arrays + name→ISO mapping ---- */
 CALASTONE_ISO3 = new Set(CALASTONE_OFFICES.map(o=>NAME_TO_ISO[o.country]).filter(Boolean));
-SSC_ISO3 = new Set(SSC_OFFICES.map(o=>NAME_TO_ISO[o.country]).filter(Boolean));
 
 /* ---- marker element factory ---- */
 function createOfficePin(office) {
-  const isCal = office.company === 'Phaeron';
   const el = document.createElement('div');
-  el.className = 'office-pin ' + (isCal ? 'cal-pin' : 'ssc-pin');
+  el.className = 'office-pin cal-pin';
   el.setAttribute('aria-label', office.name + ', ' + office.city);
   el.setAttribute('tabindex', '0');
   el.innerHTML =
@@ -1308,7 +1202,7 @@ function createOfficePin(office) {
     const addrHtml = office.address
       ? '<div class="ott-addr">' + office.address + '</div>' : '';
     tip.innerHTML =
-      '<div class="ott-co ' + (isCal ? 'cal' : 'ssc') + '">' + office.company + '</div>' +
+      '<div class="ott-co cal">' + office.company + '</div>' +
       '<div class="ott-city">' + office.city + '</div>' +
       '<div class="ott-country">' + office.country + '</div>' +
       '<div class="ott-name">' + office.name + '</div>' +
@@ -1340,16 +1234,12 @@ function createOfficePin(office) {
 /* ---- apply layers to the globe ---- */
 function applyOfficeLayers() {
   if (!globe) return;
-  const data = [
-    ...(officeLayerCalastone ? CALASTONE_OFFICES : []),
-    ...(officeLayerSSC       ? SSC_OFFICES       : []),
-  ];
-  const anyActive = officeLayerCalastone || officeLayerSSC;
+  const data = officeLayerCalastone ? CALASTONE_OFFICES : [];
 
-  /* Update polygon heatmap to show office presence when any layer is on */
+  /* Presence mode: always paint Phaeron office countries; markers follow toggle */
   if (currentMode === 'network') {
-    globe.pointsData(anyActive ? [] : window.CALASTONE_FLOWS.nodes);
-    globe.polygonCapColor(anyActive ? officeHeatmapColor : f => netLandColor(f));
+    globe.pointsData([]);
+    globe.polygonCapColor(f => netLandColor(f));
   } else if (currentMode === 'research') {
     refreshGlobe();
   }
@@ -1367,12 +1257,8 @@ document.getElementById('toggleCalastone').addEventListener('change', function()
   officeLayerCalastone = this.checked;
   applyOfficeLayers();
 });
-document.getElementById('toggleSSC').addEventListener('change', function() {
-  officeLayerSSC = this.checked;
-  applyOfficeLayers();
-});
 
-/* ---- initialise the htmlElements layer (empty until toggled on) ---- */
+/* ---- initialise the htmlElements layer ---- */
 applyOfficeLayers();
 
 /* When returning to Network mode the original switchToNetwork restores
@@ -1402,6 +1288,8 @@ switchToResearch = function() {
   const _gc=document.getElementById('hcToggleBtn');if(_gc)_gc.style.display='';
   const _hub=document.querySelector('.pn-hex-hub');if(_hub)_hub.style.animation='';
 };
+
+init();
 
 /* ================================================================
    ============  HUB & SPOKE VISUALIZATION  =======================
@@ -2008,7 +1896,7 @@ function switchToHubSpoke(){
   toggleActiveClass('globeSwitchNetwork', false);
   toggleActiveClass('globeSwitchResearch', false);
   toggleActiveClass('globeSwitchHubSpoke', true);
-  document.getElementById('topbarSub').textContent='Network Architecture';
+  const _tb=document.getElementById('topbarSub');if(_tb)_tb.textContent='Network Architecture';
   document.getElementById('hubSpokeUI').classList.add('hs-open');
   document.getElementById('officeLayerPanel').style.display='none';
   const _gc=document.getElementById('hcToggleBtn');if(_gc)_gc.style.display='none';
@@ -2028,7 +1916,7 @@ function switchToOrderRouting(){
   toggleActiveClass('globeSwitchNetwork', false);
   toggleActiveClass('globeSwitchResearch', false);
   toggleActiveClass('globeSwitchHubSpoke', false);
-  document.getElementById('topbarSub').textContent='Order Routing';
+  const _tb=document.getElementById('topbarSub');if(_tb)_tb.textContent='Order Routing';
   window._productNavShow&&window._productNavShow();
   window.hsHide&&window.hsHide();
   document.getElementById('officeLayerPanel').style.display='none';
@@ -2352,7 +2240,7 @@ function switchToSettlements(){
   toggleActiveClass('globeSwitchNetwork', false);
   toggleActiveClass('globeSwitchResearch', false);
   toggleActiveClass('globeSwitchHubSpoke', false);
-  document.getElementById('topbarSub').textContent='Settlements · 2025';
+  const _tb=document.getElementById('topbarSub');if(_tb)_tb.textContent='Settlements · 2025';
   hideNetTip();hideSettTip();document.body.style.cursor='';
 
   // Globe aesthetic
@@ -2441,13 +2329,13 @@ document.addEventListener('DOMContentLoaded',function(){
   const RAD=Math.PI/180;
 
   const PRODUCTS=[
-    {id:'order-routing',            lines:['Order','Routing'],          angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
-    {id:'settlements',              lines:['Settlements'],              angle:240, color:'#1B3A6B', colorD:'#7A1233', stroke:'rgba(27,58,107,0.5)'},
-    {id:'share-class-conversions',  lines:['Share Class','Conversions'],angle:210, color:'#BE123C', colorD:'#4a9d5b', stroke:'rgba(27,58,107,0.5)'},
-    {id:'transfers',                lines:['Transfers'],                angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
-    {id:'dividends',                lines:['Dividends'],                angle:150, color:'#6A4FA0', colorD:'#513c7a', stroke:'rgba(106,79,160,0.5)'},
-    {id:'reporting',                lines:['Reporting'],                angle:120, color:'#B07C2C', colorD:'#8a6020', stroke:'rgba(176,124,44,0.5)'},
-    {id:'cdsc',                     lines:['CDSC'],                     angle: 90, color:'#3B6EA5', colorD:'#2d5580', stroke:'rgba(59,110,165,0.5)'},
+    {id:'order-routing',            lines:['Product','A'], angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
+    {id:'settlements',              lines:['Product','B'], angle:240, color:'#1B3A6B', colorD:'#7A1233', stroke:'rgba(27,58,107,0.5)'},
+    {id:'share-class-conversions',  lines:['Product','C'], angle:210, color:'#BE123C', colorD:'#4a9d5b', stroke:'rgba(27,58,107,0.5)'},
+    {id:'transfers',                lines:['Product','D'], angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
+    {id:'dividends',                lines:['Product','E'], angle:150, color:'#6A4FA0', colorD:'#513c7a', stroke:'rgba(106,79,160,0.5)'},
+    {id:'reporting',                lines:['Product','F'], angle:120, color:'#B07C2C', colorD:'#8a6020', stroke:'rgba(176,124,44,0.5)'},
+    {id:'cdsc',                     lines:['Product','G'], angle: 90, color:'#3B6EA5', colorD:'#2d5580', stroke:'rgba(59,110,165,0.5)'},
   ];
 
   const spokes=PRODUCTS.map(function(p){

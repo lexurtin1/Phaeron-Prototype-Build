@@ -191,7 +191,7 @@ function switchToOrderRouting() {
     INTRA.push([a,b],[b,c]);
   });
 
-  let isAfter=false, hovered=null, autoMode=false, svgReady=false, inView=true;
+  let isAfter=false, hovered=null, autoMode=true, svgReady=false, inView=true;
   let activeAnims=[], autoTimers=[], spokeTokenTimers=[];
   const svgNS='http://www.w3.org/2000/svg';
   function hexPts(r){const w=(Math.sqrt(3)/2)*r;return`0,${-r} ${w},${-r/2} ${w},${r/2} 0,${r} ${-w},${r/2} ${-w},${-r/2}`;}
@@ -490,7 +490,7 @@ function switchToOrderRouting() {
     updateUI();
   }
 
-  // ---- BEFORE → AFTER ----
+  // ---- BEFORE → AFTER (total motion ≤ ~1.5s) ----
   function transitionToAfter(){
     if(!svgReady)return;
     if(reduceMotion){applyStaticState(true);return;}
@@ -502,19 +502,19 @@ function switchToOrderRouting() {
 
     if(ecoPg){
       const ps={op:parseFloat(ecoPg.style.opacity||'1')};
-      anim(ps,{op:0,duration:320,ease:'outQuad',onUpdate:()=>ecoPg.style.opacity=ps.op,onComplete:()=>ecoPg.style.opacity='0'});
+      anim(ps,{op:0,duration:220,ease:'outQuad',onUpdate:()=>ecoPg.style.opacity=ps.op,onComplete:()=>ecoPg.style.opacity='0'});
     }
-    setIslandOpacity(ISLAND_OP_AFTER,500,0);
+    setIslandOpacity(ISLAND_OP_AFTER,360,0);
 
     const gs={op:parseFloat(hubGlow.style.opacity||'0')};
-    anim(gs,{op:0.9,duration:600,delay:180,ease:'outCubic',
+    anim(gs,{op:0.9,duration:420,delay:80,ease:'outCubic',
       onUpdate:()=>hubGlow.style.opacity=gs.op,
       onComplete:()=>hubGlow.style.opacity='0.9'});
 
     const curHubS=parseFloat((hubInner.style.transform.match(/scale\(([^)]+)\)/)||[])[1]||'0')||0;
     const curHubOp=parseFloat(hubInner.style.opacity||'0')||0;
     const hs={s:curHubS,op:curHubOp};
-    anim(hs,{s:1,op:1,duration:720,delay:220,ease:'outBack',
+    anim(hs,{s:1,op:1,duration:520,delay:100,ease:'outBack',
       onUpdate:()=>{hubInner.style.transform=`scale(${hs.s})`;hubInner.style.opacity=hs.op;},
       onComplete:()=>{hubInner.style.transform='scale(1)';hubInner.style.opacity='1';}});
 
@@ -523,12 +523,12 @@ function switchToOrderRouting() {
       const len=parseFloat(el.getAttribute('data-len'));
       el.setAttribute('stroke','#1B3A6B');
       const ss={d:len,op:0};
-      anim(ss,{d:0,op:0.9,duration:520,delay:480+i*42,ease:'inOutCubic',
+      anim(ss,{d:0,op:0.9,duration:380,delay:220+i*28,ease:'inOutCubic',
         onUpdate:()=>{el.setAttribute('stroke-dashoffset',ss.d);el.style.opacity=ss.op;},
         onComplete:()=>{el.setAttribute('stroke-dashoffset','0');el.style.opacity='0.9';}});
     });
 
-    const spokeStart=setTimeout(()=>{if(isAfter)startSpokeTokens();},1100);
+    const spokeStart=setTimeout(()=>{if(isAfter)startSpokeTokens();},780);
     spokeTokenTimers.push(spokeStart);
     updateUI();
   }
@@ -549,28 +549,28 @@ function switchToOrderRouting() {
       const curD=parseFloat(el.getAttribute('stroke-dashoffset')||'0');
       const curOp=parseFloat(el.style.opacity||'0.9');
       const ss={d:curD,op:curOp};
-      const delay=(NODES.length-1-i)*32;
-      anim(ss,{d:len,op:0,duration:300,delay,ease:'inCubic',
+      const delay=(NODES.length-1-i)*22;
+      anim(ss,{d:len,op:0,duration:240,delay,ease:'inCubic',
         onUpdate:()=>{el.setAttribute('stroke-dashoffset',ss.d);el.style.opacity=ss.op;},
         onComplete:()=>{el.setAttribute('stroke-dashoffset',len);el.style.opacity='0';}});
     });
 
     const curS=parseFloat((hubInner.style.transform.match(/scale\(([^)]+)\)/)||[])[1]||'1');
     const hs={s:curS,op:parseFloat(hubInner.style.opacity||'1')};
-    anim(hs,{s:0,op:0,duration:380,delay:180,ease:'inBack(1.3)',
+    anim(hs,{s:0,op:0,duration:300,delay:100,ease:'inBack(1.3)',
       onUpdate:()=>{hubInner.style.transform=`scale(${hs.s})`;hubInner.style.opacity=hs.op;},
       onComplete:()=>{hubInner.style.transform='scale(0)';hubInner.style.opacity='0';}});
 
     const gs={op:parseFloat(hubGlow.style.opacity||'0.9')};
-    anim(gs,{op:0,duration:340,delay:140,ease:'outQuad',
+    anim(gs,{op:0,duration:260,delay:80,ease:'outQuad',
       onUpdate:()=>hubGlow.style.opacity=gs.op,
       onComplete:()=>hubGlow.style.opacity='0'});
 
-    setIslandOpacity(ISLAND_OP_BEFORE,480,420);
+    setIslandOpacity(ISLAND_OP_BEFORE,360,280);
 
     if(ecoPg){
       const ps={op:0};
-      anim(ps,{op:1,duration:420,delay:520,ease:'outQuad',
+      anim(ps,{op:1,duration:320,delay:360,ease:'outQuad',
         onUpdate:()=>ecoPg.style.opacity=ps.op,
         onComplete:()=>ecoPg.style.opacity='1'});
     }
@@ -638,7 +638,7 @@ function switchToOrderRouting() {
     if(bAuto){bAuto.classList.toggle('active',autoMode);bAuto.setAttribute('aria-pressed',String(autoMode));}
   }
 
-  // Auto: hold Before 1.6s → transition ~1s → hold After 1.6s → transition back ~0.9s
+  // Auto: hold Before 1.2s → transition ≤1.5s → hold After 1.2s → back
   function stopAuto(){
     clearAutoTimers();
   }
@@ -651,15 +651,15 @@ function switchToOrderRouting() {
         scheduleAuto(()=>{
           if(!autoMode||!inView)return;
           transitionToBefore();
-          scheduleAuto(runAutoCycle,900);
-        },1600+1000);
-      },1600);
+          scheduleAuto(runAutoCycle,700);
+        },1500+200);
+      },1200);
     }else{
       scheduleAuto(()=>{
         if(!autoMode||!inView)return;
         transitionToBefore();
-        scheduleAuto(runAutoCycle,900);
-      },1600);
+        scheduleAuto(runAutoCycle,700);
+      },1200);
     }
   }
   function restartAuto(){
@@ -673,6 +673,7 @@ function switchToOrderRouting() {
     isAfter=false;
     if(svgReady)applyStaticState(false);
     else updateUI();
+    if(!reduceMotion)autoMode=true;
     const overlay=$('hubSpokeUI');
     if(overlay){
       overlay.classList.add('hs-open');
@@ -694,6 +695,7 @@ function switchToOrderRouting() {
         list.appendChild(item);
       });
     }
+    updateUI();
     restartAuto();
   }
 
@@ -726,7 +728,8 @@ function switchToOrderRouting() {
       ba.onclick=()=>{autoMode=false;stopAuto();if(!isAfter)transitionToAfter();else updateUI();};
     }
     if(bAuto){
-      bAuto.setAttribute('aria-pressed','false');
+      bAuto.setAttribute('aria-pressed',String(autoMode));
+      if(autoMode)bAuto.classList.add('active');
       bAuto.onclick=()=>{
         if(reduceMotion)return;
         autoMode=!autoMode;
@@ -843,13 +846,13 @@ window._orWatchExploreMode=function(){
   const RAD=Math.PI/180;
 
   const PRODUCTS=[
-    {id:'order-routing',            lines:['Order','Routing'],          angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
-    {id:'settlements',              lines:['Settlements'],              angle:240, color:'#2F5285', colorD:'#1B3A6B', stroke:'rgba(27,58,107,0.5)'},
-    {id:'share-class-conversions',  lines:['Share Class','Conversions'],angle:210, color:'#1B3A6B', colorD:'#0C1A2E', stroke:'rgba(27,58,107,0.5)'},
-    {id:'transfers',                lines:['Transfers'],                angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
-    {id:'dividends',                lines:['Dividends'],                angle:150, color:'#6A4FA0', colorD:'#513c7a', stroke:'rgba(106,79,160,0.5)'},
-    {id:'reporting',                lines:['Reporting'],                angle:120, color:'#B07C2C', colorD:'#8a6020', stroke:'rgba(176,124,44,0.5)'},
-    {id:'cdsc',                     lines:['CDSC'],                     angle: 90, color:'#3B6EA5', colorD:'#2d5580', stroke:'rgba(59,110,165,0.5)'},
+    {id:'order-routing',            lines:['Product','A'], angle:270, color:'#1B3A6B', colorD:'#132743', stroke:'rgba(27,58,107,0.5)'},
+    {id:'settlements',              lines:['Product','B'], angle:240, color:'#2F5285', colorD:'#1B3A6B', stroke:'rgba(27,58,107,0.5)'},
+    {id:'share-class-conversions',  lines:['Product','C'], angle:210, color:'#1B3A6B', colorD:'#0C1A2E', stroke:'rgba(27,58,107,0.5)'},
+    {id:'transfers',                lines:['Product','D'], angle:180, color:'#0d4a7a', colorD:'#0a3a60', stroke:'rgba(13,74,122,0.5)'},
+    {id:'dividends',                lines:['Product','E'], angle:150, color:'#6A4FA0', colorD:'#513c7a', stroke:'rgba(106,79,160,0.5)'},
+    {id:'reporting',                lines:['Product','F'], angle:120, color:'#B07C2C', colorD:'#8a6020', stroke:'rgba(176,124,44,0.5)'},
+    {id:'cdsc',                     lines:['Product','G'], angle: 90, color:'#3B6EA5', colorD:'#2d5580', stroke:'rgba(59,110,165,0.5)'},
   ];
 
   const spokes=PRODUCTS.map(function(p){

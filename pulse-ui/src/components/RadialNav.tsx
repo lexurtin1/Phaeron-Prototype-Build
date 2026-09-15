@@ -1,17 +1,16 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { animate } from 'motion';
-import { RADIAL_DESTINATIONS } from '@/lib/tools';
+import { RADIAL_MODULE_DESTINATIONS } from '@/lib/tools';
 
-function LocationFabIcon() {
+function HomeFabIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z"
+        d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
-      <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -25,19 +24,33 @@ export function RadialNav({ className = '' }: RadialNavProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
   const labelId = useId();
+  const closeTimer = useRef<number | null>(null);
+
+  const clearCloseTimer = () => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+
+  const openMenu = () => {
+    clearCloseTimer();
+    setOpen(true);
+  };
+
+  const scheduleClose = () => {
+    clearCloseTimer();
+    closeTimer.current = window.setTimeout(() => setOpen(false), 160);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
-    const onPointer = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
     document.addEventListener('keydown', onKey);
-    document.addEventListener('mousedown', onPointer);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('mousedown', onPointer);
+      clearCloseTimer();
     };
   }, []);
 
@@ -46,9 +59,10 @@ export function RadialNav({ className = '' }: RadialNavProps) {
     if (!nodes.length) return;
 
     const count = nodes.length;
-    const startDeg = -200;
-    const endDeg = -20;
-    const radius = 108;
+    // Southwest fan from top-right FAB (0° = east, 90° = south)
+    const startDeg = 100;
+    const endDeg = 190;
+    const radius = 118;
 
     const targets = nodes.map((node, i) => {
       const t = count === 1 ? 0.5 : i / (count - 1);
@@ -89,9 +103,18 @@ export function RadialNav({ className = '' }: RadialNavProps) {
   }, [open]);
 
   return (
-    <div className={`radial-nav ${open ? 'is-open' : ''} ${className}`.trim()} ref={rootRef}>
+    <div
+      className={`radial-nav ${open ? 'is-open' : ''} ${className}`.trim()}
+      ref={rootRef}
+      onMouseEnter={openMenu}
+      onMouseLeave={scheduleClose}
+      onFocusCapture={openMenu}
+      onBlurCapture={(e) => {
+        if (!rootRef.current?.contains(e.relatedTarget as Node)) scheduleClose();
+      }}
+    >
       <div className="radial-nav-items" role="menu" aria-labelledby={labelId}>
-        {RADIAL_DESTINATIONS.map((dest, i) => (
+        {RADIAL_MODULE_DESTINATIONS.map((dest, i) => (
           <a
             key={dest.id}
             href={dest.href}
@@ -99,6 +122,7 @@ export function RadialNav({ className = '' }: RadialNavProps) {
             role="menuitem"
             title={dest.label}
             aria-label={dest.label}
+            tabIndex={open ? 0 : -1}
             ref={(el) => {
               itemsRef.current[i] = el;
             }}
@@ -108,17 +132,20 @@ export function RadialNav({ className = '' }: RadialNavProps) {
           </a>
         ))}
       </div>
-      <button
-        type="button"
+      <a
         id={labelId}
+        href="/ui/"
         className="radial-nav-fab"
-        aria-expanded={open}
+        aria-label="Home"
         aria-haspopup="menu"
-        aria-label={open ? 'Close navigation' : 'Open navigation'}
-        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        onClick={(e) => {
+          // Allow navigation home; keep hover fan for modules
+          if (open) e.stopPropagation();
+        }}
       >
-        <LocationFabIcon />
-      </button>
+        <HomeFabIcon />
+      </a>
     </div>
   );
 }

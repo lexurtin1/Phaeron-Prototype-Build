@@ -15,13 +15,15 @@ export function IntelligenceOrbPanel() {
       className="intel-orb-panel"
       aria-label="Open Phaeron Intelligence"
     >
-      <div className="intel-orb-disc" aria-hidden>
+      <div className="intel-orb-stage" aria-hidden>
+        <div className="intel-orb-wash" />
         <div className="intel-orb-scale">
           <ThinkingOrb
-            state={reduced ? 'breathing' : 'working'}
+            state="breathing"
             size={64}
-            theme="dark"
-            speed={reduced ? 0 : 1.05}
+            theme="light"
+            speed={reduced ? 0 : 0.9}
+            paused={reduced}
           />
         </div>
       </div>

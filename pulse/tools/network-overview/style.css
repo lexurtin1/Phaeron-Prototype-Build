@@ -56,21 +56,12 @@ body{
 #globeViz{position:fixed;inset:0;z-index:0;width:100vw;height:100vh}
 #globeViz canvas{outline:none}
 
-/* ---------- secondary toolbar (sits under ModuleChrome) ---------- */
-.topbar{
-  position:fixed;z-index:20;top:72px;left:0;right:0;
-  display:flex;align-items:center;gap:16px;padding:10px 24px;
-  background:rgba(245,248,251,0.88);
-  backdrop-filter:blur(16px) saturate(1.4);
-  -webkit-backdrop-filter:blur(16px) saturate(1.4);
-  border-bottom:1px solid rgba(226,232,238,0.80);
+.research-float-controls{
+  position:fixed;z-index:22;top:84px;left:24px;right:24px;
+  display:none;align-items:center;gap:12px;flex-wrap:wrap;
+  pointer-events:none;
 }
-.view-label{
-  font-size:11px;font-weight:600;color:var(--ink-2);
-  letter-spacing:0.14em;font-family:var(--mono);text-transform:uppercase;
-  white-space:nowrap;
-}
-.topbar .spacer{flex:1}
+.research-float-controls > *{pointer-events:auto}
 
 .search-wrap{position:relative;width:270px;max-width:32vw}
 .search-wrap input{
