@@ -19,6 +19,7 @@ node_modules/
 *.png
 !pulse/assets/*.png
 !pulse/tools/product-demo/assets/logos/*.png
+!pulse/tools/product-demo/assets/architecture/*.png
 
 # OS / editor noise
 .DS_Store

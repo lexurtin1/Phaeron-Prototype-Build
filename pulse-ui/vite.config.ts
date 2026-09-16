@@ -22,6 +22,7 @@ export default defineConfig({
         'island-account': path.resolve(__dirname, 'islands/account.html'),
         'island-intelligence': path.resolve(__dirname, 'islands/intelligence.html'),
         'island-globe': path.resolve(__dirname, 'islands/globe.html'),
+        'island-architecture': path.resolve(__dirname, 'islands/architecture.html'),
       },
       output: {
         entryFileNames: (chunk) =>

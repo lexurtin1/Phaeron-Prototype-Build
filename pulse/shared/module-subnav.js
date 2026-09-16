@@ -33,6 +33,11 @@
         href: '/tools/product-demo/index.html',
       },
       {
+        id: 'system-architecture',
+        label: 'System Architecture',
+        href: '/tools/product-demo/architecture.html',
+      },
+      {
         id: 'artifacts',
         label: 'Artifacts',
         href: '/tools/studio-artifacts/index.html',
