@@ -33,9 +33,9 @@
         href: '/tools/product-demo/index.html',
       },
       {
-        id: 'system-architecture',
-        label: 'System Architecture',
-        href: '/tools/product-demo/architecture.html',
+        id: 'presentation',
+        label: 'Presentation',
+        href: '/tools/product-demo/presentation.html',
       },
       {
         id: 'artifacts',

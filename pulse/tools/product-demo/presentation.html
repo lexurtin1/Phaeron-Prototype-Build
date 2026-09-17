@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Explore Phaeron's architecture: connecting financial services data, business context and human decisions.">
+<title>Phaeron · Studio · Presentation</title>
+<link rel="stylesheet" href="../../design-system/tokens/colors.css">
+<link rel="stylesheet" href="../../design-system/tokens/typography.css">
+<link rel="stylesheet" href="../../design-system/tokens/spacing.css">
+<link rel="stylesheet" href="../../design-system/tokens/effects.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../shared/module-subnav.css">
+<link rel="stylesheet" href="./architecture.css">
+<link rel="stylesheet" href="./presentation/styles.css">
+</head>
+<body class="arch-page presentation-page">
+
+<div id="pulse-react-chrome" data-title="Studio"></div>
+<script src="/ui/islands/load-chrome.js"></script>
+
+<div class="topbar" id="topbar">
+  <div id="pulse-module-subnav" data-module="studio" data-view="presentation" data-layout="inline"></div>
+</div>
+
+<a class="skip" href="#overview">Skip to the story</a>
+<main class="story" id="story">
+  <div class="chapters">
+    <section class="chapter intro" id="overview" data-scene="0" aria-labelledby="title">
+      <div class="copy">
+        <p class="eyebrow"><span class="red-line"></span> THE PHAERON ARCHITECTURE</p>
+        <h1 id="title">Intelligence<br> starts with<br> <em>context.</em></h1>
+        <p class="description">Your data tells you what happened.<br> Business context tells you what it means.</p>
+        <a class="scroll-cue" href="#data"><span class="cue-icon" aria-hidden="true">↓</span> Scroll to unpack the system</a>
+      </div>
+    </section>
+    <section class="chapter" id="data" data-scene="1" aria-labelledby="data-title">
+      <div class="copy">
+        <p class="eyebrow">01 / THE FOUNDATION</p>
+        <h2 id="data-title">Bring the<br> business<br> <em>together.</em></h2>
+        <p class="description">Client records. Product information. Market intelligence. Bring scattered information into one connected foundation.</p>
+        <div class="detail"><span>INPUT</span><p>Internal systems & external sources</p></div>
+        <div class="detail"><span>OUTCOME</span><p>A common starting point</p></div>
+      </div>
+    </section>
+    <section class="chapter" id="security" data-scene="2" aria-labelledby="security-title">
+      <div class="copy">
+        <p class="eyebrow">02 / ACCESS & GOVERNANCE</p>
+        <h2 id="security-title">Context has<br> <em>boundaries.</em></h2>
+        <p class="description">Financial services information carries obligations. Permissions, ownership and business rules define how it should be used.</p>
+        <div class="detail"><span>PRINCIPLE</span><p>The right information, for the right people</p></div>
+        <div class="detail"><span>CONTROL</span><p>Access, provenance & accountability</p></div>
+      </div>
+    </section>
+    <section class="chapter" id="context" data-scene="3" aria-labelledby="context-title">
+      <div class="copy">
+        <p class="eyebrow">03 / THE CONTEXT ENGINE</p>
+        <h2 id="context-title">Give information<br> <em>meaning.</em></h2>
+        <p class="description">A client name is only a record. Add its products, relationships, history and objectives, and it becomes useful business context.</p>
+        <div class="detail"><span>INPUT</span><p>Information & business knowledge</p></div>
+        <div class="detail"><span>OUTCOME</span><p>Context that supports a decision</p></div>
+      </div>
+    </section>
+    <section class="chapter" id="relationships" data-scene="4" aria-labelledby="relationships-title">
+      <div class="copy">
+        <p class="eyebrow">04 / THE BUSINESS MODEL</p>
+        <h2 id="relationships-title">Understand<br> how things<br> <em>connect.</em></h2>
+        <p class="description">Map the companies, people, products and rules behind the business. Make their relationships explicit, so teams and AI work from the same understanding.</p>
+        <div class="detail"><span>MODEL</span><p>Entities, relationships & business rules</p></div>
+        <div class="detail"><span>OUTCOME</span><p>A shared view of the business</p></div>
+      </div>
+    </section>
+    <section class="chapter" id="business" data-scene="5" aria-labelledby="business-title">
+      <div class="copy">
+        <p class="eyebrow">05 / ACROSS THE BUSINESS</p>
+        <h2 id="business-title">One context hub.<br> <em>Every function.</em></h2>
+        <p class="description">Commercial, Product, Operations, Finance, Engineering and Law connect to a shared context hub. Each department has its own decisions to make, grounded in the same understanding of the business.</p>
+        <div class="units" aria-label="Business units"><span>Commercial</span><span>Product</span><span>Operations</span><span>Finance</span><span>Engineering</span><span>Law</span></div>
+      </div>
+    </section>
+    <section class="chapter" id="action" data-scene="6" aria-labelledby="action-title">
+      <div class="copy">
+        <p class="eyebrow">05A / CONTEXT INTO ACTION</p>
+        <h2 id="action-title">Context reaches<br> <em>the whole business.</em></h2>
+        <p class="description">Layer 5A connects the full foundation to the people and tools above it. Data, governance, context and business units remain visible together.</p>
+        <div class="detail"><span>APPLICATION</span><p>Research, insight & decision support</p></div>
+        <div class="detail"><span>ACCOUNTABILITY</span><p>People retain judgment & control</p></div>
+      </div>
+    </section>
+    <section class="chapter outro" id="complete" data-scene="7" aria-labelledby="complete-title">
+      <div class="copy">
+        <p class="eyebrow"><span class="red-line"></span> 05B / THE COMPLETE SYSTEM</p>
+        <h2 id="complete-title">The full stack.<br> <em>Connected.</em></h2>
+        <p class="description">Layer 5B adds to 5A, completing the network above the business. The whole architecture stays connected: from its data foundation to the decisions it supports.</p>
+        <a class="restart" href="#overview">Explore again <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </div>
+  <aside class="stage" aria-label="Animated Phaeron architecture">
+    <div class="stage-heading"><span>PHAERON / SYSTEM VIEW</span><span id="view-mode">CONNECTED</span></div>
+    <div class="diagram" id="diagram" role="img" aria-label="The complete architecture, with layers 5A and 5B above the business foundation">
+      <div class="reference-cross cross-top" aria-hidden="true"></div>
+      <div class="reference-cross cross-bottom" aria-hidden="true"></div>
+      <div class="layer" data-layer="0" style="--y:140px;--scale:.70;--alpha:1;z-index:1"><img src="./presentation/assets/data.svg" alt="Data foundation" fetchpriority="high"></div>
+      <div class="layer" data-layer="1" style="--y:85px;--scale:.70;--alpha:1;z-index:2"><img src="./presentation/assets/security.svg" alt="Access and governance"></div>
+      <div class="layer" data-layer="2" style="--y:30px;--scale:.70;--alpha:1;z-index:3"><img src="./presentation/assets/engine.svg" alt="Context engine"></div>
+      <div class="layer" data-layer="3" style="--y:-25px;--scale:.70;--alpha:1;z-index:4"><img src="./presentation/assets/ontology.svg" alt="Connected business entities and relationships"></div>
+      <div class="layer hub-layer" data-layer="4" style="--y:-65px;--scale:.62;--alpha:1;z-index:5"><img src="./presentation/assets/business.svg" alt="A central context hub with six spokes to Commercial, Product, Operations, Finance, Engineering and Law"><div class="hub-orb"><canvas id="thinking-orb" width="64" height="64" aria-hidden="true"></canvas></div></div>
+      <div class="layer agent-layer" data-layer="5" style="--y:-165px;--scale:1.02;--alpha:1;z-index:6"><img src="./presentation/assets/agents-a.svg" alt="Layer 5A: assistants connected above the full business stack"></div>
+      <div class="layer agent-layer" data-layer="6" style="--y:-165px;--scale:1.02;--alpha:1;z-index:7"><img src="./presentation/assets/agents-b.svg" alt="Layer 5B: the extended network completes layer 5A and the entire stack"></div>
+      <svg id="stack-connections" class="stack-connections" aria-hidden="true"></svg>
+    </div>
+    <div class="stage-caption"><div><span class="caption-number" id="caption-number">01 — 05B</span><h3 id="caption-title">The connected architecture</h3></div><span class="caption-aside" id="caption-aside">SCROLL TO SEPARATE</span></div>
+    <nav class="layer-nav" aria-label="Architecture chapters">
+      <a href="#data" aria-label="01 Data" title="Data"><span>01</span><span class="rail-name">Data</span></a>
+      <a href="#security" aria-label="02 Governance" title="Governance"><span>02</span><span class="rail-name">Governance</span></a>
+      <a href="#context" aria-label="03 Context" title="Context"><span>03</span><span class="rail-name">Context</span></a>
+      <a href="#relationships" aria-label="04 Relationships" title="Relationships"><span>04</span><span class="rail-name">Model</span></a>
+      <a href="#business" aria-label="Layer 5 Business" title="Layer 5"><span>05</span><span class="rail-name">Business</span></a>
+      <a href="#action" aria-label="Layer 5A" title="Layer 5A"><span>05A</span><span class="rail-name">5A</span></a>
+      <a href="#complete" aria-label="Layer 5B Complete stack" title="Layer 5B"><span>05B</span><span class="rail-name">5B</span></a>
+    </nav>
+  </aside>
+</main>
+<footer class="footer"><span>PHAERON</span><span>BUSINESS CONTEXT. HUMAN JUDGMENT.</span><a href="#overview">Back to the beginning ↑</a></footer>
+<div class="reading-progress" aria-hidden="true"><div id="reading-progress"></div></div>
+<noscript><style>.stage{display:none}.story{display:block}.chapters{max-width:900px;margin:auto}.chapter{min-height:70vh}</style></noscript>
+
+<script src="./presentation/hub-geometry.js" defer></script>
+<script src="./presentation/story.js" defer></script>
+<script src="./presentation/thinking-orb.js" type="module"></script>
+<script src="../../shared/module-subnav.js"></script>
+<script src="../../favicon-pulse.js"></script>
+</body>
+</html>

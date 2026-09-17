@@ -45,8 +45,8 @@ export function ModuleChrome({
           </a>
         )}
         {showArchLink ? (
-          <a href="/tools/system-architecture/index.html" className="module-chrome-arch">
-            System Architecture
+          <a href="/tools/product-demo/presentation.html" className="module-chrome-arch">
+            Presentation
           </a>
         ) : null}
       </div>
