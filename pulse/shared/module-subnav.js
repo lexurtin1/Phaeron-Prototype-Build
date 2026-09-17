@@ -11,14 +11,14 @@
   var MODULES = {
     'market-intelligence': [
       {
-        id: 'presence',
-        label: 'Market Presence',
-        href: '/tools/network-overview/index.html',
-      },
-      {
         id: 'research',
         label: 'Market Research',
         href: '/tools/market-research/index.html',
+      },
+      {
+        id: 'presence',
+        label: 'Market Presence',
+        href: '/tools/network-overview/index.html',
       },
       {
         id: 'signals',
@@ -51,7 +51,7 @@
       },
       {
         id: 'pipeline',
-        label: 'Pipeline',
+        label: 'Dynamic Pipeline Management',
         href: '/tools/reporting-mi/pipeline.html',
       },
       {
@@ -91,7 +91,7 @@
     el.className = 'pulse-module-subnav';
     el.setAttribute('data-layout', layout);
     el.setAttribute('role', 'navigation');
-    el.setAttribute('aria-label', moduleId === 'studio' ? 'Studio views' : moduleId === 'reporting-mi' ? 'Reporting and MI views' : 'Market Intelligence views');
+    el.setAttribute('aria-label', moduleId === 'studio' ? 'Studio views' : moduleId === 'reporting-mi' ? 'Enterprise Intelligence views' : 'Market Intelligence views');
 
     var html = '';
     for (var i = 0; i < items.length; i++) {

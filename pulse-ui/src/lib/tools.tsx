@@ -204,13 +204,13 @@ export const PULSE_CARD_TOOLS: PulseTool[] = [
     num: '02',
     title: 'Market Intelligence',
     description: 'Market presence, research, and live signals across the globe.',
-    href: '/tools/network-overview/index.html',
+    href: '/tools/market-research/index.html',
     icon: <NetworkIcon />,
   },
   {
     id: 'reporting-mi',
     num: '03',
-    title: 'Reporting and MI',
+    title: 'Enterprise Intelligence',
     description: 'Leadership KPIs for pipeline, presence, and network performance.',
     href: '/tools/reporting-mi/index.html',
     icon: <ReportingIcon />,
@@ -246,10 +246,10 @@ export const RADIAL_DESTINATIONS: NavDestination[] = [
   {
     id: 'market-intelligence',
     label: 'Market Intelligence',
-    href: '/tools/network-overview/index.html',
+    href: '/tools/market-research/index.html',
     icon: <NetworkIcon size={22} />,
   },
-  { id: 'reporting-mi', label: 'Reporting and MI', href: '/tools/reporting-mi/index.html', icon: <ReportingIcon size={22} /> },
+  { id: 'reporting-mi', label: 'Enterprise Intelligence', href: '/tools/reporting-mi/index.html', icon: <ReportingIcon size={22} /> },
   { id: 'studio', label: 'Studio', href: '/tools/product-demo/index.html', icon: <DemoIcon size={22} /> },
   { id: 'intelligence', label: 'Phaeron Intelligence', href: INTELLIGENCE_HREF, icon: <IntelligenceOrbIcon size={22} /> },
 ];
@@ -260,8 +260,8 @@ export const RADIAL_MODULE_DESTINATIONS: NavDestination[] = RADIAL_DESTINATIONS.
 export const PULSE_NAV = [
   { label: 'Home', href: '/ui/' },
   { label: 'Opportunities', href: '/tools/account-tracker/index.html' },
-  { label: 'Market Intelligence', href: '/tools/network-overview/index.html' },
-  { label: 'Reporting', href: '/tools/reporting-mi/index.html' },
+  { label: 'Market Intelligence', href: '/tools/market-research/index.html' },
+  { label: 'Enterprise Intelligence', href: '/tools/reporting-mi/index.html' },
   { label: 'Studio', href: '/tools/product-demo/index.html' },
   { label: 'Intelligence', href: INTELLIGENCE_HREF },
 ];

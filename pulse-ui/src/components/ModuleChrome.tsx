@@ -1,8 +1,8 @@
 import { RadialNav } from '@/components/RadialNav';
 
 const MI_VIEWS = [
-  { id: 'presence', label: 'Market Presence', href: '/tools/network-overview/index.html' },
   { id: 'research', label: 'Market Research', href: '/tools/market-research/index.html' },
+  { id: 'presence', label: 'Market Presence', href: '/tools/network-overview/index.html' },
   { id: 'signals', label: 'Market Signals', href: '/tools/market-movement/index.html' },
 ] as const;
 
