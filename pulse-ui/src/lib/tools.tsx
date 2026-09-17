@@ -219,8 +219,8 @@ export const PULSE_CARD_TOOLS: PulseTool[] = [
     id: 'studio',
     num: '04',
     title: 'Studio',
-    description: 'Product demos, branded reports, and artifacts.',
-    href: '/tools/product-demo/index.html',
+    description: 'Architecture presentation, product demos, and artifacts.',
+    href: '/tools/product-demo/presentation.html',
     icon: <DemoIcon />,
   },
 ];
@@ -250,7 +250,7 @@ export const RADIAL_DESTINATIONS: NavDestination[] = [
     icon: <NetworkIcon size={22} />,
   },
   { id: 'reporting-mi', label: 'Enterprise Intelligence', href: '/tools/reporting-mi/index.html', icon: <ReportingIcon size={22} /> },
-  { id: 'studio', label: 'Studio', href: '/tools/product-demo/index.html', icon: <DemoIcon size={22} /> },
+  { id: 'studio', label: 'Studio', href: '/tools/product-demo/presentation.html', icon: <DemoIcon size={22} /> },
   { id: 'intelligence', label: 'Phaeron Intelligence', href: INTELLIGENCE_HREF, icon: <IntelligenceOrbIcon size={22} /> },
 ];
 
@@ -262,6 +262,6 @@ export const PULSE_NAV = [
   { label: 'Opportunities', href: '/tools/account-tracker/index.html' },
   { label: 'Market Intelligence', href: '/tools/market-research/index.html' },
   { label: 'Enterprise Intelligence', href: '/tools/reporting-mi/index.html' },
-  { label: 'Studio', href: '/tools/product-demo/index.html' },
+  { label: 'Studio', href: '/tools/product-demo/presentation.html' },
   { label: 'Intelligence', href: INTELLIGENCE_HREF },
 ];

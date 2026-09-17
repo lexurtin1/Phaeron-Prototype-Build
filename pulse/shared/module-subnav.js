@@ -28,14 +28,14 @@
     ],
     studio: [
       {
-        id: 'product-demo',
-        label: 'Product Demo',
-        href: '/tools/product-demo/index.html',
-      },
-      {
         id: 'presentation',
         label: 'Presentation',
         href: '/tools/product-demo/presentation.html',
+      },
+      {
+        id: 'product-demo',
+        label: 'Product Demo',
+        href: '/tools/product-demo/index.html',
       },
       {
         id: 'artifacts',
