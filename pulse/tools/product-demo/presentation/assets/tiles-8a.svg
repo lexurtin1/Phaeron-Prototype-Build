@@ -1,36 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
   <title id="title">Phaeron Layer 08A — front-end system tiles</title>
-  <desc id="desc">Four application tiles on a crescent arc above the experience bus.</desc>
+  <desc id="desc">Four application tiles on a lower crescent, pointing to the decision hub.</desc>
   <defs>
     <style>
-      .edge{fill:#E7F0F5;stroke:#10283B;stroke-width:1.55;stroke-linejoin:round}
-      .side{fill:#d5e3ec;stroke:#10283B;stroke-width:1.35}
-      .line{fill:none;stroke:#397DA8;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#8FB8D0;stroke-width:.7}
-      .faint{fill:#E7F0F5;stroke:#397DA8;stroke-width:.7}
-      .blue{fill:#397DA8}
-      .red{fill:#B4233C}
-      .label{font:600 15px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#10283B}
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1.25;stroke-linejoin:round}
+      .side{fill:#f8fbfd;stroke:#087fd0;stroke-width:1}
+      .line{fill:none;stroke:#087fd0;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+      .soft{fill:none;stroke:#8fc8ef;stroke-width:1}
+      .faint{fill:#dbeefb;stroke:#087fd0;stroke-width:.75}
+      .blue{fill:#087fd0}
+      .red{fill:#c92146}
+      .label{font:600 15px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
       .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .port{fill:#fff;stroke:#397DA8;stroke-width:1.5}
+      .pointer{fill:none;stroke:#087fd0;stroke-width:1.4;marker-end:url(#arrow)}
+      .port{fill:#fff;stroke:#087fd0;stroke-width:1.4}
     </style>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#087fd0"/></marker>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v7L0 139-120 71Z"/>
       <path class="edge" d="M0 0 120 64 0 132-120 64Z"/>
       <path class="soft" d="M-104 64 0 12 104 64 0 120Z"/>
+      <circle cx="-98" cy="62" r="2.2" class="red"/>
+      <circle cx="-90" cy="58" r="2.2" class="faint"/>
     </symbol>
   </defs>
 
-  <g id="commercial-analytics" transform="translate(419 502)">
+  <!-- Lower crescent: centers ~y 380–480 -->
+  <g id="commercial-analytics" transform="translate(300 420)">
     <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
     <use href="#tile"/>
     <path class="line" d="m-64 72 14-8 10 5 14-8 12 7 16-9 10 5"/>
     <circle cx="22" cy="66" r="3" class="red"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M300 552L760 670"/>
 
-  <g id="client-intelligence" transform="translate(604 350)">
+  <g id="client-intelligence" transform="translate(560 380)">
     <text class="label" x="0" y="-22" text-anchor="middle">Client Intelligence</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">PROFILE · HISTORY</text>
     <use href="#tile"/>
@@ -39,10 +45,11 @@
     <path class="line" d="M-32 76q10-10 20 0"/>
     <path class="line" d="M6 52 62 90"/>
     <circle cx="54" cy="84" r="3" class="blue"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M560 512L770 668"/>
 
-  <g id="opportunity-radar" transform="translate(868 317)">
+  <g id="opportunity-radar" transform="translate(1040 380)">
     <text class="label" x="0" y="-22" text-anchor="middle">Opportunity Radar</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">SIGNALS · PRIORITY</text>
     <use href="#tile"/>
@@ -51,10 +58,11 @@
     <ellipse cx="0" cy="68" rx="16" ry="9" class="soft"/>
     <path class="line" d="M-58 68h116M0 36v64"/>
     <circle cx="32" cy="54" r="4" class="red"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M1040 512L830 668"/>
 
-  <g id="service-operations" transform="translate(1104 414)">
+  <g id="service-operations" transform="translate(1300 420)">
     <text class="label" x="0" y="-22" text-anchor="middle">Service Operations</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">WORKFLOW · EXCEPTIONS</text>
     <use href="#tile"/>
@@ -62,6 +70,9 @@
     <path class="line" d="m-26 70 28 15-14 9-28-16Z"/>
     <path class="line" d="m14 50 28 15-14 9-28-16Z"/>
     <circle cx="16" cy="60" r="3" class="red"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M1300 552L840 670"/>
+
+  <g id="hub-dock"><circle cx="800" cy="680" r="5" class="edge"/><circle cx="800" cy="680" r="2.2" class="red"/></g>
 </svg>

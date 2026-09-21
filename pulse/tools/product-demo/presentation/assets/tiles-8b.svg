@@ -1,27 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
   <title id="title">Phaeron Layer 08B — executive surfaces</title>
-  <desc id="desc">Four executive tiles on a crescent arc above the experience bus.</desc>
+  <desc id="desc">Four executive tiles on an upper crescent, pointing to the decision hub.</desc>
   <defs>
     <style>
-      .edge{fill:#E7F0F5;stroke:#10283B;stroke-width:1.55;stroke-linejoin:round}
-      .side{fill:#d5e3ec;stroke:#10283B;stroke-width:1.35}
-      .line{fill:none;stroke:#397DA8;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#8FB8D0;stroke-width:.7}
-      .faint{fill:#E7F0F5;stroke:#397DA8;stroke-width:.7}
-      .blue{fill:#397DA8}
-      .red{fill:#B4233C}
-      .label{font:600 15px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#10283B}
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1.25;stroke-linejoin:round}
+      .side{fill:#f8fbfd;stroke:#087fd0;stroke-width:1}
+      .line{fill:none;stroke:#087fd0;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+      .soft{fill:none;stroke:#8fc8ef;stroke-width:1}
+      .faint{fill:#dbeefb;stroke:#087fd0;stroke-width:.75}
+      .blue{fill:#087fd0}
+      .red{fill:#c92146}
+      .label{font:600 15px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
       .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .port{fill:#fff;stroke:#397DA8;stroke-width:1.5}
+      .pointer{fill:none;stroke:#087fd0;stroke-width:1.4;marker-end:url(#arrow)}
+      .port{fill:#fff;stroke:#087fd0;stroke-width:1.4}
     </style>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#087fd0"/></marker>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v7L0 139-120 71Z"/>
       <path class="edge" d="M0 0 120 64 0 132-120 64Z"/>
       <path class="soft" d="M-104 64 0 12 104 64 0 120Z"/>
+      <circle cx="-98" cy="62" r="2.2" class="red"/>
+      <circle cx="-90" cy="58" r="2.2" class="faint"/>
     </symbol>
   </defs>
 
-  <g id="market-globe" transform="translate(496 414)">
+  <!-- Upper crescent: centers ~y 180–280 -->
+  <g id="market-globe" transform="translate(280 230)">
     <text class="label" x="0" y="-22" text-anchor="middle">Market Globe</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">MARKETS · EVENTS</text>
     <use href="#tile"/>
@@ -29,19 +34,21 @@
     <ellipse cx="0" cy="68" rx="20" ry="30" class="soft"/>
     <path class="soft" d="M-50 56h100M-52 70h104M0 38v60"/>
     <circle cx="24" cy="56" r="3.5" class="red"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M280 362L750 665"/>
 
-  <g id="executive-dashboard" transform="translate(732 317)">
+  <g id="executive-dashboard" transform="translate(580 180)">
     <text class="label" x="0" y="-22" text-anchor="middle">Executive Dashboard</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">KPI · EXPOSURE</text>
     <use href="#tile"/>
     <path class="line" d="M-60 78V52h22v26ZM-28 78V44h22v34ZM4 78V56h22v22ZM36 78V40h22v38Z"/>
     <circle cx="50" cy="44" r="3" class="red"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M580 312L775 662"/>
 
-  <g id="research-insights" transform="translate(996 350)">
+  <g id="research-insights" transform="translate(1020 180)">
     <text class="label" x="0" y="-22" text-anchor="middle">Research &amp; Insights</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">BRIEFING · EVIDENCE</text>
     <use href="#tile"/>
@@ -49,10 +56,11 @@
     <path class="faint" d="m-28 58 34-18 44 24-34 18Z"/>
     <path class="line" d="m-32 62 22-12M-24 72l22-12"/>
     <circle cx="42" cy="56" r="3" class="red"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M1020 312L825 662"/>
 
-  <g id="reporting-packs" transform="translate(1181 502)">
+  <g id="reporting-packs" transform="translate(1320 230)">
     <text class="label" x="0" y="-22" text-anchor="middle">Reporting Packs</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">BOARD · CLIENT</text>
     <use href="#tile"/>
@@ -60,6 +68,9 @@
     <path class="faint" d="m-32 60 30-16 42 23-30 16Z"/>
     <path class="line" d="m-24 64 16-9M-16 74l16-9"/>
     <path class="red" d="m34 74 6 3-6 4-6-3Z"/>
-    <circle class="port" cx="0" cy="139" r="4"/>
+    <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
+  <path class="pointer" d="M1320 362L850 665"/>
+
+  <g id="hub-dock"><circle cx="800" cy="680" r="5" class="edge"/><circle cx="800" cy="680" r="2.2" class="red"/></g>
 </svg>

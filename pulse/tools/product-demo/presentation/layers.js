@@ -2,16 +2,6 @@
   'use strict';
   const NS = 'http://www.w3.org/2000/svg';
   const holders = [...document.querySelectorAll('.layer:not(.tile-layer)')];
-  const LAYER_NAMES = [
-    'Foundation',
-    'Access and governance',
-    'Context engine',
-    'Context assembly',
-    'Relevance',
-    'Verified answers',
-    'Across the business',
-    'Complete system'
-  ];
   const E = (name, attrs = {}, parent, content) => {
     const node = document.createElementNS(NS, name);
     Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
@@ -41,21 +31,6 @@
     plane(u, v + dv)
   ];
 
-  function edgeLabel(root, index, name) {
-    const g = G(root, 'edge-label edge-right');
-    // Front-right diamond edge slope ≈ +29°; sit on the edge, reading down-right
-    E(
-      'text',
-      {
-        class: 'slab-edge-name',
-        transform: 'translate(742 330) rotate(29)',
-        'text-anchor': 'start'
-      },
-      g,
-      name
-    );
-  }
-
   function svg(label, index = 0) {
     const root = E('svg', {
       viewBox: '0 0 1000 600',
@@ -77,7 +52,6 @@
       'slab-edge'
     );
     poly(root, diamond, 'slab-top');
-    edgeLabel(root, index, LAYER_NAMES[index] || label);
     return root;
   }
 

@@ -4,9 +4,6 @@
   const slabs = [...document.querySelectorAll('.layer:not(.tile-layer)')];
   const tileA = document.querySelector('.tile-layer[data-layer="8a"]');
   const tileB = document.querySelector('.tile-layer[data-layer="8b"]');
-  const tileImgA = tileA?.querySelector('img');
-  const tileImgB = tileB?.querySelector('img');
-  const systemLinks = document.querySelector('#tile-links');
   const links = [...document.querySelectorAll('.layer-nav a')];
   const page = document.body;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -17,6 +14,7 @@
   const captionAside = document.querySelector('#caption-aside');
   const viewMode = document.querySelector('#view-mode');
   const progress = document.querySelector('#reading-progress');
+  const systemLinks = document.querySelector('#tile-links');
   const titles = [
     'The complete context architecture',
     'Foundation',
@@ -31,27 +29,17 @@
     'Executive surfaces'
   ];
   const ids = ['ALL', '01', '02', '03', '04', '05', '06', '07', '08', '08A', '08B'];
-  // Tile port centers in 1600×700 assets (group translate + port at cy=139)
-  const PORTS_A = [
-    [419 / 1600, (502 + 139) / 700],
-    [604 / 1600, (350 + 139) / 700],
-    [868 / 1600, (317 + 139) / 700],
-    [1104 / 1600, (414 + 139) / 700]
-  ];
-  const PORTS_B = [
-    [496 / 1600, (414 + 139) / 700],
-    [732 / 1600, (317 + 139) / 700],
-    [996 / 1600, (350 + 139) / 700],
-    [1181 / 1600, (502 + 139) / 700]
-  ];
-  const BUS_Y = 640 / 700;
 
   let hubShown = null;
-  let busNodes = null;
   const clamp = (v, min = 0, max = 1) => Math.max(min, Math.min(max, v));
   const smooth = (v) => v * v * (3 - 2 * v);
   const mix = (a, b, t) => a + (b - a) * t;
   let anchors = [], frame = 0, last = -1, fit = 1;
+
+  if (systemLinks) {
+    systemLinks.innerHTML = '';
+    systemLinks.style.opacity = '0';
+  }
 
   function measure() {
     anchors = chapters.map((el) => window.scrollY + el.getBoundingClientRect().top);
@@ -64,7 +52,8 @@
     if (assembled) {
       const gap = small ? 12 : 26;
       const base = small ? 44 : 95;
-      const tileLift = scene === 0 || scene >= 9 ? (small ? 56 : 92) : 0;
+      // Extra lift so Layer 01–07 sit under the lower (8a) crescent
+      const tileLift = scene === 0 || scene >= 9 ? (small ? 68 : 110) : 0;
       // Fade inactive lower slabs by opacity — not by dashed drafting
       const opacity = index >= 6 ? 1 : clamp(0.32 + index * 0.08, 0.32, 0.72);
       return {
@@ -83,118 +72,11 @@
     const showA = scene === 0 || scene >= 9;
     const showB = scene === 0 || scene >= 10;
     const visible = bank === 'a' ? showA : showB;
-    const baseY = small ? -6 : -12;
+    // Banks share overlay; SVG Y separates 8b (upper) from 8a (lower)
+    const baseY = bank === 'b' ? (small ? -10 : -18) : small ? -6 : -12;
     const scale = small ? 0.86 : 0.9;
     if (!visible) return { y: baseY + 16, scale, opacity: 0 };
     return { y: baseY, scale, opacity: 1 };
-  }
-
-  function pointOnImg(img, nx, ny) {
-    if (!img) return null;
-    const r = img.getBoundingClientRect();
-    const d = diagram.getBoundingClientRect();
-    if (r.width < 2 || r.height < 2) return null;
-    return {
-      x: r.left - d.left + r.width * nx,
-      y: r.top - d.top + r.height * ny
-    };
-  }
-
-  function ensureBus() {
-    if (!systemLinks || busNodes) return busNodes;
-    const NS = 'http://www.w3.org/2000/svg';
-    systemLinks.innerHTML = '';
-    const marker = document.createElementNS(NS, 'marker');
-    marker.setAttribute('id', 'bus-arrow');
-    marker.setAttribute('viewBox', '0 0 8 8');
-    marker.setAttribute('refX', '7');
-    marker.setAttribute('refY', '4');
-    marker.setAttribute('markerWidth', '6');
-    marker.setAttribute('markerHeight', '6');
-    marker.setAttribute('orient', 'auto');
-    const tip = document.createElementNS(NS, 'path');
-    tip.setAttribute('d', 'M0 0 8 4 0 8Z');
-    tip.setAttribute('fill', '#397DA8');
-    marker.append(tip);
-    const defs = document.createElementNS(NS, 'defs');
-    defs.append(marker);
-    systemLinks.append(defs);
-
-    const bus = document.createElementNS(NS, 'path');
-    bus.setAttribute('class', 'bus-line');
-    systemLinks.append(bus);
-    const drops = [];
-    const risers = [];
-    const ports = [];
-    for (let i = 0; i < 8; i++) {
-      const drop = document.createElementNS(NS, 'path');
-      drop.setAttribute('class', 'bus-drop');
-      drop.setAttribute('marker-end', 'url(#bus-arrow)');
-      systemLinks.append(drop);
-      drops.push(drop);
-      const riser = document.createElementNS(NS, 'path');
-      riser.setAttribute('class', 'bus-riser');
-      systemLinks.append(riser);
-      risers.push(riser);
-      const port = document.createElementNS(NS, 'circle');
-      port.setAttribute('class', 'conn-port');
-      port.setAttribute('r', '3.5');
-      systemLinks.append(port);
-      ports.push(port);
-    }
-    busNodes = { bus, drops, risers, ports };
-    return busNodes;
-  }
-
-  function connectSystem(scene, alphaA, alphaB) {
-    if (!systemLinks) return;
-    const nodes = ensureBus();
-    const show = (scene === 0 || scene >= 8) && (alphaA > 0.15 || alphaB > 0.15);
-    const active = scene === 0 || scene >= 8;
-    const strength =
-      scene === 0 || scene >= 9 ? 1 : scene === 8 ? 0.75 : scene === 7 ? 0.55 : 0.4;
-    systemLinks.style.opacity = show ? String(strength) : '0';
-    systemLinks.classList.toggle('is-active', active && (scene >= 8 || scene === 0));
-    if (!show) return;
-
-    const dbox = diagram.getBoundingClientRect();
-    systemLinks.setAttribute('viewBox', `0 0 ${Math.max(1, dbox.width)} ${Math.max(1, dbox.height)}`);
-
-    const points = [];
-    if (alphaA > 0.15 && tileImgA) {
-      PORTS_A.forEach(([nx, ny]) => {
-        const p = pointOnImg(tileImgA, nx, ny);
-        if (p) points.push(p);
-      });
-    }
-    if (alphaB > 0.15 && tileImgB) {
-      PORTS_B.forEach(([nx, ny]) => {
-        const p = pointOnImg(tileImgB, nx, ny);
-        if (p) points.push(p);
-      });
-    }
-    if (points.length < 2) return;
-
-    const busY = pointOnImg(tileImgA || tileImgB, 0.5, BUS_Y)?.y ?? points[0].y + 24;
-    const xs = points.map((p) => p.x).sort((a, b) => a - b);
-    nodes.bus.setAttribute('d', `M${xs[0].toFixed(1)} ${busY.toFixed(1)}H${xs[xs.length - 1].toFixed(1)}`);
-
-    points.forEach((p, i) => {
-      if (!nodes.drops[i]) return;
-      nodes.drops[i].setAttribute('d', `M${p.x.toFixed(1)} ${p.y.toFixed(1)}V${busY.toFixed(1)}`);
-      nodes.drops[i].style.opacity = '1';
-      const below = busY + (mobile.matches ? 14 : 22);
-      nodes.risers[i].setAttribute('d', `M${p.x.toFixed(1)} ${busY.toFixed(1)}V${below.toFixed(1)}`);
-      nodes.risers[i].style.opacity = '1';
-      nodes.ports[i].setAttribute('cx', p.x.toFixed(1));
-      nodes.ports[i].setAttribute('cy', busY.toFixed(1));
-      nodes.ports[i].style.opacity = '1';
-    });
-    for (let i = points.length; i < 8; i++) {
-      nodes.drops[i].style.opacity = '0';
-      nodes.risers[i].style.opacity = '0';
-      nodes.ports[i].style.opacity = '0';
-    }
   }
 
   function render() {
@@ -231,12 +113,10 @@
       document.dispatchEvent(new CustomEvent('phaeron:hub-visibility', { detail: { visible: showHub } }));
     }
 
-    let alphaA = 0;
-    let alphaB = 0;
     if (tileA) {
       const a = tilePose(scene, 'a', small);
       const b = tilePose(next, 'a', small);
-      alphaA = mix(a.opacity, b.opacity, t);
+      const alphaA = mix(a.opacity, b.opacity, t);
       tileA.style.setProperty('--y', mix(a.y, b.y, t) + 'px');
       tileA.style.setProperty('--scale', mix(a.scale, b.scale, t));
       tileA.style.setProperty('--alpha', alphaA);
@@ -246,15 +126,13 @@
     if (tileB) {
       const a = tilePose(scene, 'b', small);
       const b = tilePose(next, 'b', small);
-      alphaB = mix(a.opacity, b.opacity, t);
+      const alphaB = mix(a.opacity, b.opacity, t);
       tileB.style.setProperty('--y', mix(a.y, b.y, t) + 'px');
       tileB.style.setProperty('--scale', mix(a.scale, b.scale, t));
       tileB.style.setProperty('--alpha', alphaB);
       tileB.style.zIndex = '21';
       tileB.setAttribute('aria-hidden', alphaB < 0.05 ? 'true' : 'false');
     }
-
-    connectSystem(scene === next ? scene : t > 0.5 ? next : scene, alphaA, alphaB);
 
     if (scene !== last) {
       last = scene;
