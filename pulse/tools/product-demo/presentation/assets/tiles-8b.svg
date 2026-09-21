@@ -3,15 +3,15 @@
   <desc id="desc">Four executive tiles on an upper irregular band, clear of Layer 08.</desc>
   <defs>
     <style>
-      .edge{fill:#fff;stroke:#0b3d66;stroke-width:1;stroke-linejoin:round}
-      .side{fill:#f4f7fa;stroke:#6d8eab;stroke-width:.85}
-      .line{fill:none;stroke:#0b3d66;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#6d8eab;stroke-width:.75}
-      .faint{fill:#d6e0ea;stroke:#6d8eab;stroke-width:.7}
-      .blue{fill:#0b3d66;fill-opacity:.55}
-      .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#0a1c2e}
-      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#5a6a78}
-      .port{fill:#0b3d66;fill-opacity:.3;stroke:none}
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1;stroke-linejoin:round}
+      .side{fill:#fafcfe;stroke:#8fc8ef;stroke-width:.85}
+      .line{fill:none;stroke:#087fd0;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+      .soft{fill:none;stroke:#8fc8ef;stroke-width:.75}
+      .faint{fill:#dbeefb;stroke:#8fc8ef;stroke-width:.7}
+      .blue{fill:#087fd0;fill-opacity:.55}
+      .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
+      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
+      .port{fill:#087fd0;fill-opacity:.3;stroke:none}
     </style>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
