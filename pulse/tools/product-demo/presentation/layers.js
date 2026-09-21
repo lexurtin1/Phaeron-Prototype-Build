@@ -489,55 +489,54 @@
 
     const drawIcon = (g, kind, ix, iy) => {
       if (kind === 'commercial') {
-        [[0, 10], [6, 6], [12, 12]].forEach(([dx, h], i) => {
-          rect(g, ix + dx, iy + 12 - h, 4, h, i === 1 ? 'blue-fill' : 'tile', 0.5);
+        [[0, 10], [6, 6], [12, 12]].forEach(([dx, barH], i) => {
+          rect(g, ix + dx, iy + 12 - barH, 4, barH, i === 1 ? 'red-fill' : 'tile', 0.5);
         });
       } else if (kind === 'product') {
         [0, 1, 2].forEach((i) => {
-          rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'blue-fill' : 'tile', 0.5);
+          rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'ink-fill' : 'tile', 0.5);
         });
       } else if (kind === 'operations') {
         line(g, ix, iy + 8, ix + 16, iy + 8, 'dept-icon');
         circle(g, ix + 3, iy + 8, 2, 'node');
-        circle(g, ix + 9, iy + 8, 2.2, 'node');
+        circle(g, ix + 9, iy + 8, 2.2, 'red-fill');
         circle(g, ix + 15, iy + 8, 2, 'node');
       } else if (kind === 'finance') {
-        [[0, 7], [5, 11], [10, 9], [15, 13]].forEach(([dx, h]) => {
-          rect(g, ix + dx, iy + 14 - h, 3.5, h, 'tile', 0.5);
+        [[0, 7], [5, 11], [10, 9], [15, 13]].forEach(([dx, barH], i) => {
+          rect(g, ix + dx, iy + 14 - barH, 3.5, barH, i === 3 ? 'red-fill' : 'tile', 0.5);
         });
       } else if (kind === 'legal') {
         rect(g, ix + 2, iy + 1, 12, 14, 'tile', 1);
         line(g, ix + 4, iy + 5, ix + 12, iy + 5, 'dept-icon');
-        line(g, ix + 4, iy + 9, ix + 10, iy + 9, 'dept-icon');
+        line(g, ix + 4, iy + 9, ix + 10, iy + 9, 'dept-icon-red');
       }
     };
 
     // Five departments on the slab face — equal radius, 72° spacing (no Engineering)
     const R = 185;
-    const w = 156;
-    const h = 48;
+    const w = 132;
+    const h = 36;
     const depts = [
-      { name: 'Commercial', ang: -90, icon: 'commercial', keys: 'CLIENTS · OPPORTUNITIES · REVENUE' },
-      { name: 'Product', ang: -18, icon: 'product', keys: 'STRATEGY · ROADMAP · MARKET' },
-      { name: 'Operations', ang: 54, icon: 'operations', keys: 'SERVICES · RISK · DELIVERY' },
-      { name: 'Finance', ang: 126, icon: 'finance', keys: 'PERFORMANCE · EXPOSURE · PLANNING' },
-      { name: 'Legal', ang: -162, icon: 'legal', keys: 'REGULATORY · POLICY · MITIGATION' }
+      { name: 'Commercial', ang: -90, icon: 'commercial' },
+      { name: 'Product', ang: -18, icon: 'product' },
+      { name: 'Operations', ang: 54, icon: 'operations' },
+      { name: 'Finance', ang: 126, icon: 'finance' },
+      { name: 'Legal', ang: -162, icon: 'legal' }
     ];
-    depts.forEach(({ name, ang, icon, keys }) => {
+    depts.forEach(({ name, ang, icon }) => {
       const rad = (ang * Math.PI) / 180;
       const x = cx + Math.cos(rad) * R;
       const y = cy + Math.sin(rad) * R * 0.58;
       const g = G(s, 'dept-node');
       const sx = cx + Math.cos(rad) * 52;
       const sy = cy + Math.sin(rad) * 52 * 0.58;
-      const portX = x - Math.cos(rad) * (w * 0.38);
-      const portY = y - Math.sin(rad) * (w * 0.38) * 0.58;
+      const portX = x - Math.cos(rad) * (w * 0.42);
+      const portY = y - Math.sin(rad) * (w * 0.42) * 0.58;
       line(g, sx, sy, portX, portY, 'dept-spoke');
       circle(g, portX, portY, 3, 'dept-port');
       rect(g, x - w / 2, y - h / 2, w, h, 'tile', 3);
-      drawIcon(g, icon, x - w / 2 + 12, y - h / 2 + 8);
-      text(g, x - w / 2 + 36, y - 4, name, 'dept-label', 'start');
-      text(g, x, y + 16, keys, 'dept-desc', 'middle');
+      drawIcon(g, icon, x - w / 2 + 12, y - h / 2 + 10);
+      text(g, x - w / 2 + 36, y + 5, name, 'dept-label', 'start');
     });
     return s;
   }
