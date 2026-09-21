@@ -77,23 +77,118 @@
       'Foundation: UNITY internal sources and PULSE external sources join without moving the sources.',
       0
     );
-    const left = G(s, 'foundation-left');
-    const right = G(s, 'foundation-right');
-    poly(left, [[500, 105], [500, 485], [165, 295]], 'pale-fill');
-    poly(left, [[500, 105], [500, 485], [165, 295]], 'blue-line');
-    poly(right, [[500, 105], [835, 295], [500, 485]], 'tile');
-    line(s, 500, 108, 500, 482, 'blue-line');
-    text(s, 395, 302, 'UNITY', 'svg-title', 'middle');
-    text(s, 605, 302, 'PULSE', 'svg-title', 'middle');
-    for (let i = 1; i < 12; i++)
-      for (let j = 1; j < 9; j++) {
-        const [x, y] = plane(i / 12, j / 10);
-        if (x < 488 || (i + j) % 3 === 0)
-          E('path', {
-            d: `M${x - 4} ${y - 2}h8m-8 4h5`,
-            class: x < 500 ? 'blue-line' : 'pale-line'
-          }, s);
+    const GRID = 6;
+    const inset = 0.18;
+    const span = 1 - inset * 2;
+    const step = span / GRID;
+    const inInset = (u, v) => u > inset && u < 1 - inset && v > inset && v < 1 - inset;
+
+    // Outer PULSE band — faint circuit marks outside the UNITY inset
+    const circuit = G(s, 'foundation-circuit');
+    for (let i = 1; i < 14; i++)
+      for (let j = 1; j < 11; j++) {
+        const u = i / 14;
+        const v = j / 12;
+        if (inInset(u, v) || (i + j) % 3 !== 0) continue;
+        const [x, y] = plane(u, v);
+        E('path', { d: `M${x - 4} ${y - 2}h8m-8 4h5`, class: 'pale-line foundation-hash' }, circuit);
       }
+
+    // Inner UNITY diamond frame
+    const innerDiamond = [
+      plane(inset, inset),
+      plane(1 - inset, inset),
+      plane(1 - inset, 1 - inset),
+      plane(inset, 1 - inset)
+    ];
+    poly(s, innerDiamond, 'foundation-unity-frame');
+
+    // 6×6 UNITY tile grid
+    const tiles = [];
+    const grid = G(s, 'foundation-grid');
+    for (let row = 0; row < GRID; row++)
+      for (let col = 0; col < GRID; col++) {
+        const u = inset + col * step;
+        const v = inset + row * step;
+        const pts = cellPoints(u, v, step * 0.94, step * 0.94);
+        const shade = (row + col) % 2 === 0 ? 'foundation-tile-a' : 'foundation-tile-b';
+        const cell = poly(grid, pts, shade);
+        const center = plane(u + step * 0.47, v + step * 0.47);
+        tiles.push({ row, col, center, cell });
+      }
+
+    // Minimal labels — left copy carries the explanation
+    text(s, 500, 72, 'PULSE', 'svg-title', 'middle');
+    text(s, 500, 88, 'OUTSIDE THE BUSINESS', 'svg-micro-blue', 'middle');
+    text(s, 500, 148, 'UNITY', 'svg-title', 'middle');
+    text(s, 500, 164, 'INSIDE THE BUSINESS', 'svg-micro-blue', 'middle');
+
+    // Four red seekers from outer-ring origins into random UNITY tiles
+    const origins = [
+      plane(0.08, 0.22),
+      plane(0.78, 0.08),
+      plane(0.92, 0.72),
+      plane(0.22, 0.92)
+    ];
+    const markers = G(s, 'foundation-markers');
+    const seekers = origins.map((origin, i) => {
+      const start = tiles[(i * 7 + 3) % tiles.length].center;
+      const ln = line(markers, origin[0], origin[1], start[0], start[1], 'red-line-svg foundation-marker-line');
+      const tip = circle(markers, start[0], start[1], 7, 'foundation-marker-tip');
+      return { origin, line: ln, tip, tileIndex: (i * 7 + 3) % tiles.length, x: start[0], y: start[1] };
+    });
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+      const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+      const occupied = () => new Set(seekers.map((sk) => sk.tileIndex));
+      const pickTile = (current) => {
+        const taken = occupied();
+        const free = tiles
+          .map((_, idx) => idx)
+          .filter((idx) => idx !== current && !taken.has(idx));
+        const pool = free.length ? free : tiles.map((_, idx) => idx).filter((idx) => idx !== current);
+        return pool[Math.floor(Math.random() * pool.length)] ?? current;
+      };
+      seekers.forEach((sk, i) => {
+        sk.phase = 'dwell';
+        sk.until = performance.now() + 400 + i * 700;
+        sk.from = [sk.x, sk.y];
+        sk.to = [sk.x, sk.y];
+        sk.duration = 3200;
+        sk.started = 0;
+      });
+      const tick = (now) => {
+        seekers.forEach((sk) => {
+          if (sk.phase === 'dwell') {
+            if (now < sk.until) return;
+            const next = pickTile(sk.tileIndex);
+            sk.tileIndex = next;
+            sk.from = [sk.x, sk.y];
+            sk.to = tiles[next].center;
+            sk.duration = 2800 + Math.random() * 1200;
+            sk.started = now;
+            sk.phase = 'glide';
+            return;
+          }
+          const t = Math.min(1, (now - sk.started) / sk.duration);
+          const e = easeInOut(t);
+          sk.x = sk.from[0] + (sk.to[0] - sk.from[0]) * e;
+          sk.y = sk.from[1] + (sk.to[1] - sk.from[1]) * e;
+          sk.line.setAttribute('x2', sk.x);
+          sk.line.setAttribute('y2', sk.y);
+          sk.tip.setAttribute('cx', sk.x);
+          sk.tip.setAttribute('cy', sk.y);
+          if (t >= 1) {
+            sk.phase = 'dwell';
+            sk.until = now + 800 + Math.random() * 600;
+          }
+        });
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
     return s;
   }
 
@@ -392,30 +487,57 @@
     E('ellipse', { cx, cy: cy + 6, rx: 48, ry: 28, class: 'orb-dock' }, s);
     circle(s, cx, cy, 44, 'orb-ring');
 
-    // Five departments, equal radius, 72° spacing (Engineering removed)
+    const drawIcon = (g, kind, ix, iy) => {
+      if (kind === 'commercial') {
+        [[0, 10], [6, 6], [12, 12]].forEach(([dx, h], i) => {
+          rect(g, ix + dx, iy + 12 - h, 4, h, i === 1 ? 'blue-fill' : 'tile', 0.5);
+        });
+      } else if (kind === 'product') {
+        [0, 1, 2].forEach((i) => {
+          rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'blue-fill' : 'tile', 0.5);
+        });
+      } else if (kind === 'operations') {
+        line(g, ix, iy + 8, ix + 16, iy + 8, 'dept-icon');
+        circle(g, ix + 3, iy + 8, 2, 'node');
+        circle(g, ix + 9, iy + 8, 2.2, 'node');
+        circle(g, ix + 15, iy + 8, 2, 'node');
+      } else if (kind === 'finance') {
+        [[0, 7], [5, 11], [10, 9], [15, 13]].forEach(([dx, h]) => {
+          rect(g, ix + dx, iy + 14 - h, 3.5, h, 'tile', 0.5);
+        });
+      } else if (kind === 'legal') {
+        rect(g, ix + 2, iy + 1, 12, 14, 'tile', 1);
+        line(g, ix + 4, iy + 5, ix + 12, iy + 5, 'dept-icon');
+        line(g, ix + 4, iy + 9, ix + 10, iy + 9, 'dept-icon');
+      }
+    };
+
+    // Five departments on the slab face — equal radius, 72° spacing (no Engineering)
     const R = 185;
+    const w = 156;
+    const h = 48;
     const depts = [
-      { name: 'Commercial', ang: -90 },
-      { name: 'Product', ang: -18 },
-      { name: 'Operations', ang: 54 },
-      { name: 'Finance', ang: 126 },
-      { name: 'Legal', ang: -162 }
+      { name: 'Commercial', ang: -90, icon: 'commercial', keys: 'CLIENTS · OPPORTUNITIES · REVENUE' },
+      { name: 'Product', ang: -18, icon: 'product', keys: 'STRATEGY · ROADMAP · MARKET' },
+      { name: 'Operations', ang: 54, icon: 'operations', keys: 'SERVICES · RISK · DELIVERY' },
+      { name: 'Finance', ang: 126, icon: 'finance', keys: 'PERFORMANCE · EXPOSURE · PLANNING' },
+      { name: 'Legal', ang: -162, icon: 'legal', keys: 'REGULATORY · POLICY · MITIGATION' }
     ];
-    depts.forEach(({ name, ang }) => {
+    depts.forEach(({ name, ang, icon, keys }) => {
       const rad = (ang * Math.PI) / 180;
       const x = cx + Math.cos(rad) * R;
       const y = cy + Math.sin(rad) * R * 0.58;
       const g = G(s, 'dept-node');
       const sx = cx + Math.cos(rad) * 52;
       const sy = cy + Math.sin(rad) * 52 * 0.58;
-      const w = 120;
-      const h = 36;
-      const portX = x - Math.cos(rad) * (w * 0.42);
-      const portY = y - Math.sin(rad) * (w * 0.42) * 0.58;
+      const portX = x - Math.cos(rad) * (w * 0.38);
+      const portY = y - Math.sin(rad) * (w * 0.38) * 0.58;
       line(g, sx, sy, portX, portY, 'dept-spoke');
       circle(g, portX, portY, 3, 'dept-port');
       rect(g, x - w / 2, y - h / 2, w, h, 'tile', 3);
-      text(g, x, y + 5, name, 'dept-label', 'middle');
+      drawIcon(g, icon, x - w / 2 + 12, y - h / 2 + 8);
+      text(g, x - w / 2 + 36, y - 4, name, 'dept-label', 'start');
+      text(g, x, y + 16, keys, 'dept-desc', 'middle');
     });
     return s;
   }
