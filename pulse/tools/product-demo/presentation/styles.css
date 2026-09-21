@@ -254,7 +254,8 @@ em {
   pointer-events: none;
 }
 
-.layer img {
+.layer img,
+.layer > svg {
   display: block;
   width: 100%;
   height: 100%;
