@@ -53,7 +53,9 @@
     if (assembled) {
       const gap = small ? 12 : 26;
       const base = small ? 44 : 95;
-      return { y: (base - index * gap) * fit, scale: (small ? 0.6 : 0.74) * fit, opacity: 1 };
+      // Drop the stack when frontend tiles are present so they clear above it
+      const tileLift = (scene === 0 || scene >= 9) ? (small ? 36 : 58) : 0;
+      return { y: (base - index * gap + tileLift) * fit, scale: (small ? 0.55 : 0.68) * fit, opacity: 1 };
     }
     const selected = scene - 1;
     if (index === selected) return { y: 0, scale: (small ? 0.94 : 1.02) * fit, opacity: 1 };
@@ -65,10 +67,11 @@
     const showA = scene === 0 || scene >= 9;
     const showB = scene === 0 || scene >= 10;
     const visible = bank === 'a' ? showA : showB;
-    const baseY = bank === 'a' ? (small ? -18 : -40) : (small ? -48 : -95);
-    const scale = (small ? 0.68 : 0.82) * fit;
-    if (!visible) return { y: baseY + (small ? 24 : 36), scale, opacity: 0 };
-    return { y: baseY * fit, scale, opacity: 1 };
+    // Top-anchored overlay: 8b sits higher (more negative) than 8a
+    const baseY = bank === 'a' ? (small ? 4 : 8) : (small ? -22 : -34);
+    const scale = small ? 0.88 : 0.92;
+    if (!visible) return { y: baseY + 16, scale, opacity: 0 };
+    return { y: baseY, scale, opacity: 1 };
   }
 
   function pointOnImg(img, nx, ny) {
@@ -82,30 +85,44 @@
     };
   }
 
+  let linkLines = null;
+  function ensureLinkLines() {
+    if (!tileLinks || linkLines) return linkLines;
+    tileLinks.innerHTML = '';
+    linkLines = [0, 1].map(() => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'tile-cross-link');
+      tileLinks.append(line);
+      return line;
+    });
+    return linkLines;
+  }
+
   function connectTiles(scene, alphaA, alphaB) {
     if (!tileLinks) return;
-    const show = (scene === 0 || scene >= 10) && alphaA > 0.15 && alphaB > 0.15;
-    tileLinks.innerHTML = '';
-    tileLinks.style.opacity = show ? String(Math.min(alphaA, alphaB)) : '0';
+    const show = (scene === 0 || scene >= 10) && alphaA > 0.2 && alphaB > 0.2;
+    tileLinks.style.opacity = show ? String(Math.min(alphaA, alphaB) * 0.85) : '0';
     if (!show) return;
+    const lines = ensureLinkLines();
     const a = pointOnImg(tileImgA, ...NORM.opportunityRadar);
     const b = pointOnImg(tileImgB, ...NORM.marketGlobe);
     const c = pointOnImg(tileImgB, ...NORM.researchInsights);
     const d = pointOnImg(tileImgA, ...NORM.clientIntelligence);
     const dbox = diagram.getBoundingClientRect();
-    tileLinks.setAttribute('viewBox', `0 0 ${dbox.width} ${dbox.height}`);
-    tileLinks.setAttribute('width', String(dbox.width));
-    tileLinks.setAttribute('height', String(dbox.height));
+    tileLinks.setAttribute('viewBox', `0 0 ${Math.max(1, dbox.width)} ${Math.max(1, dbox.height)}`);
     const pairs = [[a, b], [c, d]];
-    pairs.forEach(([p, q]) => {
-      if (!p || !q) return;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', p.x);
-      line.setAttribute('y1', p.y);
-      line.setAttribute('x2', q.x);
-      line.setAttribute('y2', q.y);
-      line.setAttribute('class', 'tile-cross-link');
-      tileLinks.append(line);
+    pairs.forEach((pair, i) => {
+      const [p, q] = pair;
+      const line = lines[i];
+      if (!p || !q) {
+        line.style.opacity = '0';
+        return;
+      }
+      line.style.opacity = '1';
+      line.setAttribute('x1', p.x.toFixed(1));
+      line.setAttribute('y1', p.y.toFixed(1));
+      line.setAttribute('x2', q.x.toFixed(1));
+      line.setAttribute('y2', q.y.toFixed(1));
     });
   }
 

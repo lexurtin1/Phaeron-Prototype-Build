@@ -25,7 +25,7 @@
     <path class="line" d="M45 62 94 36M50 72l44-23M55 82l39-20M60 92l34-18"/>
     <path class="faint" d="m54 75 14-8 12 7-14 8Z"/>
   </g>
-  <path class="pointer" d="M225 397L800 520"/>
+  <path class="pointer" d="M225 397L800 680"/>
 
   <g id="client-intelligence" transform="translate(605 325)">
     <use href="#tile"/>
@@ -38,7 +38,7 @@
     <path class="faint" d="m51 57 28 15-14 8-28-15Z"/>
     <circle cx="69" cy="72" r="3.5" class="blue"/>
   </g>
-  <path class="pointer" d="M605 480L800 520"/>
+  <path class="pointer" d="M605 480L800 680"/>
 
   <g id="opportunity-radar" transform="translate(985 242)">
     <use href="#tile"/>
@@ -52,7 +52,7 @@
     <circle cx="-26" cy="86" r="3.5" class="blue"/>
     <circle cx="18" cy="91" r="3.5" class="blue"/>
   </g>
-  <path class="pointer" d="M985 397L800 520"/>
+  <path class="pointer" d="M985 397L800 680"/>
 
   <g id="service-operations" transform="translate(1365 325)">
     <use href="#tile"/>
@@ -62,5 +62,6 @@
     <circle cx="-78" cy="64" r="3" class="blue"/><circle cx="-25" cy="91" r="3" class="blue"/><circle cx="26" cy="63" r="3" class="red"/><circle cx="78" cy="90" r="3" class="blue"/>
     <path class="soft" d="m-53 72 40-3M-1 99l27-36M51 70l27 20"/>
   </g>
-  <path class="pointer" d="M1365 480L800 520"/>
+  <path class="pointer" d="M1365 480L800 680"/>
+  <g id="hub-dock"><circle cx="800" cy="680" r="5" class="edge"/><circle cx="800" cy="680" r="2.2" class="red"/></g>
 </svg>
