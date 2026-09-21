@@ -66,7 +66,7 @@
       const gap = small ? 14 : 28;
       const base = small ? 48 : 100;
       const tileLift = scene === 0 || scene >= 9 ? (small ? 88 : 150) : 0;
-      // Only Layer 08 fully opaque — hides Layer 07 Commercial jut in assembled view
+      // Only Layer 08 fully opaque in assembled; Layer 07 slab stays but its detail is CSS-hidden
       const opacity = index >= 7 ? 1 : clamp(0.32 + index * 0.08, 0.32, 0.72);
       return {
         y: (base - index * gap + tileLift) * fit,
