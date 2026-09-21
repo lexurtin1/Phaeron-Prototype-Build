@@ -42,6 +42,13 @@
     });
   });
   const progress = document.querySelector('#reading-progress');
+  const dataConnectors = [...document.querySelectorAll('[data-layer="0"] .data-connector')];
+  dataConnectors.forEach(path => {
+    const length = path.getTotalLength();
+    path.dataset.length = String(length);
+    path.style.strokeDasharray = `${Math.min(32, length * .18)} ${length}`;
+    path.style.strokeDashoffset = String(length);
+  });
   const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
   const smooth = value => value * value * (3 - 2 * value);
   const mix = (a, b, t) => a + (b - a) * t;
@@ -79,6 +86,34 @@
     anchors = chapters.map(el => window.scrollY + el.getBoundingClientRect().top);
     const height = diagram.getBoundingClientRect().height || window.innerHeight * .65;
     stackFit = Math.min(1, height / (mobile.matches ? 245 : 640));
+  }
+  // Scroll-driven pulses along Layer 01 connectors. Tiles stay still.
+  function pulseDataConnectors(scene, next, local, blend) {
+    const onConnect = scene === 1 || next === 1;
+    dataConnectors.forEach((path, index) => {
+      const length = Number(path.dataset.length) || path.getTotalLength();
+      if (reducedMotion.matches) {
+        path.style.strokeDasharray = 'none';
+        path.style.strokeDashoffset = '0';
+        path.style.opacity = onConnect ? '0.9' : '0';
+        return;
+      }
+      if (!onConnect) {
+        path.style.opacity = '0';
+        return;
+      }
+      const pulse = Math.min(32, length * .18);
+      path.style.strokeDasharray = `${pulse} ${length}`;
+      path.style.opacity = '1';
+      let travel = 0;
+      if (scene === 1 && next === 1) travel = local;
+      else if (scene === 0 && next === 1) travel = blend;
+      else if (scene === 1 && next === 2) travel = 1 - blend;
+      else if (scene === 1) travel = local;
+      const stagger = index * .11;
+      const packet = clamp((travel - stagger) / .55);
+      path.style.strokeDashoffset = String(length - packet * (length + pulse));
+    });
   }
   function pose(scene, layer, small) {
     const layerDef = LAYERS[layer];
@@ -124,6 +159,7 @@
       el.style.zIndex = i + 1;
     });
     connectStack();
+    pulseDataConnectors(scene, next, local, t);
     if (scene !== lastScene) {
       lastScene = scene;
       captionNumber.textContent = scene === 0 ? '01 — 05B' : 'LAYER ' + identifiers[scene];
