@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const NS = 'http://www.w3.org/2000/svg';
-  const holders = [...document.querySelectorAll('.layer')];
+  const holders = [...document.querySelectorAll('.layer:not(.tile-layer)')];
   const E = (name, attrs = {}, parent, content) => {
     const node = document.createElementNS(NS, name);
     Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
@@ -123,6 +123,7 @@
     const hub=[[500,265],[380,325],[620,325],[500,395]];[[0,1],[0,2],[0,3]].forEach(([a,b])=>line(g,...hub[a],...hub[b],'blue-line'));
     circle(g,500,265,42,'tile');text(g,500,258,'CONTEXT','svg-micro-blue','middle');text(g,500,278,'DECISION','svg-title','middle');
     [['GATEWAY',380,325],['INSIGHTS',620,325],['PACKS',500,395]].forEach(([v,x,y])=>{rect(g,x-58,y-24,116,48,'tile',2);text(g,x,y+5,v,'svg-small','middle');});
+    circle(g,500,265,5,'red-fill');
     return s;
   }
 

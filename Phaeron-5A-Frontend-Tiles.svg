@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
+  <title id="title">Phaeron Layer 5A — front-end system tiles</title>
+  <desc id="desc">Four isometric application tiles for commercial analytics, client intelligence, opportunity radar and service operations, each attached to a straight pointer.</desc>
+  <defs>
+    <style>
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1.25;stroke-linejoin:round}.side{fill:#f8fbfd;stroke:#087fd0;stroke-width:1}.line{fill:none;stroke:#087fd0;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}.soft{fill:none;stroke:#8fc8ef;stroke-width:1}.faint{fill:#dbeefb;stroke:#087fd0;stroke-width:.75}.ink{fill:#102538}.blue{fill:#087fd0}.red{fill:#c92146}.label{font:600 13px Arial,Helvetica,sans-serif;letter-spacing:.02em;fill:#102538}.micro{font:10px 'SFMono-Regular',Consolas,monospace;letter-spacing:.08em;fill:#62717e}.microblue{font:10px 'SFMono-Regular',Consolas,monospace;letter-spacing:.08em;fill:#087fd0}.pointer{fill:none;stroke:#087fd0;stroke-width:1.35;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#087fd0"/></marker>
+    <symbol id="tile" overflow="visible">
+      <path class="side" d="M-136 73 0 151 136 73v8L0 159-136 81Z"/>
+      <path class="edge" d="M0 0 136 73 0 151-136 73Z"/>
+      <path class="soft" d="M-119 73 0 9 119 73 0 141Z"/>
+      <circle cx="-113" cy="70" r="2.5" class="red"/>
+      <circle cx="-103" cy="65" r="2.5" class="faint"/>
+    </symbol>
+  </defs>
+  <rect width="1600" height="700" fill="#fff"/>
+
+  <g id="commercial-analytics" transform="translate(225 242)">
+    <use href="#tile"/>
+    <text class="label" x="0" y="-20" text-anchor="middle">COMMERCIAL ANALYTICS</text>
+    <text class="micro" x="0" y="-5" text-anchor="middle">PIPELINE / REVENUE / CLIENTS</text>
+    <path class="line" d="M-92 71-28 37 32 70-31 106Z"/>
+    <path class="soft" d="M-80 71-29 44 19 70-31 98Z"/>
+    <path class="line" d="m-69 74 13-7 8 4 14-8 15 8 17-10 9 5"/>
+    <circle cx="-19" cy="71" r="3.3" class="red"/>
+    <path class="line" d="M45 62 94 36M50 72l44-23M55 82l39-20M60 92l34-18"/>
+    <path class="faint" d="m54 75 14-8 12 7-14 8Z"/>
+  </g>
+  <path class="pointer" d="M225 624V397"/>
+  <circle cx="225" cy="624" r="5" class="edge"/>
+
+  <g id="client-intelligence" transform="translate(605 325)">
+    <use href="#tile"/>
+    <text class="label" x="0" y="-20" text-anchor="middle">CLIENT INTELLIGENCE</text>
+    <text class="micro" x="0" y="-5" text-anchor="middle">RELATIONSHIPS / HISTORY / NEXT ACTION</text>
+    <circle cx="-57" cy="65" r="18" class="edge"/>
+    <circle cx="-57" cy="60" r="6" class="faint"/>
+    <path class="line" d="M-69 75q12-13 24 0"/>
+    <path class="line" d="M-20 47 77 99M-31 54l81 44M-18 70l54 29M2 92l20 11"/>
+    <path class="faint" d="m51 57 28 15-14 8-28-15Z"/>
+    <circle cx="69" cy="72" r="3.5" class="blue"/>
+  </g>
+  <path class="pointer" d="M605 624V480"/>
+  <circle cx="605" cy="624" r="5" class="edge"/>
+
+  <g id="opportunity-radar" transform="translate(985 242)">
+    <use href="#tile"/>
+    <text class="label" x="0" y="-20" text-anchor="middle">OPPORTUNITY RADAR</text>
+    <text class="micro" x="0" y="-5" text-anchor="middle">SIGNALS / PRIORITY / VALUE</text>
+    <ellipse cx="0" cy="74" rx="77" ry="42" class="soft"/>
+    <ellipse cx="0" cy="74" rx="51" ry="28" class="soft"/>
+    <ellipse cx="0" cy="74" rx="25" ry="14" class="soft"/>
+    <path class="line" d="M-78 74h156M0 31v86M-55 43l110 62M-55 105 55 43"/>
+    <circle cx="43" cy="55" r="5" class="red"/>
+    <circle cx="-26" cy="86" r="3.5" class="blue"/>
+    <circle cx="18" cy="91" r="3.5" class="blue"/>
+  </g>
+  <path class="pointer" d="M985 624V397"/>
+  <circle cx="985" cy="624" r="5" class="edge"/>
+
+  <g id="service-operations" transform="translate(1365 325)">
+    <use href="#tile"/>
+    <text class="label" x="0" y="-20" text-anchor="middle">SERVICE OPERATIONS</text>
+    <text class="micro" x="0" y="-5" text-anchor="middle">DELIVERY / RISK / EXCEPTIONS</text>
+    <path class="line" d="m-91 52 38 20-20 12-38-21ZM-39 79l38 20-20 12-38-21ZM13 50l38 20-20 12-38-21ZM65 77l38 20-20 12-38-21Z"/>
+    <circle cx="-78" cy="64" r="3" class="blue"/><circle cx="-25" cy="91" r="3" class="blue"/><circle cx="26" cy="63" r="3" class="red"/><circle cx="78" cy="90" r="3" class="blue"/>
+    <path class="soft" d="m-53 72 40-3M-1 99l27-36M51 70l27 20"/>
+  </g>
+  <path class="pointer" d="M1365 624V480"/>
+  <circle cx="1365" cy="624" r="5" class="edge"/>
+
+  <text x="50" y="650" class="microblue">05A / FRONT-END SYSTEMS</text>
+  <path class="soft" d="M50 664h1500"/>
+</svg>
