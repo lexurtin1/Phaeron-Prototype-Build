@@ -26,9 +26,9 @@
   function pose(scene,index,small){
     const assembled=scene===0||scene===8;
     if(assembled){
-      const gap=small?19:43;
-      const base=small?68:150;
-      return {y:(base-index*gap)*fit,scale:(small?.57:.69)*fit,opacity:1};
+      const gap=small?12:26;
+      const base=small?44:95;
+      return {y:(base-index*gap)*fit,scale:(small?.6:.74)*fit,opacity:1};
     }
     const selected=scene-1;
     if(index===selected)return {y:0,scale:(small?.94:1.02)*fit,opacity:1};
