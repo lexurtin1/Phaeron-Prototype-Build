@@ -30,13 +30,14 @@
     'Executive surfaces'
   ];
   const ids = ['ALL', '01', '02', '03', '04', '05', '06', '07', '08', '08A', '08B'];
-  // Normalized tile centers in each 1600×700 asset (x/1600, y/700)
+  // Normalized tile centers in each 1600×700 asset (x/1600, y/700) — orbit layout
   const NORM = {
-    opportunityRadar: [985 / 1600, 242 / 700],
-    marketGlobe: [225 / 1600, 120 / 700],
-    researchInsights: [985 / 1600, 120 / 700],
-    clientIntelligence: [605 / 1600, 325 / 700]
+    opportunityRadar: [800 / 1600, 150 / 700],
+    marketGlobe: [250 / 1600, 70 / 700],
+    researchInsights: [1120 / 1600, 55 / 700],
+    clientIntelligence: [540 / 1600, 455 / 700]
   };
+  let hubShown = null;
   const clamp = (v, min = 0, max = 1) => Math.max(min, Math.min(max, v));
   const smooth = (v) => v * v * (3 - 2 * v);
   const mix = (a, b, t) => a + (b - a) * t;
@@ -150,6 +151,13 @@
       const focus = scene === 0 || scene >= 8 || i === scene - 1;
       el.classList.toggle('is-focus', focus);
     });
+
+    const hubAlpha = mix(slabPose(scene, 7, small).opacity, slabPose(next, 7, small).opacity, t);
+    const showHub = hubAlpha > 0.35;
+    if (showHub !== hubShown) {
+      hubShown = showHub;
+      document.dispatchEvent(new CustomEvent('phaeron:hub-visibility', { detail: { visible: showHub } }));
+    }
 
     let alphaA = 0;
     let alphaB = 0;
