@@ -1,21 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
   <title id="title">Phaeron Layer 08A — front-end system tiles</title>
-  <desc id="desc">Four application tiles on a lower crescent, pointing to the decision hub.</desc>
+  <desc id="desc">Four application tiles on a lower irregular band above the decision hub.</desc>
   <defs>
     <style>
-      .edge{fill:#fff;stroke:#087fd0;stroke-width:1.25;stroke-linejoin:round}
-      .side{fill:#f8fbfd;stroke:#087fd0;stroke-width:1}
-      .line{fill:none;stroke:#087fd0;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#8fc8ef;stroke-width:1}
-      .faint{fill:#dbeefb;stroke:#087fd0;stroke-width:.75}
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1.35;stroke-linejoin:round}
+      .side{fill:#f8fbfd;stroke:#087fd0;stroke-width:1.1}
+      .line{fill:none;stroke:#087fd0;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}
+      .soft{fill:none;stroke:#8fc8ef;stroke-width:1.1}
+      .faint{fill:#dbeefb;stroke:#087fd0;stroke-width:.8}
       .blue{fill:#087fd0}
       .red{fill:#c92146}
-      .label{font:600 15px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
-      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .pointer{fill:none;stroke:#087fd0;stroke-width:1.4;marker-end:url(#arrow)}
-      .port{fill:#fff;stroke:#087fd0;stroke-width:1.4}
+      .label{font:600 17px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
+      .micro{font:11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
+      .port{fill:#fff;stroke:#087fd0;stroke-width:1.5}
     </style>
-    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#087fd0"/></marker>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v7L0 139-120 71Z"/>
       <path class="edge" d="M0 0 120 64 0 132-120 64Z"/>
@@ -25,8 +23,8 @@
     </symbol>
   </defs>
 
-  <!-- Lower crescent: centers ~y 380–480 -->
-  <g id="commercial-analytics" transform="translate(300 420)">
+  <!-- Lower band: interlaced X vs 8b — ports at (0,132) relative to translate -->
+  <g id="commercial-analytics" transform="translate(380 410)">
     <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
     <use href="#tile"/>
@@ -34,9 +32,8 @@
     <circle cx="22" cy="66" r="3" class="red"/>
     <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
-  <path class="pointer" d="M300 552L760 670"/>
 
-  <g id="client-intelligence" transform="translate(560 380)">
+  <g id="client-intelligence" transform="translate(720 455)">
     <text class="label" x="0" y="-22" text-anchor="middle">Client Intelligence</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">PROFILE · HISTORY</text>
     <use href="#tile"/>
@@ -47,9 +44,8 @@
     <circle cx="54" cy="84" r="3" class="blue"/>
     <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
-  <path class="pointer" d="M560 512L770 668"/>
 
-  <g id="opportunity-radar" transform="translate(1040 380)">
+  <g id="opportunity-radar" transform="translate(1120 390)">
     <text class="label" x="0" y="-22" text-anchor="middle">Opportunity Radar</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">SIGNALS · PRIORITY</text>
     <use href="#tile"/>
@@ -60,9 +56,8 @@
     <circle cx="32" cy="54" r="4" class="red"/>
     <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
-  <path class="pointer" d="M1040 512L830 668"/>
 
-  <g id="service-operations" transform="translate(1300 420)">
+  <g id="service-operations" transform="translate(1420 440)">
     <text class="label" x="0" y="-22" text-anchor="middle">Service Operations</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">WORKFLOW · EXCEPTIONS</text>
     <use href="#tile"/>
@@ -72,7 +67,4 @@
     <circle cx="16" cy="60" r="3" class="red"/>
     <circle class="port" cx="0" cy="132" r="3.5"/>
   </g>
-  <path class="pointer" d="M1300 552L840 670"/>
-
-  <g id="hub-dock"><circle cx="800" cy="680" r="5" class="edge"/><circle cx="800" cy="680" r="2.2" class="red"/></g>
 </svg>
