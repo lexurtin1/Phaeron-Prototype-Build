@@ -82,17 +82,40 @@
     const span = 1 - inset * 2;
     const step = span / GRID;
     const inInset = (u, v) => u > inset && u < 1 - inset && v > inset && v < 1 - inset;
+    const LOGO_BASE = './assets/logos/';
 
-    // Outer PULSE band — faint circuit marks outside the UNITY inset
-    const circuit = G(s, 'foundation-circuit');
-    for (let i = 1; i < 14; i++)
-      for (let j = 1; j < 11; j++) {
-        const u = i / 14;
-        const v = j / 12;
-        if (inInset(u, v) || (i + j) % 3 !== 0) continue;
-        const [x, y] = plane(u, v);
-        E('path', { d: `M${x - 4} ${y - 2}h8m-8 4h5`, class: 'pale-line foundation-hash' }, circuit);
+    // Outer PULSE band — sparse market / external marks (not dense hash)
+    const pulse = G(s, 'foundation-pulse');
+    const pulseMarks = [
+      [0.06, 0.18],
+      [0.12, 0.08],
+      [0.22, 0.04],
+      [0.78, 0.05],
+      [0.88, 0.12],
+      [0.94, 0.28],
+      [0.96, 0.7],
+      [0.86, 0.9],
+      [0.7, 0.96],
+      [0.28, 0.96],
+      [0.1, 0.86],
+      [0.04, 0.68]
+    ];
+    pulseMarks.forEach(([u, v], i) => {
+      if (inInset(u, v)) return;
+      const [x, y] = plane(u, v);
+      if (i % 3 === 0) {
+        E('ellipse', { cx: x, cy: y, rx: 10, ry: 6, class: 'foundation-pulse-mark' }, pulse);
+        E('ellipse', { cx: x, cy: y, rx: 4, ry: 10, class: 'foundation-pulse-mark' }, pulse);
+      } else if (i % 3 === 1) {
+        line(pulse, x - 8, y, x + 8, y, 'foundation-pulse-mark');
+        line(pulse, x - 5, y - 4, x + 5, y - 4, 'foundation-pulse-mark');
+        line(pulse, x - 5, y + 4, x + 5, y + 4, 'foundation-pulse-mark');
+      } else {
+        circle(pulse, x, y, 2.2, 'foundation-pulse-dot');
+        circle(pulse, x + 7, y - 3, 1.6, 'foundation-pulse-dot');
+        circle(pulse, x - 6, y + 4, 1.6, 'foundation-pulse-dot');
       }
+    });
 
     // Inner UNITY diamond frame
     const innerDiamond = [
@@ -103,7 +126,7 @@
     ];
     poly(s, innerDiamond, 'foundation-unity-frame');
 
-    // 6×6 UNITY tile grid
+    // 6×6 UNITY tile grid (colours unchanged)
     const tiles = [];
     const grid = G(s, 'foundation-grid');
     for (let row = 0; row < GRID; row++)
@@ -114,61 +137,137 @@
         const shade = (row + col) % 2 === 0 ? 'foundation-tile-a' : 'foundation-tile-b';
         const cell = poly(grid, pts, shade);
         const center = plane(u + step * 0.47, v + step * 0.47);
-        tiles.push({ row, col, center, cell });
+        tiles.push({ row, col, center, cell, u, v });
       }
 
-    // Minimal labels — left copy carries the explanation
+    const tileAt = (row, col) => tiles[row * GRID + col];
+
+    // Logo cluster — 2×3 block of real internal systems (subtle + small)
+    const logos = G(s, 'foundation-logos');
+    const logoSet = [
+      { row: 2, col: 1, src: 'crm-salesforce.webp' },
+      { row: 2, col: 2, src: 'erp-sap.webp' },
+      { row: 2, col: 3, src: 'pm-jira.webp' },
+      { row: 3, col: 1, src: 'crm-hubspot.png' },
+      { row: 3, col: 2, src: 'bk-confluence.jpeg' },
+      { row: 3, col: 3, src: 'fin-excel.webp' }
+    ];
+    const logoOccupied = new Set(logoSet.map(({ row, col }) => `${row},${col}`));
+    logoSet.forEach(({ row, col, src }) => {
+      const t = tileAt(row, col);
+      const size = 16;
+      E(
+        'image',
+        {
+          href: LOGO_BASE + src,
+          x: t.center[0] - size / 2,
+          y: t.center[1] - size / 2,
+          width: size,
+          height: size,
+          class: 'foundation-logo',
+          preserveAspectRatio: 'xMidYMid meet'
+        },
+        logos
+      );
+    });
+
+    // Sparse internal glyphs (docs / email / notes) on other UNITY cells
+    const glyphs = G(s, 'foundation-glyphs');
+    const glyphCells = [
+      [0, 1, 'doc'],
+      [1, 4, 'mail'],
+      [4, 0, 'note'],
+      [4, 4, 'doc'],
+      [5, 2, 'mail'],
+      [0, 4, 'note']
+    ];
+    glyphCells.forEach(([row, col, kind]) => {
+      if (logoOccupied.has(`${row},${col}`)) return;
+      const [x, y] = tileAt(row, col).center;
+      const g = G(glyphs, 'foundation-glyph');
+      if (kind === 'doc') {
+        rect(g, x - 5, y - 6, 10, 12, 'foundation-glyph-shape', 1);
+        line(g, x - 3, y - 2, x + 3, y - 2, 'foundation-glyph');
+        line(g, x - 3, y + 1, x + 2, y + 1, 'foundation-glyph');
+      } else if (kind === 'mail') {
+        rect(g, x - 7, y - 4, 14, 9, 'foundation-glyph-shape', 1);
+        E('path', { d: `M${x - 7} ${y - 4}L${x} ${y + 1}L${x + 7} ${y - 4}`, class: 'foundation-glyph' }, g);
+      } else {
+        rect(g, x - 6, y - 5, 12, 10, 'foundation-glyph-shape', 1);
+        line(g, x - 3, y - 1, x + 3, y - 1, 'foundation-glyph');
+        line(g, x - 3, y + 2, x + 1, y + 2, 'foundation-glyph');
+      }
+    });
+
     text(s, 500, 72, 'PULSE', 'svg-title', 'middle');
     text(s, 500, 88, 'OUTSIDE THE BUSINESS', 'svg-micro-blue', 'middle');
     text(s, 500, 148, 'UNITY', 'svg-title', 'middle');
     text(s, 500, 164, 'INSIDE THE BUSINESS', 'svg-micro-blue', 'middle');
 
-    // Four red seekers from outer-ring origins into random UNITY tiles
+    // Four red seekers — orthogonal square-to-square hops only
     const origins = [
       plane(0.08, 0.22),
       plane(0.78, 0.08),
       plane(0.92, 0.72),
       plane(0.22, 0.92)
     ];
+    const startIdx = [7, 16, 28, 21]; // spaced starting tiles
     const markers = G(s, 'foundation-markers');
     const seekers = origins.map((origin, i) => {
-      const start = tiles[(i * 7 + 3) % tiles.length].center;
+      const idx = startIdx[i] % tiles.length;
+      const start = tiles[idx].center;
       const ln = line(markers, origin[0], origin[1], start[0], start[1], 'red-line-svg foundation-marker-line');
       const tip = circle(markers, start[0], start[1], 7, 'foundation-marker-tip');
-      return { origin, line: ln, tip, tileIndex: (i * 7 + 3) % tiles.length, x: start[0], y: start[1] };
+      return { origin, line: ln, tip, tileIndex: idx, x: start[0], y: start[1] };
     });
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!reduceMotion) {
       const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
       const occupied = () => new Set(seekers.map((sk) => sk.tileIndex));
-      const pickTile = (current) => {
+      const neighborsOf = (idx) => {
+        const { row, col } = tiles[idx];
+        const dirs = [
+          [row - 1, col],
+          [row + 1, col],
+          [row, col - 1],
+          [row, col + 1]
+        ];
+        return dirs
+          .filter(([r, c]) => r >= 0 && r < GRID && c >= 0 && c < GRID)
+          .map(([r, c]) => r * GRID + c);
+      };
+      const pickNeighbor = (current) => {
         const taken = occupied();
-        const free = tiles
-          .map((_, idx) => idx)
-          .filter((idx) => idx !== current && !taken.has(idx));
-        const pool = free.length ? free : tiles.map((_, idx) => idx).filter((idx) => idx !== current);
-        return pool[Math.floor(Math.random() * pool.length)] ?? current;
+        const nbrs = neighborsOf(current);
+        const free = nbrs.filter((idx) => !taken.has(idx));
+        const pool = free.length ? free : nbrs;
+        if (!pool.length) return current;
+        return pool[Math.floor(Math.random() * pool.length)];
       };
       seekers.forEach((sk, i) => {
         sk.phase = 'dwell';
-        sk.until = performance.now() + 400 + i * 700;
+        sk.until = performance.now() + 600 + i * 550;
         sk.from = [sk.x, sk.y];
         sk.to = [sk.x, sk.y];
-        sk.duration = 3200;
+        sk.duration = 500;
         sk.started = 0;
       });
       const tick = (now) => {
         seekers.forEach((sk) => {
           if (sk.phase === 'dwell') {
             if (now < sk.until) return;
-            const next = pickTile(sk.tileIndex);
+            const next = pickNeighbor(sk.tileIndex);
+            if (next === sk.tileIndex) {
+              sk.until = now + 800;
+              return;
+            }
             sk.tileIndex = next;
             sk.from = [sk.x, sk.y];
             sk.to = tiles[next].center;
-            sk.duration = 2800 + Math.random() * 1200;
+            sk.duration = 480 + Math.random() * 120;
             sk.started = now;
-            sk.phase = 'glide';
+            sk.phase = 'hop';
             return;
           }
           const t = Math.min(1, (now - sk.started) / sk.duration);
@@ -181,7 +280,7 @@
           sk.tip.setAttribute('cy', sk.y);
           if (t >= 1) {
             sk.phase = 'dwell';
-            sk.until = now + 800 + Math.random() * 600;
+            sk.until = now + 2200 + Math.random() * 800;
           }
         });
         requestAnimationFrame(tick);
@@ -494,7 +593,7 @@
         });
       } else if (kind === 'product') {
         [0, 1, 2].forEach((i) => {
-          rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'ink-fill' : 'tile', 0.5);
+          rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'navy-fill' : 'tile', 0.5);
         });
       } else if (kind === 'operations') {
         line(g, ix, iy + 8, ix + 16, iy + 8, 'dept-icon');
