@@ -11,6 +11,7 @@
       .blue{fill:#087fd0;fill-opacity:.55}
       .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
       .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
+      .port{fill:#087fd0;fill-opacity:.3;stroke:none}
     </style>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
@@ -19,7 +20,7 @@
     </symbol>
   </defs>
 
-  <!-- Upper band raised clear of Layer 08 -->
+  <!-- Upper band raised clear of Layer 08 — ports at (0,132) -->
   <g id="market-globe" transform="translate(220 140)">
     <text class="label" x="0" y="-22" text-anchor="middle">Market Globe</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">MARKETS · EVENTS</text>
@@ -28,6 +29,7 @@
     <ellipse cx="0" cy="68" rx="20" ry="30" class="soft"/>
     <path class="soft" d="M-50 56h100M-52 70h104M0 38v60"/>
     <circle cx="24" cy="56" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 
   <g id="executive-dashboard" transform="translate(640 110)">
@@ -36,6 +38,7 @@
     <use href="#tile"/>
     <path class="line" d="M-60 78V52h22v26ZM-28 78V44h22v34ZM4 78V56h22v22ZM36 78V40h22v38Z"/>
     <circle cx="50" cy="44" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 
   <g id="research-insights" transform="translate(980 155)">
@@ -46,6 +49,7 @@
     <path class="faint" d="m-28 58 34-18 44 24-34 18Z"/>
     <path class="line" d="m-32 62 22-12M-24 72l22-12"/>
     <circle cx="42" cy="56" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 
   <g id="reporting-packs" transform="translate(1360 130)">
@@ -55,5 +59,6 @@
     <path class="edge" d="m-42 50 30-16 52 28-30 16Z"/>
     <path class="faint" d="m-32 60 30-16 42 23-30 16Z"/>
     <path class="line" d="m-24 64 16-9M-16 74l16-9"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 </svg>

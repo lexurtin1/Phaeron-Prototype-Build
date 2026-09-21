@@ -11,6 +11,7 @@
       .blue{fill:#087fd0;fill-opacity:.55}
       .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
       .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
+      .port{fill:#087fd0;fill-opacity:.3;stroke:none}
     </style>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
@@ -19,13 +20,14 @@
     </symbol>
   </defs>
 
-  <!-- Lower band raised clear of Layer 08 -->
+  <!-- Lower band raised clear of Layer 08 — ports at (0,132) -->
   <g id="commercial-analytics" transform="translate(380 310)">
     <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
     <use href="#tile"/>
     <path class="line" d="m-64 72 14-8 10 5 14-8 12 7 16-9 10 5"/>
     <circle cx="22" cy="66" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 
   <g id="client-intelligence" transform="translate(720 345)">
@@ -37,6 +39,7 @@
     <path class="line" d="M-32 76q10-10 20 0"/>
     <path class="line" d="M6 52 62 90"/>
     <circle cx="54" cy="84" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 
   <g id="opportunity-radar" transform="translate(1120 295)">
@@ -48,6 +51,7 @@
     <ellipse cx="0" cy="68" rx="16" ry="9" class="soft"/>
     <path class="line" d="M-58 68h116M0 36v64"/>
     <circle cx="32" cy="54" r="3" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 
   <g id="service-operations" transform="translate(1420 330)">
@@ -58,5 +62,6 @@
     <path class="line" d="m-26 70 28 15-14 9-28-16Z"/>
     <path class="line" d="m14 50 28 15-14 9-28-16Z"/>
     <circle cx="16" cy="60" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
   </g>
 </svg>

@@ -392,70 +392,30 @@
     E('ellipse', { cx, cy: cy + 6, rx: 48, ry: 28, class: 'orb-dock' }, s);
     circle(s, cx, cy, 44, 'orb-ring');
 
+    // Five departments, equal radius, 72° spacing (Engineering removed)
+    const R = 185;
     const depts = [
-      { name: 'Commercial', ang: -95, r: 178, motif: 'commercial' },
-      { name: 'Product', ang: -25, r: 198, motif: 'product' },
-      { name: 'Operations', ang: 40, r: 188, motif: 'operations' },
-      { name: 'Finance', ang: 105, r: 198, motif: 'finance' },
-      { name: 'Engineering', ang: 165, r: 188, motif: 'engineering' },
-      { name: 'Legal', ang: -155, r: 190, motif: 'legal' }
+      { name: 'Commercial', ang: -90 },
+      { name: 'Product', ang: -18 },
+      { name: 'Operations', ang: 54 },
+      { name: 'Finance', ang: 126 },
+      { name: 'Legal', ang: -162 }
     ];
-    depts.forEach(({ name, ang, r, motif }) => {
+    depts.forEach(({ name, ang }) => {
       const rad = (ang * Math.PI) / 180;
-      const x = cx + Math.cos(rad) * r;
-      const y = cy + Math.sin(rad) * r * 0.58;
+      const x = cx + Math.cos(rad) * R;
+      const y = cy + Math.sin(rad) * R * 0.58;
       const g = G(s, 'dept-node');
       const sx = cx + Math.cos(rad) * 52;
       const sy = cy + Math.sin(rad) * 52 * 0.58;
-      const portX = x - (Math.cos(rad) * 74);
-      const portY = y - (Math.sin(rad) * 74 * 0.58);
+      const w = 120;
+      const h = 36;
+      const portX = x - Math.cos(rad) * (w * 0.42);
+      const portY = y - Math.sin(rad) * (w * 0.42) * 0.58;
       line(g, sx, sy, portX, portY, 'dept-spoke');
-      circle(g, portX, portY, 4, 'dept-port');
-      // Outer port facing the experience bus (upward)
-      circle(g, x, y - 30, 4, 'dept-port');
-      const w = 148;
-      const h = 54;
-      rect(g, x - w / 2, y - h / 2, w, h, 'tile', 4);
-      text(g, x, y - 10, name, 'dept-label', 'middle');
-      // Crimson reserved for the active Commercial signal only
-      if (motif === 'commercial') circle(g, x, y - h / 2, 3, 'red-fill');
-      if (motif === 'commercial') {
-        [
-          [x - 42, '92'],
-          [x - 8, '88'],
-          [x + 26, '74']
-        ].forEach(([tx, v], i) => {
-          text(g, tx, y + 14, v, 'svg-micro-blue', 'middle');
-          if (i === 0) circle(g, tx + 14, y + 11, 2, 'red-fill');
-        });
-      } else if (motif === 'product') {
-        [0, 1, 2].forEach((i) => {
-          rect(g, x - 40 + i * 28, y + 6, 22, 8, i === 1 ? 'blue-fill' : 'tile', 1);
-        });
-      } else if (motif === 'operations') {
-        line(g, x - 44, y + 12, x + 44, y + 12, 'pale-line');
-        circle(g, x - 20, y + 12, 3, 'node');
-        circle(g, x + 8, y + 12, 3.5, 'red-fill');
-        circle(g, x + 32, y + 12, 3, 'node');
-      } else if (motif === 'finance') {
-        [10, 16, 12, 20].forEach((bh, i) => {
-          rect(g, x - 36 + i * 18, y + 18 - bh, 12, bh, i === 3 ? 'blue-fill' : 'tile', 1);
-        });
-      } else if (motif === 'engineering') {
-        const nodes = [
-          [x - 28, y + 12],
-          [x, y + 4],
-          [x + 28, y + 12]
-        ];
-        line(g, nodes[0][0], nodes[0][1], nodes[1][0], nodes[1][1], 'pale-line');
-        line(g, nodes[1][0], nodes[1][1], nodes[2][0], nodes[2][1], 'pale-line');
-        nodes.forEach(([nx, ny], i) => circle(g, nx, ny, 4, i === 1 ? 'blue-fill' : 'node'));
-      } else if (motif === 'legal') {
-        rect(g, x - 14, y + 2, 28, 20, 'tile', 1);
-        line(g, x - 8, y + 8, x + 8, y + 8, 'pale-line');
-        line(g, x - 8, y + 13, x + 5, y + 13, 'pale-line');
-        circle(g, x + 12, y + 4, 2.5, 'red-fill');
-      }
+      circle(g, portX, portY, 3, 'dept-port');
+      rect(g, x - w / 2, y - h / 2, w, h, 'tile', 3);
+      text(g, x, y + 5, name, 'dept-label', 'middle');
     });
     return s;
   }
