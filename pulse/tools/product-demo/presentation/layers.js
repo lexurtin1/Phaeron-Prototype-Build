@@ -147,15 +147,15 @@
     const logoSet = [
       { row: 2, col: 1, src: 'crm-salesforce.webp' },
       { row: 2, col: 2, src: 'erp-sap.webp' },
-      { row: 2, col: 3, src: 'pm-jira.webp' },
+      { row: 2, col: 3, src: 'pm-asana.webp' },
       { row: 3, col: 1, src: 'crm-hubspot.png' },
-      { row: 3, col: 2, src: 'bk-confluence.jpeg' },
+      { row: 3, col: 2, src: 'erp-oracle.png' },
       { row: 3, col: 3, src: 'fin-excel.webp' }
     ];
     const logoOccupied = new Set(logoSet.map(({ row, col }) => `${row},${col}`));
     logoSet.forEach(({ row, col, src }) => {
       const t = tileAt(row, col);
-      const size = 16;
+      const size = 22;
       E(
         'image',
         {
@@ -200,9 +200,7 @@
     });
 
     text(s, 500, 72, 'PULSE', 'svg-title', 'middle');
-    text(s, 500, 88, 'OUTSIDE THE BUSINESS', 'svg-micro-blue', 'middle');
     text(s, 500, 148, 'UNITY', 'svg-title', 'middle');
-    text(s, 500, 164, 'INSIDE THE BUSINESS', 'svg-micro-blue', 'middle');
 
     // Four red seekers — orthogonal square-to-square hops only
     const origins = [
