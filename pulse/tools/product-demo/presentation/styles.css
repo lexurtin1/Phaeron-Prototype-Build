@@ -648,10 +648,16 @@ em {
     min-height: 105svh;
   }
 
-  .hub-orb,
+  .hub-orb {
+    width: 88px;
+    height: 88px;
+  }
+
   .hub-orb canvas {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
+    transform: scale(1.6);
+    transform-origin: center;
   }
 
   .stack-connections line {
@@ -737,16 +743,21 @@ em {
   position: absolute;
   left: 50%;
   top: 49.1666667%;
-  width: 64px;
-  height: 64px;
+  width: 120px;
+  height: 120px;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  display: grid;
+  place-items: center;
+  line-height: 0;
 }
 
 .hub-orb canvas {
   display: block;
   width: 64px;
   height: 64px;
+  transform: scale(1.9);
+  transform-origin: center;
 }
 
 .stack-connections {

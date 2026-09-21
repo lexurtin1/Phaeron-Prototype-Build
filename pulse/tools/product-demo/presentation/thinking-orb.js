@@ -8,7 +8,7 @@ if (ctx) {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   canvas.width = size * dpr;
   canvas.height = size * dpr;
-  const { mode, speed, opts } = resolvePreset('connecting', size);
+  const { mode, speed, opts } = resolvePreset('composing', size);
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let visible = Number(canvas.closest('.layer').style.getPropertyValue('--alpha')) > .01, inViewport = true, frame = 0;
   function paint(time) {
