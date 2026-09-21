@@ -72,6 +72,40 @@
     text(p, x + 12, y + 17, header, 'svg-micro-blue');
   }
 
+  function drawIcon(g, kind, ix, iy) {
+    if (kind === 'commercial') {
+      [
+        [0, 10],
+        [6, 6],
+        [12, 12]
+      ].forEach(([dx, barH], i) => {
+        rect(g, ix + dx, iy + 12 - barH, 4, barH, i === 1 ? 'red-fill' : 'tile', 0.5);
+      });
+    } else if (kind === 'product') {
+      [0, 1, 2].forEach((i) => {
+        rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'navy-fill' : 'tile', 0.5);
+      });
+    } else if (kind === 'operations') {
+      line(g, ix, iy + 8, ix + 16, iy + 8, 'dept-icon');
+      circle(g, ix + 3, iy + 8, 2, 'node');
+      circle(g, ix + 9, iy + 8, 2.2, 'red-fill');
+      circle(g, ix + 15, iy + 8, 2, 'node');
+    } else if (kind === 'finance') {
+      [
+        [0, 7],
+        [5, 11],
+        [10, 9],
+        [15, 13]
+      ].forEach(([dx, barH], i) => {
+        rect(g, ix + dx, iy + 14 - barH, 3.5, barH, i === 3 ? 'red-fill' : 'tile', 0.5);
+      });
+    } else if (kind === 'legal') {
+      rect(g, ix + 2, iy + 1, 12, 14, 'tile', 1);
+      line(g, ix + 4, iy + 5, ix + 12, iy + 5, 'dept-icon');
+      line(g, ix + 4, iy + 9, ix + 10, iy + 9, 'dept-icon-red');
+    }
+  }
+
   function foundation() {
     const s = svg(
       'Foundation: UNITY internal sources and PULSE external sources join without moving the sources.',
@@ -209,6 +243,53 @@
       plane(0.92, 0.72),
       plane(0.22, 0.92)
     ];
+    // Market-movement symbols at the PULSE end of each pointer
+    const pulseOrigins = G(s, 'foundation-pulse-origins');
+    const marketGlyphs = ['rise', 'fall', 'wave', 'tick'];
+    origins.forEach(([ox, oy], i) => {
+      const g = G(pulseOrigins, 'foundation-market');
+      circle(g, ox, oy, 14, 'foundation-market-disc');
+      const kind = marketGlyphs[i];
+      if (kind === 'rise') {
+        // Rising market sparkline + up arrow
+        E(
+          'path',
+          {
+            d: `M${ox - 7} ${oy + 4}L${ox - 3} ${oy + 1}L${ox + 1} ${oy + 3}L${ox + 6} ${oy - 4}`,
+            class: 'foundation-market-line'
+          },
+          g
+        );
+        E('path', { d: `M${ox + 4} ${oy - 5}L${ox + 7} ${oy - 5}L${ox + 7} ${oy - 2}Z`, class: 'foundation-market-fill' }, g);
+      } else if (kind === 'fall') {
+        // Falling sparkline
+        E(
+          'path',
+          {
+            d: `M${ox - 7} ${oy - 3}L${ox - 2} ${oy - 5}L${ox + 2} ${oy}L${ox + 7} ${oy + 4}`,
+            class: 'foundation-market-line'
+          },
+          g
+        );
+        E('path', { d: `M${ox + 4} ${oy + 5}L${ox + 7} ${oy + 2}L${ox + 7} ${oy + 5}Z`, class: 'foundation-market-fill' }, g);
+      } else if (kind === 'wave') {
+        // Volatility / candle bars
+        [[-6, 8], [-2, 12], [2, 6], [6, 10]].forEach(([dx, h]) => {
+          line(g, ox + dx, oy + h / 2 - 2, ox + dx, oy - h / 2 + 2, 'foundation-market-line');
+        });
+      } else {
+        // Tick / percent move
+        E(
+          'path',
+          {
+            d: `M${ox - 5} ${oy + 2}L${ox - 1} ${oy + 5}L${ox + 6} ${oy - 5}`,
+            class: 'foundation-market-line'
+          },
+          g
+        );
+      }
+    });
+
     const startIdx = [7, 16, 28, 21]; // spaced starting tiles
     const markers = G(s, 'foundation-markers');
     const seekers = origins.map((origin, i) => {
@@ -520,55 +601,98 @@
 
   function business() {
     const s = svg(
-      'Across the business: six departments query one shared context, with Commercial active and five departments planned.',
+      'Across the business: five departments query one shared context, each receiving a role-scoped answer in turn.',
       6
     );
     const cx = 500;
     const cy = 295;
-    const positions = [
-      [500, 160],
-      [670, 215],
-      [685, 350],
-      [500, 425],
-      [315, 350],
-      [330, 215]
-    ];
-    const names = [
-      ['PRODUCT', 'strategy · roadmap · market'],
-      ['OPERATIONS', 'service · risk · delivery'],
-      ['FINANCE', 'performance · exposure · planning'],
-      ['ENGINEERING', 'build · integrate · scale'],
-      ['LEGAL', 'regulation · policy · obligation'],
-      ['COMMERCIAL', 'clients · opportunities · revenue']
-    ];
-    positions.forEach(([x, y]) => line(s, cx, cy, x, y, 'pale-line hub-spokes'));
-    circle(s, cx, cy, 58, 'tile');
-    text(s, cx, cy - 18, 'SHARED CONTEXT', 'svg-micro-blue', 'middle');
-    ['Riverside Capital', 'Global Equity Fund', 'SFDR update', 'Jane Smith', 'European Equities'].forEach(
-      (v, i) => text(s, cx, cy + 1 + i * 11, v, 'svg-micro', 'middle')
-    );
-    positions.forEach(([x, y], i) => {
-      const active = i === 5;
-      const w = active ? 190 : 156;
-      const h = active ? 120 : 70;
-      const g = G(s);
-      if (!active) g.setAttribute('opacity', '.34');
-      rect(g, x - w / 2, y - h / 2, w, h, 'tile', 2);
-      text(g, x, y - h / 2 + 20, names[i][0], active ? 'svg-title' : 'svg-small', 'middle');
-      text(g, x, y - h / 2 + 37, names[i][1], 'svg-micro', 'middle');
-      if (!active) text(g, x, y + h / 2 - 10, 'PLANNED', 'svg-micro', 'middle');
-      if (active) {
-        [
+    const R = 178;
+    const idleW = 132;
+    const idleH = 40;
+    const activeW = 190;
+    const activeH = 96;
+    const depts = [
+      {
+        name: 'Commercial',
+        ang: -90,
+        icon: 'commercial',
+        rows: [
           ['Aster Bank', '92'],
           ['Riverside Capital', '88'],
-          ['Northbank', '74'],
-          ['Mercury AM', '66']
-        ].forEach(([n, v], j) => {
-          const r = G(g, j === 2 ? 'rank-row move' : 'rank-row');
-          text(r, x - w / 2 + 14, y - h / 2 + 59 + j * 14, n, 'svg-micro');
-          text(r, x + w / 2 - 14, y - h / 2 + 59 + j * 14, v, 'svg-micro-blue', 'end');
-        });
+          ['Northbank', '74']
+        ]
+      },
+      {
+        name: 'Product',
+        ang: -18,
+        icon: 'product',
+        rows: [
+          ['European Equities', 'demand'],
+          ['SFDR Article 8', 'fit'],
+          ['Roadmap Q3', 'live']
+        ]
+      },
+      {
+        name: 'Operations',
+        ang: 54,
+        icon: 'operations',
+        rows: [
+          ['Service risk', 'elevated'],
+          ['Delivery lag', '2d'],
+          ['Capacity', 'ok']
+        ]
+      },
+      {
+        name: 'Finance',
+        ang: 126,
+        icon: 'finance',
+        rows: [
+          ['Fund exposure', '12%'],
+          ['Planning gap', '£4.2m'],
+          ['VaR band', 'amber']
+        ]
+      },
+      {
+        name: 'Legal',
+        ang: -162,
+        icon: 'legal',
+        rows: [
+          ['SFDR update', 'due'],
+          ['Policy gap', 'open'],
+          ['Obligation', 'Art. 8']
+        ]
       }
+    ];
+
+    circle(s, cx, cy, 48, 'tile');
+    text(s, cx, cy + 4, 'SHARED CONTEXT', 'svg-micro-blue', 'middle');
+
+    depts.forEach(({ name, ang, icon, rows }, i) => {
+      const rad = (ang * Math.PI) / 180;
+      const x = cx + Math.cos(rad) * R;
+      const y = cy + Math.sin(rad) * R * 0.58;
+      const g = G(s, `biz-dept biz-dept-${i}`);
+      const sx = cx + Math.cos(rad) * 50;
+      const sy = cy + Math.sin(rad) * 50 * 0.58;
+      const portX = x - Math.cos(rad) * (idleW * 0.42);
+      const portY = y - Math.sin(rad) * (idleW * 0.42) * 0.58;
+      line(g, sx, sy, portX, portY, 'pale-line biz-spoke');
+      circle(g, portX, portY, 2.5, 'dept-port');
+
+      const idle = G(g, 'biz-idle');
+      rect(idle, x - idleW / 2, y - idleH / 2, idleW, idleH, 'tile', 3);
+      drawIcon(idle, icon, x - idleW / 2 + 12, y - idleH / 2 + 12);
+      text(idle, x - idleW / 2 + 36, y + 5, name, 'dept-label', 'start');
+
+      const active = G(g, 'biz-active');
+      rect(active, x - activeW / 2, y - activeH / 2, activeW, activeH, 'tile', 3);
+      drawIcon(active, icon, x - activeW / 2 + 14, y - activeH / 2 + 12);
+      text(active, x - activeW / 2 + 38, y - activeH / 2 + 24, name, 'svg-title', 'start');
+      rows.forEach(([label, value], j) => {
+        const r = G(active, j === 1 ? 'rank-row move' : 'rank-row');
+        text(r, x - activeW / 2 + 14, y - activeH / 2 + 48 + j * 14, label, 'svg-micro');
+        text(r, x + activeW / 2 - 14, y - activeH / 2 + 48 + j * 14, value, 'svg-micro-blue', 'end');
+      });
     });
     return s;
   }
@@ -583,31 +707,6 @@
     // Open dock for Thinking Orb (HTML canvas sits on top) — sized for 72px orb
     E('ellipse', { cx, cy: cy + 6, rx: 48, ry: 28, class: 'orb-dock' }, s);
     circle(s, cx, cy, 44, 'orb-ring');
-
-    const drawIcon = (g, kind, ix, iy) => {
-      if (kind === 'commercial') {
-        [[0, 10], [6, 6], [12, 12]].forEach(([dx, barH], i) => {
-          rect(g, ix + dx, iy + 12 - barH, 4, barH, i === 1 ? 'red-fill' : 'tile', 0.5);
-        });
-      } else if (kind === 'product') {
-        [0, 1, 2].forEach((i) => {
-          rect(g, ix + i * 6, iy + 4, 5, 8, i === 1 ? 'navy-fill' : 'tile', 0.5);
-        });
-      } else if (kind === 'operations') {
-        line(g, ix, iy + 8, ix + 16, iy + 8, 'dept-icon');
-        circle(g, ix + 3, iy + 8, 2, 'node');
-        circle(g, ix + 9, iy + 8, 2.2, 'red-fill');
-        circle(g, ix + 15, iy + 8, 2, 'node');
-      } else if (kind === 'finance') {
-        [[0, 7], [5, 11], [10, 9], [15, 13]].forEach(([dx, barH], i) => {
-          rect(g, ix + dx, iy + 14 - barH, 3.5, barH, i === 3 ? 'red-fill' : 'tile', 0.5);
-        });
-      } else if (kind === 'legal') {
-        rect(g, ix + 2, iy + 1, 12, 14, 'tile', 1);
-        line(g, ix + 4, iy + 5, ix + 12, iy + 5, 'dept-icon');
-        line(g, ix + 4, iy + 9, ix + 10, iy + 9, 'dept-icon-red');
-      }
-    };
 
     // Five departments on the slab face — equal radius, 72° spacing (no Engineering)
     const R = 185;
