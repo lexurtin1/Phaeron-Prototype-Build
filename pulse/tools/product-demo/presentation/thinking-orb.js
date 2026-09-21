@@ -1,11 +1,11 @@
 // Official thinking-orbs 0.3.1 canvas engine; MIT license in vendor/.
-// Presets only exist for sizes 20 and 64 — resolve at 64, paint larger for the hub.
+// Presets only exist for sizes 20 and 64 — resolve at 64, paint at hub size.
 import { resolvePreset, MODE_DRAWS } from './vendor/thinking-orbs-engine.js';
 
 const canvas = document.querySelector('#thinking-orb');
 const ctx = canvas?.getContext('2d');
 if (ctx) {
-  const size = 140;
+  const size = 72;
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   canvas.width = size * dpr;
   canvas.height = size * dpr;

@@ -42,32 +42,18 @@
   ];
 
   function edgeLabel(root, index, name) {
-    const left = index % 2 === 0;
-    const g = G(root, left ? 'edge-label edge-left' : 'edge-label edge-right');
-    const label = name.toUpperCase();
-    if (left) {
-      E(
-        'text',
-        {
-          class: 'slab-edge-name',
-          transform: 'translate(228 372) rotate(-29)',
-          'text-anchor': 'middle'
-        },
-        g,
-        label
-      );
-    } else {
-      E(
-        'text',
-        {
-          class: 'slab-edge-name',
-          transform: 'translate(772 372) rotate(29)',
-          'text-anchor': 'middle'
-        },
-        g,
-        label
-      );
-    }
+    const g = G(root, 'edge-label edge-right');
+    // Front-right diamond edge slope ≈ +29°; sit on the edge, reading down-right
+    E(
+      'text',
+      {
+        class: 'slab-edge-name',
+        transform: 'translate(742 330) rotate(29)',
+        'text-anchor': 'start'
+      },
+      g,
+      name
+    );
   }
 
   function svg(label, index = 0) {
@@ -428,29 +414,74 @@
     );
     const cx = 500;
     const cy = 278;
-    // Open dock for Thinking Orb (HTML canvas sits on top)
-    E('ellipse', { cx, cy: cy + 8, rx: 88, ry: 52, class: 'orb-dock' }, s);
-    circle(s, cx, cy, 82, 'orb-ring');
+    // Open dock for Thinking Orb (HTML canvas sits on top) — sized for 72px orb
+    E('ellipse', { cx, cy: cy + 6, rx: 48, ry: 28, class: 'orb-dock' }, s);
+    circle(s, cx, cy, 44, 'orb-ring');
 
     const depts = [
-      { name: 'Commercial', ang: -92, r: 168 },
-      { name: 'Product', ang: -12, r: 198 },
-      { name: 'Operations', ang: 58, r: 182 },
-      { name: 'Finance', ang: 132, r: 208 },
-      { name: 'Legal', ang: -162, r: 188 }
+      { name: 'Commercial', ang: -95, r: 178, motif: 'commercial' },
+      { name: 'Product', ang: -25, r: 198, motif: 'product' },
+      { name: 'Operations', ang: 40, r: 188, motif: 'operations' },
+      { name: 'Finance', ang: 105, r: 198, motif: 'finance' },
+      { name: 'Engineering', ang: 165, r: 188, motif: 'engineering' },
+      { name: 'Legal', ang: -155, r: 190, motif: 'legal' }
     ];
-    depts.forEach(({ name, ang, r }) => {
+    depts.forEach(({ name, ang, r, motif }) => {
       const rad = (ang * Math.PI) / 180;
       const x = cx + Math.cos(rad) * r;
       const y = cy + Math.sin(rad) * r * 0.58;
       const g = G(s, 'dept-node');
-      // spoke stops outside the orb dock so the canvas is clear
-      const sx = cx + Math.cos(rad) * 92;
-      const sy = cy + Math.sin(rad) * 92 * 0.58;
-      line(g, sx, sy, x, y, 'dept-spoke');
-      rect(g, x - 64, y - 18, 128, 36, 'tile', 4);
-      text(g, x, y + 5, name, 'dept-label', 'middle');
-      circle(g, x, y - 18, 3.5, 'red-fill');
+      const sx = cx + Math.cos(rad) * 52;
+      const sy = cy + Math.sin(rad) * 52 * 0.58;
+      const portX = x - (Math.cos(rad) * 74);
+      const portY = y - (Math.sin(rad) * 74 * 0.58);
+      line(g, sx, sy, portX, portY, 'dept-spoke');
+      circle(g, portX, portY, 4, 'dept-port');
+      // Outer port facing the experience bus (upward)
+      circle(g, x, y - 30, 4, 'dept-port');
+      const w = 148;
+      const h = 54;
+      rect(g, x - w / 2, y - h / 2, w, h, 'tile', 4);
+      text(g, x, y - 10, name, 'dept-label', 'middle');
+      // Crimson reserved for the active Commercial signal only
+      if (motif === 'commercial') circle(g, x, y - h / 2, 3, 'red-fill');
+      if (motif === 'commercial') {
+        [
+          [x - 42, '92'],
+          [x - 8, '88'],
+          [x + 26, '74']
+        ].forEach(([tx, v], i) => {
+          text(g, tx, y + 14, v, 'svg-micro-blue', 'middle');
+          if (i === 0) circle(g, tx + 14, y + 11, 2, 'red-fill');
+        });
+      } else if (motif === 'product') {
+        [0, 1, 2].forEach((i) => {
+          rect(g, x - 40 + i * 28, y + 6, 22, 8, i === 1 ? 'blue-fill' : 'tile', 1);
+        });
+      } else if (motif === 'operations') {
+        line(g, x - 44, y + 12, x + 44, y + 12, 'pale-line');
+        circle(g, x - 20, y + 12, 3, 'node');
+        circle(g, x + 8, y + 12, 3.5, 'red-fill');
+        circle(g, x + 32, y + 12, 3, 'node');
+      } else if (motif === 'finance') {
+        [10, 16, 12, 20].forEach((bh, i) => {
+          rect(g, x - 36 + i * 18, y + 18 - bh, 12, bh, i === 3 ? 'blue-fill' : 'tile', 1);
+        });
+      } else if (motif === 'engineering') {
+        const nodes = [
+          [x - 28, y + 12],
+          [x, y + 4],
+          [x + 28, y + 12]
+        ];
+        line(g, nodes[0][0], nodes[0][1], nodes[1][0], nodes[1][1], 'pale-line');
+        line(g, nodes[1][0], nodes[1][1], nodes[2][0], nodes[2][1], 'pale-line');
+        nodes.forEach(([nx, ny], i) => circle(g, nx, ny, 4, i === 1 ? 'blue-fill' : 'node'));
+      } else if (motif === 'legal') {
+        rect(g, x - 14, y + 2, 28, 20, 'tile', 1);
+        line(g, x - 8, y + 8, x + 8, y + 8, 'pale-line');
+        line(g, x - 8, y + 13, x + 5, y + 13, 'pale-line');
+        circle(g, x + 12, y + 4, 2.5, 'red-fill');
+      }
     });
     return s;
   }
