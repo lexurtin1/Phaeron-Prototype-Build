@@ -1,42 +1,39 @@
 (() => {
   'use strict';
-  // Shared isometric frame for presentation layer art.
-  // viewBox="280 285 940 600"; slab top centred at C; sides extrude DEPTH down.
-  const C = { x: 750, y: 580 };
-  const HW = 412.4;
-  const HH = 238;
-  const DEPTH = 38;
+  // Derived from presentation/assets/engine.svg slab polygons so art generators
+  // share the same isometric frame as the inlined layer SVGs.
+  const C = { x: 750.06, y: 685 };
+  const HW = 412.65;   // 750.06 - 337.41
+  const HH = 238.25;   // 685 - 446.75
+  const DEPTH = 38.2;  // side extrusion (923.22 → 961.42)
 
-  // u,v ∈ [-1,1]: P(-1,1)=top  P(1,1)=right  P(1,-1)=bottom  P(-1,-1)=left
-  // h > 0 extrudes the slab downward on screen.
+  // Unit square [0,1]² → isometric slab coordinates.
+  // u increases toward the right face; v toward the bottom face;
+  // h > 0 extrudes the slab downward on screen (matches engine.svg side faces).
   function P(u, v, h = 0) {
     return [
-      C.x + (u + v) * (HW / 2),
-      C.y + (u - v) * (HH / 2) + h * DEPTH
+      C.x + (u - v) * HW,
+      C.y + (u + v - 1) * HH + h * DEPTH
     ];
   }
 
   function points(...corners) {
-    return corners.map(([x, y]) => `${round(x)} ${round(y)}`).join(' ');
+    return corners.map(([x, y]) => `${x} ${y}`).join(' ');
   }
 
-  function round(n) {
-    return Math.round(n * 100) / 100;
-  }
-
-  // Top diamond + two visible side faces. h0 = top plane, h1 = extruded bottom.
+  // Top diamond + two side faces for a slab of unit height 1 at height h0.
   function slabFaces(h0 = 0, h1 = 1) {
-    const top = P(-1, 1, h0);
-    const right = P(1, 1, h0);
-    const bottom = P(1, -1, h0);
-    const left = P(-1, -1, h0);
-    const rightDown = P(1, 1, h1);
-    const bottomDown = P(1, -1, h1);
-    const leftDown = P(-1, -1, h1);
+    const tl = P(0, 0, h0);
+    const tr = P(1, 0, h0);
+    const br = P(1, 1, h0);
+    const bl = P(0, 1, h0);
+    const trd = P(1, 0, h1);
+    const brd = P(1, 1, h1);
+    const bld = P(0, 1, h1);
     return {
-      top: points(top, right, bottom, left, top),
-      right: points(right, bottom, bottomDown, rightDown, right),
-      left: points(left, bottom, bottomDown, leftDown, left)
+      top: points(tl, tr, br, bl, tl),
+      right: points(tr, br, brd, trd, tr),
+      left: points(bl, br, brd, bld, bl)
     };
   }
 
