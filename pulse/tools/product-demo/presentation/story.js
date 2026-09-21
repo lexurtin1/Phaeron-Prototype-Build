@@ -33,18 +33,18 @@
   ];
   const ids = ['ALL', '01', '02', '03', '04', '05', '06', '07', '08', '08A', '08B'];
 
-  // Port centers in 1600×700 assets (group translate + port at cy=100)
+  // Port centers in 1600×700 assets (group translate + port at cy=132)
   const PORTS_A = [
-    [380 / 1600, (410 + 100) / 700],
-    [720 / 1600, (455 + 100) / 700],
-    [1120 / 1600, (390 + 100) / 700],
-    [1420 / 1600, (440 + 100) / 700]
+    [380 / 1600, (410 + 132) / 700],
+    [720 / 1600, (455 + 132) / 700],
+    [1120 / 1600, (390 + 132) / 700],
+    [1420 / 1600, (440 + 132) / 700]
   ];
   const PORTS_B = [
-    [220 / 1600, (200 + 100) / 700],
-    [640 / 1600, (165 + 100) / 700],
-    [980 / 1600, (210 + 100) / 700],
-    [1360 / 1600, (185 + 100) / 700]
+    [220 / 1600, (200 + 132) / 700],
+    [640 / 1600, (165 + 132) / 700],
+    [980 / 1600, (210 + 132) / 700],
+    [1360 / 1600, (185 + 132) / 700]
   ];
 
   let hubShown = null;
@@ -124,10 +124,27 @@
     if (!systemLinks || spokeNodes) return spokeNodes;
     const NS = 'http://www.w3.org/2000/svg';
     systemLinks.innerHTML = '';
+    const marker = document.createElementNS(NS, 'marker');
+    marker.setAttribute('id', 'tile-spoke-arrow');
+    marker.setAttribute('viewBox', '0 0 8 8');
+    marker.setAttribute('refX', '7');
+    marker.setAttribute('refY', '4');
+    marker.setAttribute('markerWidth', '7');
+    marker.setAttribute('markerHeight', '7');
+    marker.setAttribute('orient', 'auto');
+    const tip = document.createElementNS(NS, 'path');
+    tip.setAttribute('d', 'M0 0 8 4 0 8Z');
+    tip.setAttribute('fill', '#087fd0');
+    marker.append(tip);
+    const defs = document.createElementNS(NS, 'defs');
+    defs.append(marker);
+    systemLinks.append(defs);
+
     const paths = [];
     for (let i = 0; i < 8; i++) {
       const path = document.createElementNS(NS, 'path');
       path.setAttribute('class', 'tile-spoke');
+      path.setAttribute('marker-end', 'url(#tile-spoke-arrow)');
       systemLinks.append(path);
       paths.push(path);
     }
@@ -167,7 +184,7 @@
       });
     }
 
-    // Shorten so leaders stop near the orb ring
+    // Shorten so arrow tips stop near the orb ring, not through the centre
     const stopPad = mobile.matches ? 28 : 40;
     origins.forEach(({ p, alpha }, i) => {
       const path = nodes.paths[i];
@@ -178,7 +195,7 @@
       const tx = hub.x - (dx / len) * stopPad;
       const ty = hub.y - (dy / len) * stopPad;
       path.setAttribute('d', `M${p.x.toFixed(1)} ${p.y.toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}`);
-      path.style.opacity = String(clamp(alpha * 0.55, 0, 0.55));
+      path.style.opacity = String(clamp(alpha));
     });
     for (let i = origins.length; i < 8; i++) {
       nodes.paths[i].style.opacity = '0';
