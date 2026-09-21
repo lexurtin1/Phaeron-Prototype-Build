@@ -1,66 +1,73 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
   <title id="title">Phaeron Layer 08A — front-end system tiles</title>
-  <desc id="desc">Four application tiles in the upper experience row: Commercial Analytics, Client Intelligence, Opportunity Radar and Service Operations.</desc>
+  <desc id="desc">Four isometric application tiles orbiting the decision hub: commercial analytics, client intelligence, opportunity radar and service operations.</desc>
   <defs>
     <style>
-      .edge{fill:#E7F0F5;stroke:#10283B;stroke-width:1.5;stroke-linejoin:round}
-      .side{fill:#dce8ef;stroke:#10283B;stroke-width:1.25}
-      .line{fill:none;stroke:#397DA8;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#8FB8D0;stroke-width:.75}
-      .faint{fill:#E7F0F5;stroke:#397DA8;stroke-width:.7}
-      .blue{fill:#397DA8}
-      .red{fill:#B4233C}
-      .label{font:600 15px 'Open Sans',system-ui,sans-serif;letter-spacing:.01em;fill:#10283B}
-      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .port{fill:#fff;stroke:#397DA8;stroke-width:1.5}
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1.25;stroke-linejoin:round}.side{fill:#f8fbfd;stroke:#087fd0;stroke-width:1}.line{fill:none;stroke:#087fd0;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}.soft{fill:none;stroke:#8fc8ef;stroke-width:1}.faint{fill:#dbeefb;stroke:#087fd0;stroke-width:.75}.ink{fill:#102538}.blue{fill:#087fd0}.red{fill:#c92146}.label{font:600 17px Arial,Helvetica,sans-serif;letter-spacing:.02em;fill:#102538}.micro{font:12px 'SFMono-Regular',Consolas,monospace;letter-spacing:.08em;fill:#62717e}.microblue{font:12px 'SFMono-Regular',Consolas,monospace;letter-spacing:.08em;fill:#087fd0}.pointer{fill:none;stroke:#087fd0;stroke-width:1.4;marker-end:url(#arrow)}
     </style>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#087fd0"/></marker>
     <symbol id="tile" overflow="visible">
-      <path class="side" d="M-110 58 0 120 110 58v6L0 126-110 64Z"/>
-      <path class="edge" d="M0 0 110 58 0 120-110 58Z"/>
+      <path class="side" d="M-136 73 0 151 136 73v8L0 159-136 81Z"/>
+      <path class="edge" d="M0 0 136 73 0 151-136 73Z"/>
+      <path class="soft" d="M-119 73 0 9 119 73 0 141Z"/>
+      <circle cx="-113" cy="70" r="2.5" class="red"/>
+      <circle cx="-103" cy="65" r="2.5" class="faint"/>
     </symbol>
   </defs>
 
-  <g id="commercial-analytics" transform="translate(220 150)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
+  <!-- near-left -->
+  <g id="commercial-analytics" transform="translate(270 300)">
     <use href="#tile"/>
-    <path class="line" d="m-64 70 16-9 11 5 14-8 12 7 16-9 10 5"/>
-    <circle cx="24" cy="66" r="3.5" class="red"/>
-    <circle class="port" cx="0" cy="126" r="3.5"/>
+    <text class="label" x="0" y="-24" text-anchor="middle">COMMERCIAL ANALYTICS</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE / REVENUE / CLIENTS</text>
+    <path class="line" d="M-92 71-28 37 32 70-31 106Z"/>
+    <path class="soft" d="M-80 71-29 44 19 70-31 98Z"/>
+    <path class="line" d="m-69 74 13-7 8 4 14-8 15 8 17-10 9 5"/>
+    <circle cx="-19" cy="71" r="3.3" class="red"/>
+    <path class="line" d="M45 62 94 36M50 72l44-23M55 82l39-20M60 92l34-18"/>
+    <path class="faint" d="m54 75 14-8 12 7-14 8Z"/>
   </g>
+  <path class="pointer" d="M270 451L760 660"/>
 
-  <g id="client-intelligence" transform="translate(560 150)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Client Intelligence</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">PROFILE · HISTORY</text>
+  <!-- far-back -->
+  <g id="opportunity-radar" transform="translate(800 150)">
     <use href="#tile"/>
-    <circle cx="-18" cy="64" r="14" class="edge"/>
-    <circle cx="-18" cy="60" r="4.5" class="faint"/>
-    <path class="line" d="M-28 74q10-10 20 0"/>
-    <path class="line" d="M8 50 64 88"/>
-    <circle cx="56" cy="82" r="3" class="blue"/>
-    <circle class="port" cx="0" cy="126" r="3.5"/>
+    <text class="label" x="0" y="-24" text-anchor="middle">OPPORTUNITY RADAR</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">SIGNALS / PRIORITY / VALUE</text>
+    <ellipse cx="0" cy="74" rx="77" ry="42" class="soft"/>
+    <ellipse cx="0" cy="74" rx="51" ry="28" class="soft"/>
+    <ellipse cx="0" cy="74" rx="25" ry="14" class="soft"/>
+    <path class="line" d="M-78 74h156M0 31v86M-55 43l110 62M-55 105 55 43"/>
+    <circle cx="43" cy="55" r="5" class="red"/>
+    <circle cx="-26" cy="86" r="3.5" class="blue"/>
+    <circle cx="18" cy="91" r="3.5" class="blue"/>
   </g>
+  <path class="pointer" d="M800 301L800 640"/>
 
-  <g id="opportunity-radar" transform="translate(900 150)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Opportunity Radar</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">SIGNALS · PRIORITY</text>
+  <!-- near-right -->
+  <g id="service-operations" transform="translate(1330 300)">
     <use href="#tile"/>
-    <ellipse cx="0" cy="66" rx="56" ry="30" class="soft"/>
-    <ellipse cx="0" cy="66" rx="36" ry="20" class="soft"/>
-    <ellipse cx="0" cy="66" rx="16" ry="9" class="soft"/>
-    <path class="line" d="M-56 66h112M0 36v60"/>
-    <circle cx="30" cy="52" r="4" class="red"/>
-    <circle class="port" cx="0" cy="126" r="3.5"/>
+    <text class="label" x="0" y="-24" text-anchor="middle">SERVICE OPERATIONS</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">DELIVERY / RISK / EXCEPTIONS</text>
+    <path class="line" d="m-91 52 38 20-20 12-38-21ZM-39 79l38 20-20 12-38-21ZM13 50l38 20-20 12-38-21ZM65 77l38 20-20 12-38-21Z"/>
+    <circle cx="-78" cy="64" r="3" class="blue"/><circle cx="-25" cy="91" r="3" class="blue"/><circle cx="26" cy="63" r="3" class="red"/><circle cx="78" cy="90" r="3" class="blue"/>
+    <path class="soft" d="m-53 72 40-3M-1 99l27-36M51 70l27 20"/>
   </g>
+  <path class="pointer" d="M1330 451L840 660"/>
 
-  <g id="service-operations" transform="translate(1240 150)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Service Operations</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">WORKFLOW · EXCEPTIONS</text>
+  <!-- mid-front (offset left so far-back spoke stays clear) -->
+  <g id="client-intelligence" transform="translate(540 455)">
     <use href="#tile"/>
-    <path class="line" d="m-66 48 28 15-14 9-28-16Z"/>
-    <path class="line" d="m-26 68 28 15-14 9-28-16Z"/>
-    <path class="line" d="m14 48 28 15-14 9-28-16Z"/>
-    <circle cx="16" cy="58" r="3" class="red"/>
-    <circle class="port" cx="0" cy="126" r="3.5"/>
+    <text class="label" x="0" y="-24" text-anchor="middle">CLIENT INTELLIGENCE</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">RELATIONSHIPS / HISTORY / NEXT ACTION</text>
+    <circle cx="-57" cy="65" r="18" class="edge"/>
+    <circle cx="-57" cy="60" r="6" class="faint"/>
+    <path class="line" d="M-69 75q12-13 24 0"/>
+    <path class="line" d="M-20 47 77 99M-31 54l81 44M-18 70l54 29M2 92l20 11"/>
+    <path class="faint" d="m51 57 28 15-14 8-28-15Z"/>
+    <circle cx="69" cy="72" r="3.5" class="blue"/>
   </g>
+  <path class="pointer" d="M540 606L760 670"/>
+
+  <g id="hub-dock"><circle cx="800" cy="680" r="5" class="edge"/><circle cx="800" cy="680" r="2.2" class="red"/></g>
 </svg>
