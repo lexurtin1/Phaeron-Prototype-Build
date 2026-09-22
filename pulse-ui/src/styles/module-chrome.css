@@ -26,6 +26,23 @@
   flex: 0 1 auto;
 }
 
+.module-chrome--studio {
+  min-height: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  align-items: flex-start;
+}
+
+.module-chrome--studio .module-chrome-left {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.module-chrome--studio .module-chrome-right {
+  align-self: center;
+}
+
 .module-chrome-center {
   display: flex;
   align-items: center;

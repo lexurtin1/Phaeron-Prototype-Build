@@ -45,8 +45,8 @@ textarea{font-family:inherit;resize:none}
 :focus-visible{outline:2px solid var(--c-teal);outline-offset:2px}
 
 .app{
-  height:calc(100dvh - var(--chrome-h,72px));
-  --chrome-h:72px;
+  height:calc(100dvh - var(--chrome-h,132px));
+  --chrome-h:132px;
   display:flex;flex-direction:column;min-height:0;
 }
 

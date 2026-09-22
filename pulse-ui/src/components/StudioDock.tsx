@@ -110,11 +110,12 @@ export function StudioDock({ viewId = null }: StudioDockProps) {
       items={items}
       ariaLabel="Studio views"
       className="studio-dock"
-      panelHeight={64}
-      baseItemSize={46}
-      magnification={62}
-      distance={140}
-      dockHeight={120}
+      placement="top-left"
+      panelHeight={52}
+      baseItemSize={40}
+      magnification={52}
+      distance={120}
+      dockHeight={72}
     />
   );
 }

@@ -44,7 +44,7 @@ html, body { margin: 0; height: 100%; background: #f5f8fb; }
 /* ===== HUB & SPOKE OVERLAY ===== */
 #hubSpokeUI {
   position: fixed;
-  inset: 72px 0 0 0;
+  inset: 132px 0 0 0;
   z-index: 12;
   background: linear-gradient(180deg, #fbfdfe 0%, #F2F5FA 100%);
   display: none;

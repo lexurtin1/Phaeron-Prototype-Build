@@ -20,6 +20,8 @@ export type DockItemData = {
   active?: boolean;
 };
 
+export type DockPlacement = 'bottom' | 'top-left';
+
 export type DockProps = {
   items: DockItemData[];
   className?: string;
@@ -30,6 +32,8 @@ export type DockProps = {
   magnification?: number;
   spring?: SpringOptions;
   ariaLabel?: string;
+  /** Where the dock sits on the page. Default: bottom center. */
+  placement?: DockPlacement;
 };
 
 type DockItemProps = {
@@ -44,6 +48,7 @@ type DockItemProps = {
   magnification: number;
   label?: React.ReactNode;
   active?: boolean;
+  labelBelow?: boolean;
 };
 
 function DockItem({
@@ -58,6 +63,7 @@ function DockItem({
   baseItemSize,
   label,
   active = false,
+  labelBelow = false,
 }: DockItemProps) {
   const ref = useRef<HTMLElement>(null);
   const isHovered = useMotionValue(0);
@@ -105,9 +111,10 @@ function DockItem({
 
   const kids = Children.map(children, (child) =>
     React.isValidElement(child)
-      ? cloneElement(child as React.ReactElement<{ isHovered?: MotionValue<number> }>, {
-          isHovered,
-        })
+      ? cloneElement(
+          child as React.ReactElement<{ isHovered?: MotionValue<number>; below?: boolean }>,
+          { isHovered, below: labelBelow }
+        )
       : child
   );
 
@@ -152,9 +159,11 @@ type DockLabelProps = {
   className?: string;
   children: React.ReactNode;
   isHovered?: MotionValue<number>;
+  /** When true, tooltip opens below the icon (top-left dock). */
+  below?: boolean;
 };
 
-function DockLabel({ children, className = '', isHovered }: DockLabelProps) {
+function DockLabel({ children, className = '', isHovered, below = false }: DockLabelProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -165,15 +174,17 @@ function DockLabel({ children, className = '', isHovered }: DockLabelProps) {
     return () => unsubscribe();
   }, [isHovered]);
 
+  const yOpen = below ? 10 : -10;
+
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
           initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: -10 }}
+          animate={{ opacity: 1, y: yOpen }}
           exit={{ opacity: 0, y: 0 }}
           transition={{ duration: 0.2 }}
-          className={`dock-label ${className}`}
+          className={`dock-label${below ? ' dock-label--below' : ''} ${className}`.trim()}
           role="tooltip"
           style={{ x: '-50%' }}
         >
@@ -204,9 +215,11 @@ export default function Dock({
   dockHeight = 256,
   baseItemSize = 50,
   ariaLabel = 'Application dock',
+  placement = 'bottom',
 }: DockProps) {
   const mouseX = useMotionValue(Infinity);
   const isHovered = useMotionValue(0);
+  const labelBelow = placement === 'top-left';
 
   const maxHeight = useMemo(
     () => Math.max(dockHeight, magnification + magnification / 2 + 4),
@@ -216,7 +229,10 @@ export default function Dock({
   const height = useSpring(heightRow, spring);
 
   return (
-    <motion.div style={{ height, scrollbarWidth: 'none' }} className="dock-outer">
+    <motion.div
+      style={{ height, scrollbarWidth: 'none' }}
+      className={`dock-outer dock-outer--${placement}`.trim()}
+    >
       <motion.div
         onMouseMove={({ pageX }) => {
           isHovered.set(1);
@@ -244,6 +260,7 @@ export default function Dock({
             baseItemSize={baseItemSize}
             label={item.label}
             active={item.active}
+            labelBelow={labelBelow}
           >
             <DockIcon>{item.icon}</DockIcon>
             <DockLabel>{item.label}</DockLabel>
