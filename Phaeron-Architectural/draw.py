@@ -22,29 +22,29 @@ polygon,path,line,circle,ellipse{vector-effect:non-scaling-stroke}
 .port{fill:#fff;stroke:#008cff;stroke-width:1}
 .solid-blue{fill:#008cff;stroke:none}
 .red{fill:#9f1239;stroke:none}
-.art-layer{--accent:#008cff;--surface:#ffffff;--side:#e8f4ff;--wire:#4a8ec4}
+.art-layer{--accent:#9f1239;--surface:#ffffff;--side:#fff1f2;--wire:#be123c}
 .tone-1{--accent:#1b3a6b;--surface:#ffffff;--side:#e4eaf3;--wire:#2f5285}
 .tone-2{--accent:#2f5285;--surface:#ffffff;--side:#e8eef6;--wire:#5b7aab}
-.tone-3{--accent:#9f1239;--surface:#ffffff;--side:#fff1f2;--wire:#be123c}
+.tone-3{--accent:#008cff;--surface:#ffffff;--side:#e8f4ff;--wire:#4a8ec4}
 .surface{fill:var(--surface);stroke:var(--accent)}.edge-left,.edge-right{fill:var(--side);stroke:var(--accent)}
 .ink{stroke:var(--wire)}.faint{stroke:var(--wire);opacity:.38}.blue,.boundary{stroke:var(--accent)}
 .pale-blue{fill:#ffffff;stroke:var(--accent)}.dash{stroke:var(--accent);opacity:.65}
 .port,.white-node{stroke:var(--accent)}.solid-blue{fill:var(--accent)}
 .department-label{font:600 22px "Open Sans",system-ui,sans-serif;fill:#0c1a2e;text-anchor:middle}
-.hub-label{font:600 13px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:1.2px;fill:#9f1239;text-anchor:middle}
+.hub-label{font:600 13px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:1.2px;fill:#008cff;text-anchor:middle}
 .label-bg{fill:#fff;stroke:none}.callout text{font:600 20px "Open Sans",system-ui,sans-serif;letter-spacing:.1px;fill:currentColor}.callout path{fill:none;stroke:currentColor;stroke-width:1}.callout circle{fill:currentColor}
-.callout[data-layer="0"]{color:#008cff}.callout[data-layer="1"]{color:#1b3a6b}.callout[data-layer="2"]{color:#2f5285}.callout[data-layer="3"]{color:#9f1239}
-.flow{fill:none;stroke:#9f1239;stroke-width:1.15;stroke-dasharray:4 8;opacity:.55}
+.callout[data-layer="0"]{color:#9f1239}.callout[data-layer="1"]{color:#1b3a6b}.callout[data-layer="2"]{color:#2f5285}.callout[data-layer="3"]{color:#008cff}
+.flow{fill:none;stroke:#008cff;stroke-width:1.15;stroke-dasharray:4 8;opacity:.55}
 .spotlight .surface{stroke-width:1.15}.spotlight .edge-left,.spotlight .edge-right{stroke-width:1.15}
 '''
 
 # Explicit colours also render consistently in SVG viewers without CSS variables.
-# L0 electric blue, L1 navy, L2 mid navy-blue, L3 crimson — white surfaces, distinct sides/wires.
+# L0 crimson, L1 navy, L2 mid navy-blue, L3 electric blue (top). White surfaces, distinct sides/wires.
 for i,(accent,surface,side,wire) in enumerate([
-    ('#008cff','#ffffff','#e8f4ff','#4a8ec4'),
+    ('#9f1239','#ffffff','#fff1f2','#be123c'),
     ('#1b3a6b','#ffffff','#e4eaf3','#2f5285'),
     ('#2f5285','#ffffff','#e8eef6','#5b7aab'),
-    ('#9f1239','#ffffff','#fff1f2','#be123c')]):
+    ('#008cff','#ffffff','#e8f4ff','#4a8ec4')]):
     tone=f'.tone-{i}'
     STYLE+=f'{tone} .surface{{fill:{surface};stroke:{accent}}}{tone} .edge-left,{tone} .edge-right{{fill:{side};stroke:{accent}}}{tone} .ink{{stroke:{wire}}}{tone} .faint{{stroke:{wire}}}{tone} .blue,{tone} .boundary,{tone} .dash{{stroke:{accent}}}{tone} .pale-blue{{fill:#ffffff;stroke:{accent}}}{tone} .port,{tone} .white-node{{stroke:{accent}}}{tone} .solid-blue{{fill:{accent}}}'
 STYLE+=' .lowlight .surface{fill:#f8fafc!important}.lowlight .edge-left,.lowlight .edge-right{fill:#e9eff5!important}.lowlight .ink,.lowlight .blue,.lowlight .faint{opacity:.35}.spotlight .surface,.spotlight .edge-left,.spotlight .edge-right{stroke-width:1.25}'
@@ -213,10 +213,10 @@ def outcomes():
     return s
 
 BUILDERS=[information,context,ontology,outcomes]
-NAMES=['Data, Logic & Action Services','Security & Governance','Ontology Engine','Ontology Language & Toolchain']
+NAMES=['Data, Logic & Action Services','Security & Governance','Ontology Context Engine','Ontology Language & Toolchain']
 def callouts():
     s='<g id="stack-labels">'
-    for i,(right,words) in enumerate([(True,['DATA, LOGIC','& ACTION SERVICES']),(False,['SECURITY','& GOVERNANCE']),(True,['ONTOLOGY','ENGINE']),(False,['ONTOLOGY','LANGUAGE &','TOOLCHAIN'])]):
+    for i,(right,words) in enumerate([(True,['DATA, LOGIC','& ACTION SERVICES']),(False,['SECURITY','& GOVERNANCE']),(True,['ONTOLOGY','CONTEXT ENGINE']),(False,['ONTOLOGY','LANGUAGE &','TOOLCHAIN'])]):
         y=584+[160,45,-70,-185][i];x=1035 if right else 20;anchor=885 if right else 315;end=1020 if right else 220
         s+=f'<g class="callout" data-layer="{i}"><path d="M{anchor},{y}H{end}"/><circle cx="{anchor}" cy="{y}" r="3"/>'
         for j,w in enumerate(words):s+=f'<text x="{x}" y="{y-10+j*25}">{escape(w)}</text>'

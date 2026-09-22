@@ -23,8 +23,13 @@
   'Executive surfaces'
  ];
  const captionIds=['01','02','03','04','08A','08B'];
+ // Port centers in 1600×700 tile assets (group translate + port at cy=132)
  const PORTS_A=[[380/1600,(310+132)/700],[720/1600,(345+132)/700],[1120/1600,(295+132)/700],[1420/1600,(330+132)/700]];
  const PORTS_B=[[220/1600,(140+132)/700],[640/1600,(110+132)/700],[980/1600,(155+132)/700],[1360/1600,(130+132)/700]];
+ // Distinct back-edge anchors on the top slate (layer 3), left to right, no shared hub
+ // UV points near the far ridge of the isometric plate (small u+v)
+ const BACK_A=[[55,95],[145,55],[305,55],[395,95]];
+ const BACK_B=[[85,55],[175,35],[275,35],[365,55]];
  let anchors=[],frame=0,last=-1,spokeNodes=null;
  const clamp=x=>Math.max(0,Math.min(1,x));
  const mix=(a,b,t)=>a+(b-a)*t;
@@ -41,9 +46,10 @@
   const showA=scene>=4;
   const showB=scene>=5;
   const visible=bank==='a'?showA:showB;
-  const baseY=bank==='b'?(small?-18:-28):(small?-12:-20);
-  const scale=small?.92:1;
-  if(!visible)return {y:baseY+14,scale,opacity:0};
+  // Push tiles down onto the back of the top slate
+  const baseY=bank==='b'?(small?72:98):(small?108:142);
+  const scale=small?.88:.94;
+  if(!visible)return {y:baseY-18,scale,opacity:0};
   return {y:baseY,scale,opacity:1};
  }
 
@@ -55,18 +61,34 @@
   const vbW=1600,vbH=700;
   const scale=Math.min(r.width/vbW,r.height/vbH);
   const drawW=vbW*scale,drawH=vbH*scale;
+  // object-fit:contain + object-position:center top
   const ox=r.left-d.left+(r.width-drawW)/2;
-  const oy=r.top-d.top+(r.height-drawH);
+  const oy=r.top-d.top;
   return {x:ox+nx*vbW*scale,y:oy+ny*vbH*scale};
  }
 
- function hubCenter(){
+ // Map isometric UV on the top layer plate into art-local pixels
+ function slatePoint(u,v,z=2){
   if(!art||!svg)return null;
   const d=art.getBoundingClientRect();
   const s=svg.getBoundingClientRect();
   if(s.width<2)return null;
-  // Shared-context hub sits near center of the assembled stack
-  return {x:s.left-d.left+s.width*.5,y:s.top-d.top+s.height*.38};
+  const vbX=0,vbY=75,vbW=1280,vbH=960;
+  const scale=Math.min(s.width/vbW,s.height/vbH);
+  const drawW=vbW*scale,drawH=vbH*scale;
+  const ox=s.left-d.left+(s.width-drawW)/2;
+  const oy=s.top-d.top+(s.height-drawH)/2;
+  // Local plate point
+  const lx=600+.9*(u-v);
+  const ly=290+.52*(u+v)-z;
+  // Assembled top-layer transform: translate(600, 540-185) scale(.96) translate(-600,-540)
+  const ty=540-185;
+  const ax=600+.96*(lx-600);
+  const ay=ty+.96*(ly-540);
+  return {
+   x:ox+(ax-vbX)*scale,
+   y:oy+(ay-vbY)*scale
+  };
  }
 
  function ensureSpokes(){
@@ -92,21 +114,33 @@
   if(!show){nodes.paths.forEach(p=>p.style.opacity='0');return}
   const dbox=art.getBoundingClientRect();
   systemLinks.setAttribute('viewBox',`0 0 ${Math.max(1,dbox.width)} ${Math.max(1,dbox.height)}`);
-  const hub=hubCenter();
-  if(!hub)return;
-  const origins=[];
-  if(alphaA>.12&&tileImgA)PORTS_A.forEach(([nx,ny])=>{const p=pointOnImg(tileImgA,nx,ny);if(p)origins.push({p,alpha:alphaA})});
-  if(alphaB>.12&&tileImgB)PORTS_B.forEach(([nx,ny])=>{const p=pointOnImg(tileImgB,nx,ny);if(p)origins.push({p,alpha:alphaB})});
-  const stopPad=mobile.matches?28:40;
-  origins.forEach(({p,alpha},i)=>{
+
+  const links=[];
+  if(alphaA>.12&&tileImgA){
+   PORTS_A.forEach(([nx,ny],i)=>{
+    const from=pointOnImg(tileImgA,nx,ny);
+    const [u,v]=BACK_A[i];
+    const to=slatePoint(u,v,4);
+    if(from&&to)links.push({from,to,alpha:alphaA});
+   });
+  }
+  if(alphaB>.12&&tileImgB){
+   PORTS_B.forEach(([nx,ny],i)=>{
+    const from=pointOnImg(tileImgB,nx,ny);
+    const [u,v]=BACK_B[i];
+    const to=slatePoint(u,v,8);
+    if(from&&to)links.push({from,to,alpha:alphaB});
+   });
+  }
+
+  links.forEach(({from,to,alpha},i)=>{
    const path=nodes.paths[i];
    if(!path)return;
-   const dx=hub.x-p.x,dy=hub.y-p.y,len=Math.hypot(dx,dy)||1;
-   const tx=hub.x-(dx/len)*stopPad,ty=hub.y-(dy/len)*stopPad;
-   path.setAttribute('d',`M${p.x.toFixed(1)} ${p.y.toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}`);
-   path.style.opacity=String(clamp(alpha*.42,0,.42));
+   // Short straight drop to the matching back-edge anchor; LTR order avoids crossings
+   path.setAttribute('d',`M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${to.x.toFixed(1)} ${to.y.toFixed(1)}`);
+   path.style.opacity=String(clamp(alpha*.55,0,.55));
   });
-  for(let i=origins.length;i<8;i++)nodes.paths[i].style.opacity='0';
+  for(let i=links.length;i<8;i++)nodes.paths[i].style.opacity='0';
  }
 
  function render(){

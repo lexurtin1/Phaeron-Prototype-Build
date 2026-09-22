@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
-  <title id="title">Phaeron Layer 08A — front-end system tiles</title>
+  <title id="title">Phaeron Layer 08A  -  front-end system tiles</title>
   <desc id="desc">Four application tiles on a lower irregular band, clear of Layer 08.</desc>
   <defs>
     <style>
-      .edge{fill:#fff;stroke:#087fd0;stroke-width:1;stroke-linejoin:round}
-      .side{fill:#fafcfe;stroke:#8fc8ef;stroke-width:.85}
-      .line{fill:none;stroke:#087fd0;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#8fc8ef;stroke-width:.75}
-      .faint{fill:#dbeefb;stroke:#8fc8ef;stroke-width:.7}
-      .blue{fill:#087fd0;fill-opacity:.55}
+      .edge{fill:#fff;stroke:#008cff;stroke-width:1;stroke-linejoin:round}
+      .side{fill:#fafcfe;stroke:#7ab8e8;stroke-width:.85}
+      .line{fill:none;stroke:#008cff;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+      .soft{fill:none;stroke:#7ab8e8;stroke-width:.75}
+      .faint{fill:#e8f4ff;stroke:#7ab8e8;stroke-width:.7}
+      .blue{fill:#008cff;fill-opacity:.55}
       .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
       .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .port{fill:#087fd0;fill-opacity:.3;stroke:none}
+      .port{fill:#008cff;fill-opacity:.3;stroke:none}
     </style>
     <symbol id="tile" overflow="visible">
       <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
@@ -20,7 +20,7 @@
     </symbol>
   </defs>
 
-  <!-- Lower band raised clear of Layer 08 — ports at (0,132) -->
+  <!-- Lower band raised clear of Layer 08  -  ports at (0,132) -->
   <g id="commercial-analytics" transform="translate(380 310)">
     <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
     <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
