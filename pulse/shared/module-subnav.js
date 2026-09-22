@@ -47,6 +47,11 @@
         label: 'Artifacts',
         href: '/tools/studio-artifacts/index.html',
       },
+      {
+        id: 'product-demo',
+        label: 'Product Demo',
+        href: '/tools/product-demo/index.html',
+      },
     ],
     'reporting-mi': [
       {

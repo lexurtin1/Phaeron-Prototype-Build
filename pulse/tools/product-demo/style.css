@@ -22,42 +22,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #f5f8fb; }
 
-/* ===== TOPBAR ===== */
-.topbar {
-  position: relative;
-  top: 0; left: 0; right: 0;
-  height: 52px;
-  background: #fff;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 28px;
-  z-index: 19;
-  box-shadow: none;
-}
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.topbar-logo {
-  height: 52px;
-  width: auto;
-  display: block;
-  mix-blend-mode: multiply;
-}
-.topbar-divider {
-  color: var(--ink-3);
-  font-size: 18px;
-  font-weight: 300;
-}
-.topbar-title {
-  font: 600 13px/1 var(--sans);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
 .home-btn {
   display: inline-flex;
   align-items: center;
@@ -80,7 +44,7 @@ html, body { margin: 0; height: 100%; background: #f5f8fb; }
 /* ===== HUB & SPOKE OVERLAY ===== */
 #hubSpokeUI {
   position: fixed;
-  inset: 124px 0 0 0;
+  inset: 72px 0 0 0;
   z-index: 12;
   background: linear-gradient(180deg, #fbfdfe 0%, #F2F5FA 100%);
   display: none;

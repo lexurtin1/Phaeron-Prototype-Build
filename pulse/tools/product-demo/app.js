@@ -87,7 +87,7 @@ function switchToOrderRouting() {
   const indicator = document.getElementById('orLoadingIndicator');
 
   const tb = document.querySelector('.topbar');
-  ui.style.paddingTop = (tb ? tb.offsetHeight : 60) + 'px';
+  ui.style.paddingTop = (tb ? tb.offsetHeight : 0) + 'px';
   ui.style.display = 'flex';
   ui.style.opacity = '0';
   ui.style.transform = 'translateY(14px)';

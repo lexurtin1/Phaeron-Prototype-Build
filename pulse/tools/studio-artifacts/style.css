@@ -44,12 +44,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 textarea{font-family:inherit;resize:none}
 :focus-visible{outline:2px solid var(--c-teal);outline-offset:2px}
 
-.topbar{
-  height:52px;background:#fff;border-bottom:1px solid var(--c-border);
-  display:flex;align-items:center;padding:0 28px;z-index:19;flex:0 0 auto;
-}
 .app{
-  height:calc(100dvh - var(--chrome-h,72px) - 52px);
+  height:calc(100dvh - var(--chrome-h,72px));
   --chrome-h:72px;
   display:flex;flex-direction:column;min-height:0;
 }
@@ -349,7 +345,7 @@ table.rep-table tbody tr:nth-child(even){background:var(--c-surface-2)}
   .recent-owner,.recent-when{display:none}
 }
 @media print{
-  .topbar,.ws-chat,#pulse-react-chrome,.landing{display:none!important}
+  .ws-chat,#pulse-react-chrome,.landing{display:none!important}
   .workspace{display:block!important}
   .ws-canvas{display:block!important}
   body,.app{overflow:visible!important;height:auto!important}
