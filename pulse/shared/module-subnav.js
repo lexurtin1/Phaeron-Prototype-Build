@@ -33,6 +33,11 @@
         href: '/tools/value-prop/index.html',
       },
       {
+        id: 'high-level',
+        label: 'High Level',
+        href: '/tools/high-level/index.html',
+      },
+      {
         id: 'presentation',
         label: 'Presentation',
         href: '/tools/product-demo/presentation.html',
