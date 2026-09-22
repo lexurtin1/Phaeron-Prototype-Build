@@ -24,20 +24,6 @@ const AGENT_TILES: ChromaItem[] = [
     image:
       'data:image/svg+xml,' +
       encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#132743"/><stop offset="0.88" stop-color="#2F5285"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">Routing</text></svg>`
-      ),
-    title: 'Order Routing Copilot',
-    subtitle: 'Hub-and-spoke path suggestions for pitches',
-    handle: 'Routing',
-    location: 'Try',
-    borderColor: '#1B3A6B',
-    gradient: 'linear-gradient(165deg, #1B3A6B, #0d1418)',
-    url: '/tools/product-demo/index.html',
-  },
-  {
-    image:
-      'data:image/svg+xml,' +
-      encodeURIComponent(
         `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2F5285"/><stop offset="1" stop-color="#22323d"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/><text x="50%" y="54%" text-anchor="middle" fill="white" font-family="system-ui" font-size="42" font-weight="700">CRM</text></svg>`
       ),
     title: 'Account Briefing Agent',

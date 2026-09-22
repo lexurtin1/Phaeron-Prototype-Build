@@ -28,14 +28,14 @@
     ],
     studio: [
       {
+        id: 'value-prop',
+        label: 'Value Prop',
+        href: '/tools/value-prop/index.html',
+      },
+      {
         id: 'presentation',
         label: 'Presentation',
         href: '/tools/product-demo/presentation.html',
-      },
-      {
-        id: 'product-demo',
-        label: 'Product Demo',
-        href: '/tools/product-demo/index.html',
       },
       {
         id: 'artifacts',
