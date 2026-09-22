@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
+  <title id="title">Phaeron Layer 08A — front-end system tiles</title>
+  <desc id="desc">Four application tiles on a lower irregular band, clear of Layer 08.</desc>
+  <defs>
+    <style>
+      .edge{fill:#fff;stroke:#087fd0;stroke-width:1;stroke-linejoin:round}
+      .side{fill:#fafcfe;stroke:#8fc8ef;stroke-width:.85}
+      .line{fill:none;stroke:#087fd0;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+      .soft{fill:none;stroke:#8fc8ef;stroke-width:.75}
+      .faint{fill:#dbeefb;stroke:#8fc8ef;stroke-width:.7}
+      .blue{fill:#087fd0;fill-opacity:.55}
+      .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
+      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
+      .port{fill:#087fd0;fill-opacity:.3;stroke:none}
+    </style>
+    <symbol id="tile" overflow="visible">
+      <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
+      <path class="edge" d="M0 0 120 64 0 132-120 64Z"/>
+      <path class="soft" d="M-104 64 0 12 104 64 0 120Z"/>
+    </symbol>
+  </defs>
+
+  <!-- Lower band raised clear of Layer 08 — ports at (0,132) -->
+  <g id="commercial-analytics" transform="translate(380 310)">
+    <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
+    <use href="#tile"/>
+    <path class="line" d="m-64 72 14-8 10 5 14-8 12 7 16-9 10 5"/>
+    <circle cx="22" cy="66" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
+  </g>
+
+  <g id="client-intelligence" transform="translate(720 345)">
+    <text class="label" x="0" y="-22" text-anchor="middle">Client Intelligence</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">PROFILE · HISTORY</text>
+    <use href="#tile"/>
+    <circle cx="-22" cy="66" r="14" class="edge"/>
+    <circle cx="-22" cy="62" r="5" class="faint"/>
+    <path class="line" d="M-32 76q10-10 20 0"/>
+    <path class="line" d="M6 52 62 90"/>
+    <circle cx="54" cy="84" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
+  </g>
+
+  <g id="opportunity-radar" transform="translate(1120 295)">
+    <text class="label" x="0" y="-22" text-anchor="middle">Opportunity Radar</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">SIGNALS · PRIORITY</text>
+    <use href="#tile"/>
+    <ellipse cx="0" cy="68" rx="58" ry="32" class="soft"/>
+    <ellipse cx="0" cy="68" rx="38" ry="21" class="soft"/>
+    <ellipse cx="0" cy="68" rx="16" ry="9" class="soft"/>
+    <path class="line" d="M-58 68h116M0 36v64"/>
+    <circle cx="32" cy="54" r="3" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
+  </g>
+
+  <g id="service-operations" transform="translate(1420 330)">
+    <text class="label" x="0" y="-22" text-anchor="middle">Service Operations</text>
+    <text class="micro" x="0" y="-6" text-anchor="middle">WORKFLOW · EXCEPTIONS</text>
+    <use href="#tile"/>
+    <path class="line" d="m-66 50 28 15-14 9-28-16Z"/>
+    <path class="line" d="m-26 70 28 15-14 9-28-16Z"/>
+    <path class="line" d="m14 50 28 15-14 9-28-16Z"/>
+    <circle cx="16" cy="60" r="2.5" class="blue"/>
+    <circle class="port" cx="0" cy="132" r="2"/>
+  </g>
+</svg>

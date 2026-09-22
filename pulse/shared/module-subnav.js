@@ -28,6 +28,11 @@
     ],
     studio: [
       {
+        id: 'primary',
+        label: 'Primary',
+        href: '/tools/architectural/index.html',
+      },
+      {
         id: 'value-prop',
         label: 'Value Prop',
         href: '/tools/value-prop/index.html',

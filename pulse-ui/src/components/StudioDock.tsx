@@ -1,5 +1,19 @@
 import Dock, { type DockItemData } from '@/bits/Dock/Dock';
 
+function IconPrimary() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 17.5 12 5l8 12.5H4Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M8 14h8M10 17h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.75" />
+    </svg>
+  );
+}
+
 function IconValueProp() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -61,6 +75,12 @@ function IconProductDemo() {
 }
 
 export const STUDIO_VIEWS = [
+  {
+    id: 'primary',
+    label: 'Primary',
+    href: '/tools/architectural/index.html',
+    icon: <IconPrimary />,
+  },
   {
     id: 'value-prop',
     label: 'Value Prop',
