@@ -111,7 +111,7 @@ const anims = [];
   let t = 0;
   anims.push((dt) => {
     P.update(dt); t += dt;
-    for (const r of rings) { const u = ((t / 3.2) + r.off) % 1; r.l.scale.set(0.12 + u * 1.86, 1, 0.12 + u * 1.86); r.l.position.y = 0.006; r.l.material.opacity = Math.sin(Math.PI * u) * 0.85 * b.opacity; }
+    for (const r of rings) { const u = ((t / 4.0) + r.off) % 1; r.l.scale.set(0.12 + u * 1.86, 1, 0.12 + u * 1.86); r.l.position.y = 0.006; r.l.material.opacity = Math.sin(Math.PI * u) * 0.55 * b.opacity; }
   });
 }
 // 03 Ontology — meaning propagates along the graph; the core pulses as context resolves
@@ -124,7 +124,7 @@ const anims = [];
   let t = 0;
   anims.push((dt) => {
     P.update(dt); t += dt;
-    for (const p of pulses) { const u = ((t / 2.6) + p.off) % 1; p.l.scale.set(0.12 + u * 1.3, 1, 0.12 + u * 1.3); p.l.position.set(0, hubY * 0.35, 0); p.l.material.opacity = (1 - u) * 0.7 * b.opacity; }
+    for (const p of pulses) { const u = ((t / 3.2) + p.off) % 1; p.l.scale.set(0.12 + u * 1.3, 1, 0.12 + u * 1.3); p.l.position.set(0, hubY * 0.35, 0); p.l.material.opacity = (1 - u) * 0.45 * b.opacity; }
   });
 }
 // 04 Departments — shared context flows out from the hub and back from each team
@@ -140,7 +140,7 @@ const anims = [];
   anims.push((dt) => {
     P.update(dt); t += dt;
     depts.forEach((m) => { const k = Number(m.userData.part.slice(1)); m.position.y = Math.sin(t * 1.3 + k * 1.25) * 0.028; });
-    for (const p of pulses) { const u = ((t / 2.2) + p.off) % 1; p.l.scale.set(0.2 + u * 0.9, 1, 0.2 + u * 0.9); p.l.position.set(b.hub.x, 0.012, b.hub.z); p.l.material.opacity = (1 - u) * 0.8 * b.opacity; }
+    for (const p of pulses) { const u = ((t / 2.8) + p.off) % 1; p.l.scale.set(0.2 + u * 0.9, 1, 0.2 + u * 0.9); p.l.position.set(b.hub.x, 0.012, b.hub.z); p.l.material.opacity = (1 - u) * 0.5 * b.opacity; }
   });
 }
 // 05/06 Tiles — surfaces breathe; charts update; the globe turns
