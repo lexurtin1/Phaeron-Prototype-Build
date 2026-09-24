@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildPlateLayer, buildTileLayer } from './arch-build-v2.js';
+import { buildDataLayer } from './layers/data-layer.js';
 
 const LAYERS = [
   { key: 'data', file: 'layers/01-data.svg', kind: 'plate', num: '01', short: 'Data', accent: '#9f1239', pkt: '#e11d48', side: 'right',
@@ -38,7 +39,11 @@ await stage.ready;
 const texts = await Promise.all(LAYERS.map((l) => fetch(l.file).then((r) => r.text())));
 const root = new THREE.Group(); root.name = 'phaeron-architecture';
 const built = LAYERS.map((l, i) => {
-  const b = l.kind === 'plate' ? buildPlateLayer(texts[i], l.key, l.cfg) : buildTileLayer(texts[i], l.key, l.cfg);
+  const b = l.key === 'data'
+    ? buildDataLayer({ key: l.key })
+    : l.kind === 'plate'
+      ? buildPlateLayer(texts[i], l.key, l.cfg)
+      : buildTileLayer(texts[i], l.key, l.cfg);
   b.index = i; b.def = l; root.add(b.group); return b;
 });
 
@@ -87,21 +92,8 @@ const V = (a, y, b) => new THREE.Vector3(a * 2, y, b * 2);
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 const anims = [];
-// 01 Data — traffic along service lanes and the spine; services shift as actions execute
-{
-  const b = built[0], P = new Packets(b.group, b.def.pkt, 26), y = 0.012;
-  for (const k of [-0.62, -0.22, 0.22, 0.62]) { P.add([V(-0.96, y, k), V(0.96, y, k)], { speed: rnd(0.35, 0.55) }); P.add([V(k, y, 0.96), V(k, y, -0.96)], { speed: rnd(0.35, 0.55) }); }
-  for (const k of [-0.42, 0.42]) { P.add([V(0.96, y, k), V(-0.96, y, k)], { speed: rnd(0.3, 0.5) }); P.add([V(k, y, -0.96), V(k, y, 0.96)], { speed: rnd(0.3, 0.5) }); }
-  b.flows.filter((f) => f.cls === 'blue').forEach((f) => { for (let i = 0; i < 3; i++) P.add(f.pts.map((p) => p.clone().setY(p.y + 0.02)), { t: i / 3, speed: 0.5 }); });
-  const blocks = b.roots.filter((m) => m.name.includes('.block.'));
-  const active = [];
-  let acc = 0;
-  anims.push((dt) => {
-    P.update(dt);
-    acc += dt; if (acc > 0.16) { acc = 0; const m = blocks[(Math.random() * blocks.length) | 0]; if (!active.some((a) => a.m === m)) active.push({ m, t: 0 }); }
-    for (let i = active.length - 1; i >= 0; i--) { const a = active[i]; a.t += dt / 1.1; a.m.position.y = Math.sin(Math.PI * Math.min(1, a.t)) * 0.07; if (a.t >= 1) { a.m.position.y = 0; active.splice(i, 1); } }
-  });
-}
+// 01 Data — silo → unified foundation (procedural layer)
+anims.push((dt) => built[0].animate(dt));
 // 02 Security — every request crosses the perimeter; scans sweep outward
 {
   const b = built[1], P = new Packets(b.group, b.def.pkt, 14), y = 0.02;
@@ -225,6 +217,7 @@ const v = new THREE.Vector3();
 function project(p, obj) { v.copy(p); obj.localToWorld(v); v.project(cam); return [((v.x + 1) / 2) * stage.clientWidth, ((1 - v.y) / 2) * stage.clientHeight, v.z]; }
 function placeOverlay() {
   for (const { el, lb, b } of labelEls) {
+    if (lb.visible === false) { el.style.opacity = '0'; continue; }
     const [x, y, z] = project(lb.pos, lb.obj || b.group);
     const vis = z < 1 && b.opacity > 0.4;
     el.style.opacity = vis ? String(Math.min(1, (b.opacity - 0.4) / 0.6)) : '0';
@@ -260,6 +253,7 @@ function applyHighlight() {
 }
 function select(layer, part = null) {
   state.layer = layer; state.part = layer == null ? null : part;
+  if (layer === 0) built[0].replay();
   tgt = targetsFor(layer); applyHighlight(); renderCopy();
 }
 
