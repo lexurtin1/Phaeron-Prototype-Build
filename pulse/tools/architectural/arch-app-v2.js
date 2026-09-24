@@ -118,7 +118,7 @@ anims.push((dt) => built[0].animate(dt));
   let t = 0;
   anims.push((dt) => {
     P.update(dt); t += dt;
-    for (const r of rings) { const u = ((t / 4.0) + r.off) % 1; r.l.scale.set(0.12 + u * 1.86, 1, 0.12 + u * 1.86); r.l.position.y = 0.006; r.l.material.opacity = Math.sin(Math.PI * u) * 0.55 * b.opacity; }
+    for (const r of rings) { const u = ((t / 4.0) + r.off) % 1; r.l.scale.set(0.12 + u * 1.86, 1, 0.12 + u * 1.86); r.l.position.y = 0.006; r.l.material.opacity = Math.sin(Math.PI * u) * 0.7 * b.opacity; }
   });
 }
 // 03 Ontology — meaning propagates along the graph; the core pulses as context resolves
@@ -131,7 +131,7 @@ anims.push((dt) => built[0].animate(dt));
   let t = 0;
   anims.push((dt) => {
     P.update(dt); t += dt;
-    for (const p of pulses) { const u = ((t / 3.2) + p.off) % 1; p.l.scale.set(0.12 + u * 1.3, 1, 0.12 + u * 1.3); p.l.position.set(0, hubY * 0.35, 0); p.l.material.opacity = (1 - u) * 0.45 * b.opacity; }
+    for (const p of pulses) { const u = ((t / 3.2) + p.off) % 1; p.l.scale.set(0.12 + u * 1.3, 1, 0.12 + u * 1.3); p.l.position.set(0, hubY * 0.35, 0); p.l.material.opacity = (1 - u) * 0.55 * b.opacity; }
   });
 }
 // 04 Departments — shared context flows out from the hub and back from each team
@@ -147,7 +147,7 @@ anims.push((dt) => built[0].animate(dt));
   anims.push((dt) => {
     P.update(dt); t += dt;
     depts.forEach((m) => { const k = Number(m.userData.part.slice(1)); m.position.y = Math.sin(t * 1.3 + k * 1.25) * 0.028; });
-    for (const p of pulses) { const u = ((t / 2.8) + p.off) % 1; p.l.scale.set(0.2 + u * 0.9, 1, 0.2 + u * 0.9); p.l.position.set(b.hub.x, 0.012, b.hub.z); p.l.material.opacity = (1 - u) * 0.5 * b.opacity; }
+    for (const p of pulses) { const u = ((t / 2.8) + p.off) % 1; p.l.scale.set(0.2 + u * 0.9, 1, 0.2 + u * 0.9); p.l.position.set(b.hub.x, 0.012, b.hub.z); p.l.material.opacity = (1 - u) * 0.65 * b.opacity; }
   });
 }
 // 05/06 Tiles — surfaces breathe; charts update; the globe turns
@@ -191,11 +191,11 @@ function frameD(t) {
   const vs = t[5] * 0.95 + 4.1, hs = 5.8 + 3.4;
   return Math.max(vs / (2 * Math.tan(fv / 2)), hs / (2 * Math.tan(fh / 2))) * 1.02;
 }
-let camAnim = null;
-function startFrameAnim() {
-  const toY = frameY(tgt, state.layer), toD = frameD(tgt);
-  camAnim = { fromY: controls.target.y, toY, fromD: cam.position.distanceTo(controls.target), toD, t: 0, dur: 0.55 };
-}
+// Auto-fit distance+Y while slabs settle after select; release when settled or user orbits.
+let camFit = false;
+const SETTLE_EPS = 0.025;
+function startFrameAnim() { camFit = true; }
+controls.addEventListener('start', () => { camFit = false; });
 {
   const target = new THREE.Vector3(0, frameY(tgt), 0);
   cam.position.copy(target).add(new THREE.Vector3(1, 0.78, 1).normalize().multiplyScalar(frameD(tgt)));
@@ -301,31 +301,77 @@ function select(layer, part = null) {
 }
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-const pickables = built.flatMap((b) => b.meshes);
+// Fat invisible proxies so isometric plates are easy to hit (thin meshes miss often).
+const hitMat = new THREE.MeshBasicMaterial({
+  transparent: true, opacity: 0, depthWrite: false, colorWrite: false, side: THREE.DoubleSide,
+});
+hitMat.name = 'layer-hit-proxy';
+const pickables = [];
+built.forEach((b) => {
+  const h = Math.max(0.45, (b.plateH || 0.28) + 0.2);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(4.8, h, 4.8), hitMat);
+  proxy.position.y = b.plateH ? 0 : 0.08;
+  proxy.userData = { layer: b.key, part: null, hitProxy: true };
+  proxy.name = `${b.key}.hit`;
+  b.group.add(proxy);
+  b.hitProxy = proxy;
+  for (const m of b.meshes) pickables.push(m);
+  pickables.push(proxy);
+});
 function pick(e) {
   const r = stage.getBoundingClientRect();
+  if (r.width < 1 || r.height < 1) return null;
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, cam);
-  const hit = ray.intersectObjects(pickables, false)[0];
-  if (!hit) return null;
-  const b = built.find((x) => x.key === hit.object.userData.layer);
+  const hits = ray.intersectObjects(pickables, false);
+  if (!hits.length) return null;
+  let hit = hits[0];
+  for (const h of hits) {
+    if (h.distance - hits[0].distance > 0.4) break;
+    if (!h.object.userData.hitProxy && h.object.userData.layer) { hit = h; break; }
+  }
+  const layerKey = hit.object.userData.layer;
+  const b = built.find((x) => x.key === layerKey);
   if (!b) return null;
-  return { layer: b.index, part: hit.object.userData.part || null };
+  const part = hit.object.userData.hitProxy ? null : (hit.object.userData.part || null);
+  return { layer: b.index, part };
 }
 let down = null;
-const canvas = stage._renderer.domElement;
-function onPointerDown(e) { down = { x: e.clientX, y: e.clientY }; }
-function onPointerUp(e) {
-  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 10) return;
-  const p = pick(e); if (!p) return;
-  if (state.layer === p.layer && !state.part && !p.part) select(null);
-  else select(p.layer, p.part);
-}
-canvas.addEventListener('pointerdown', onPointerDown);
-canvas.addEventListener('pointerup', onPointerUp);
 let hoverQ = null;
-canvas.addEventListener('pointermove', (e) => { hoverQ = e; });
+const canvas = stage._renderer.domElement;
+const art = document.querySelector('.art');
+function onPointerDown(e) {
+  if (e.button != null && e.button !== 0) return;
+  if (e.target.closest?.('.callout')) return;
+  down = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, id: e.pointerId };
+}
+function onPointerMove(e) {
+  hoverQ = e;
+  if (down && (down.id == null || down.id === e.pointerId)
+    && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 12) down.moved = true;
+}
+function onPointerUp(e) {
+  if (!down) return;
+  if (down.id != null && e.pointerId !== down.id) return;
+  if (e.target.closest?.('.callout')) { down = null; return; }
+  const click = !down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) <= 14
+    && (performance.now() - down.t) < 600;
+  down = null;
+  if (!click) return;
+  const p = pick(e);
+  if (!p) return;
+  // Layer-first: new layer always isolates the slice; parts only once already isolated.
+  if (state.layer === p.layer && !state.part && !p.part) select(null);
+  else if (state.layer !== p.layer) select(p.layer, null);
+  else if (p.part) select(p.layer, state.part === p.part ? null : p.part);
+  else select(p.layer, null);
+}
+// Listen on .art (capture) so clicks work even when #labels sits above the shadow canvas.
+art.addEventListener('pointerdown', onPointerDown, true);
+art.addEventListener('pointermove', onPointerMove, true);
+art.addEventListener('pointerup', onPointerUp, true);
 canvas.addEventListener('pointerleave', () => { hoverQ = null; state.hover = null; stage.style.cursor = ''; });
+art.addEventListener('pointerleave', () => { hoverQ = null; state.hover = null; stage.style.cursor = ''; });
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') select(null);
   if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { const d = e.key === 'ArrowUp' ? 1 : -1; select(state.layer == null ? (d > 0 ? 0 : 5) : Math.max(0, Math.min(5, state.layer + d))); e.preventDefault(); }
@@ -403,19 +449,20 @@ function frame(now) {
   const minOp = Math.min(...built.slice(3).map((b) => b.opacity));
   connMat.opacity = 0.9 * minOp; connPk.list.forEach((a) => (a.p = prep(connPaths[connPk.list.indexOf(a) >> 1])));
   connPk.update(dt); connPk.mesh.visible = minOp > 0.95;
-  // One-shot distance+Y ease on select; otherwise only gentle Y recenter so OrbitControls owns zoom.
-  if (camAnim) {
-    camAnim.t += dt;
-    const u = ease(Math.min(1, camAnim.t / camAnim.dur));
-    const y = camAnim.fromY + (camAnim.toY - camAnim.fromY) * u;
-    const d = camAnim.fromD + (camAnim.toD - camAnim.fromD) * u;
-    const dy = y - controls.target.y;
-    controls.target.y = y; cam.position.y += dy;
-    camOff.copy(cam.position).sub(controls.target).setLength(Math.max(controls.minDistance, d));
+  // While slabs settle after select: ease Y + distance to frame the stack. User orbit cancels.
+  const wantY = frameY(tgt, state.layer);
+  const wantD = frameD(tgt);
+  if (camFit) {
+    const dy = (wantY - controls.target.y) * k;
+    controls.target.y += dy; cam.position.y += dy;
+    const curD = cam.position.distanceTo(controls.target);
+    const nd = curD + (wantD - curD) * k;
+    camOff.copy(cam.position).sub(controls.target).setLength(Math.max(controls.minDistance, nd));
     cam.position.copy(controls.target).add(camOff);
-    if (u >= 1) camAnim = null;
+    const settling = built.some((b, i) => Math.abs(tgt[i] - b.y) > SETTLE_EPS);
+    const camSettled = Math.abs(wantY - controls.target.y) < 0.015 && Math.abs(wantD - cam.position.distanceTo(controls.target)) < 0.06;
+    if (!settling && camSettled) camFit = false;
   } else {
-    const wantY = frameY(tgt, state.layer);
     const dy = (wantY - controls.target.y) * k;
     controls.target.y += dy; cam.position.y += dy;
   }
@@ -424,4 +471,4 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.__arch = { select, state, built };
+window.__arch = { select, state, built, pick };
