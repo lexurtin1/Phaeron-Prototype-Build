@@ -267,7 +267,7 @@ function placeOverlay() {
     const vis = z < 1 && b.opacity > 0.35;
     el.style.display = 'flex';
     el.style.opacity = vis ? String(Math.min(1, (b.opacity - 0.35) / 0.65)) : '0';
-    el.style.transform = `translate(${x}px, ${y}px) ${lb.micro === true ? 'translate(-50%, 30%)' : asTile ? 'translate(-50%, -70%)' : 'translate(-50%, -100%)'}`;
+    el.style.transform = `translate(${x}px, ${y}px) ${lb.micro === true ? 'translate(-50%, 30%)' : asTile ? 'translate(-50%, -100%)' : 'translate(-50%, -100%)'}`;
     el.classList.toggle('on', state.part === lb.part && isolated);
     el.classList.toggle('open', isolated || (assembled && !asTile));
     el.classList.toggle('hov', false);

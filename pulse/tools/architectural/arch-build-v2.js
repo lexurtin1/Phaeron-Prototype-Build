@@ -393,12 +393,12 @@ export function buildTileLayer(svgText, key, cfg) {
       gl.position.copy(rec.center).add(new THREE.Vector3(0, r + 0.04, 0)); tile.add(gl); rec.globe = gl;
     }
     recs.push(rec);
-    // Label anchor on the plate top only (ignore chart-bar / globe children for height).
-    if (!tile.geometry.boundingBox) tile.geometry.computeBoundingBox();
-    const gb = tile.geometry.boundingBox;
+    // Anchor at the diamond tip (SVG 0,0). HTML uses translate(-50%,-100%) so the
+    // label block sits just above the tip — same place as the SVG title/micro.
+    const tip = T([0, 0]);
     const anchor = new THREE.Object3D();
     anchor.name = `${id}.lbl`;
-    anchor.position.set((gb.min.x + gb.max.x) / 2, gb.max.y + (id === 'market-globe' ? 0.22 : 0.03), (gb.min.z + gb.max.z) / 2);
+    anchor.position.copy(toW(tip[0], tip[1], 1.2));
     tile.add(anchor);
     labels.push({ text: name, micro: micro ? micro.textContent.trim() : '', part: id, tile: true, pos: new THREE.Vector3(0, 0, 0), obj: anchor });
   }
