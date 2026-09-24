@@ -198,8 +198,11 @@ function setLayerOpacity(b, k) {
 const labelEls = [];
 built.forEach((b) => b.labels.forEach((lb) => {
   const el = document.createElement('div');
-  el.className = lb.tile ? 'lbl lbl-tile' : lb.micro ? 'lbl lbl-micro' : 'lbl';
-  el.innerHTML = lb.tile ? `<span class="n">${lb.text}</span><span class="m">${lb.micro}</span>` : `<span class="n">${lb.text}</span>`;
+  const asTile = lb.tile || b.key === 'data';
+  el.className = asTile ? 'lbl lbl-tile' : lb.micro ? 'lbl lbl-micro' : 'lbl';
+  el.innerHTML = asTile
+    ? `<span class="n">${lb.text}</span><span class="m">${lb.micro || lb.sub || ''}</span>`
+    : `<span class="n">${lb.text}</span>`;
   overlay.appendChild(el); labelEls.push({ el, lb, b });
 }));
 const callouts = built.map((b) => {

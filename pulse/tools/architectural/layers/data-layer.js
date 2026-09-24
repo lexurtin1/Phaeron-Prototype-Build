@@ -57,14 +57,38 @@ const SYMBOLS = {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     const ls = new THREE.LineSegments(g, lineMat('#' + col.clone().lerp(new THREE.Color('#fff'), 0.55).getHexString(), id + '.windows')); ls.raycast = () => {}; ls.name = KEY + '.' + id + '.windows'; sym.add(ls);
   },
-  internal({ sym, side, top, edge, id, mesh, box2, std }) {   // systems: server rack with status lights
-    const led = std('#ffffff', id + '.led', 0.9), leds = [];
-    for (let k = 0; k < 3; k++) {
-      const y = 0.012 + k * 0.066;
-      mesh(box2(0.26, 0.05, 0.16).translate(0, y + 0.025, 0), side, top, id, y + 0.05, id + '.unit', sym, edge);
-      for (let j = 0; j < 3; j++) { const l = mesh(box2(0.018, 0.012, 0.004), led, led, id, y + 0.03, id + '.led', sym); l.position.set(0.07 + j * 0.026, y + 0.025, 0.082); leds.push(l); }
-    }
-    return (t) => leds.forEach((l, j) => { l.visible = Math.sin(t * (1.3 + j * 0.37) + j * 2.1) > -0.4; });
+  internal({ sym, side, top, edge, id, mesh, box2, std, materials, meshes }) {   // systems: Salesforce · SAP · Jira logo cards
+    const loader = new THREE.TextureLoader();
+    const logos = [
+      { file: 'assets/logo-salesforce.webp', x: -0.09, z: 0.04, yaw: 0.35 },
+      { file: 'assets/logo-sap.webp', x: 0.09, z: 0.04, yaw: -0.35 },
+      { file: 'assets/logo-jira.webp', x: 0, z: -0.08, yaw: 0 },
+    ];
+    const back = std('#ffffff', id + '.card', 0.7);
+    const w = 0.11, h = 0.09;
+    logos.forEach((L, i) => {
+      const face = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true });
+      face.name = `data.${id}.logo.${i}`;
+      face.userData.baseOpacity = 1;
+      materials.push(face);
+      loader.load(L.file, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        face.map = tex;
+        face.needsUpdate = true;
+      });
+      const card = new THREE.Mesh(new THREE.PlaneGeometry(w, h), face);
+      card.name = `data.${id}.logo.${i}`;
+      card.userData = { layer: 'data', part: id, eTop: h };
+      card.position.set(L.x, 0.055 + h / 2, L.z);
+      card.rotation.y = L.yaw;
+      card.castShadow = false;
+      sym.add(card);
+      meshes.push(card);
+      mesh(box2(w * 0.85, 0.008, 0.018).translate(0, 0.004, 0), back, back, id, 0.008, id + '.pedestal.' + i, sym);
+      const ped = sym.children[sym.children.length - 1];
+      ped.position.set(L.x, 0, L.z);
+      ped.rotation.y = L.yaw;
+    });
   },
   rules({ sym, side, top, edge, id, mesh, box2 }) {          // regulation: balance scales
     mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.025, 40).translate(0, 0.0125, 0), side, top, id, 0.025, id + '.base', sym, edge);
@@ -176,7 +200,7 @@ export function buildDataLayer(opts = {}) {
       const m = mesh(box2(w, h, dd).translate(0, h / 2, 0), wallTop, wallTop, d.id, h, `${d.id}.wall`, walls, edge); m.position.set(x, 0, z);
     });
     const sym = new THREE.Group(); sym.name = `${KEY}.${d.id}.symbol`; g.add(sym);
-    const anim = SYMBOLS[d.id]({ sym, side, top, edge, id: d.id, mesh, box2, std, lineMat, col, KEY });
+    const anim = SYMBOLS[d.id]({ sym, side, top, edge, id: d.id, mesh, box2, std, lineMat, col, KEY, materials, meshes });
     const dy = 0.02 + ((i * 37) % 5) * 0.012;
     const p0 = dir.clone().multiplyScalar(R0).add(jit), p1 = dir.clone().multiplyScalar(R1);
     g.position.copy(p0); const r0 = Math.sin(i * 1.9) * 0.4; g.rotation.y = r0;
