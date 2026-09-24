@@ -107,7 +107,7 @@ const V = (a, y, b) => new THREE.Vector3(a * 2, y, b * 2);
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 const anims = [];
-// 01 Data — silo → unified foundation (procedural layer)
+// 01 Data — pie fragments → one disc (procedural layer; cycles knowledge flow)
 anims.push((dt) => built[0].animate(dt));
 // 02 Security — every request crosses the perimeter; scans sweep outward
 {

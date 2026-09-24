@@ -1,283 +1,290 @@
 /*
-  Phaeron · Layer 01 · Data — "from silos to one foundation"
-  Standalone three.js module. Drop-in replacement for the SVG-built bottom plate.
+  Phaeron · Layer 01 · Data — "Six fragments, one form"
+  Standalone three.js module (abstract edition). Previous literal-icon edition: data-layer-literal.js.
 
-  Story (auto-plays, ~5s): six walled silos (Data, Clients, Internal systems, Rules & regulation,
-  Markets, People) sit apart; their data circles inside and bounces off the walls. The walls sink,
-  the silos pull into a clean hexagon, a unified foundation spreads under them, a core rises in the
-  centre, and bridges connect everything. It then loops: each silo sends its knowledge into the core
-  and receives shared context back.
+  Concept: each source of knowledge is a fragment of one disc, inscribed with its own line-language
+  (Data: concentric records · Clients: individual marks · Internal: a system grid · Rules: parallel
+  hatching · Markets: waveforms · People: clusters). At first the fragments float apart at different
+  heights, each caged in a fine wire silo. The cages dissolve, the fragments descend and lock together,
+  crimson seams trace the joins (kintsugi), and Phaeron rises in the centre. Knowledge then circulates.
 
   Contract (same shape arch-app-v2.js expects from every layer):
     { key, group, meshes, materials, lineMats, labels, parts, flows, roots, plateH, hub,
-      animate(dt), replay(), seek(seconds), setPlaying(bool), duration }
-  - Plate footprint: 4 × 4 world units, centred, top face at y = 0, thickness plateH.
-  - Clickable meshes carry userData = { layer: 'data', part: <part id>, eTop } and [side, top] materials.
-  - labels[i].visible is updated every frame (core label hides until the core has formed).
+      animate(dt), replay(), seek(seconds), setPlaying(bool), duration, time }
+  - Plate footprint 4 × 4 world units, centred, top face at y = 0.
+  - Clickable meshes: userData = { layer, part, eTop }, material array [side, top].
+  - labels[i].visible is updated every frame.
 
   Wiring into arch-app-v2.js:
     import { buildDataLayer } from './layers/data-layer.js';
-    // in the LAYERS.map(...) builder:  l.key === 'data' ? buildDataLayer() : ...
-    // replace the `// 01 Data` animation block with:  anims.push((dt) => built[0].animate(dt));
-    // in placeOverlay():  if (lb.visible === false) { el.style.opacity = '0'; continue; }
-    // optional, in select():  if (layer === 0) built[0].replay();
+    // builder:            l.key === 'data' ? buildDataLayer() : ...
+    // animation block:    anims.push((dt) => built[0].animate(dt));
+    // placeOverlay():     if (lb.visible === false) { el.style.opacity = '0'; continue; }
+    // optional select():  if (layer === 0) built[0].replay();
 */
 import * as THREE from 'three';
 
 export const SILOS = [
-  { id: 'data',     name: 'Data',               sub: 'Warehouses · lakes',    color: '#305878' },
-  { id: 'clients',  name: 'Clients',            sub: 'Accounts · history',    color: '#8C2F3D' },
-  { id: 'internal', name: 'Internal systems',   sub: 'CRM · ERP · core',      color: '#183255' },
-  { id: 'rules',    name: 'Rules & regulation', sub: 'Policy · compliance',   color: '#6E1F2B' },
-  { id: 'markets',  name: 'Markets',            sub: 'Prices · signals',      color: '#5C7F9E' },
-  { id: 'people',   name: 'People',             sub: 'Expertise · teams',     color: '#8A93A6' },
+  { id: 'data',     name: 'Data',               sub: 'Warehouses · lakes',  color: '#305878' },
+  { id: 'clients',  name: 'Clients',            sub: 'Accounts · history',  color: '#8C2F3D' },
+  { id: 'internal', name: 'Internal systems',   sub: 'CRM · ERP · core',    color: '#183255' },
+  { id: 'rules',    name: 'Rules & regulation', sub: 'Policy · compliance', color: '#6E1F2B' },
+  { id: 'markets',  name: 'Markets',            sub: 'Prices · signals',    color: '#5C7F9E' },
+  { id: 'people',   name: 'People',             sub: 'Expertise · teams',   color: '#8A93A6' },
 ];
-const U = { plateSide: '#8f1636', plateEdge: '#6E1F2B', plateTop0: '#fbfbfc', plateTop1: '#fdf1f3',
-  field: '#fae6ea', coreSide: '#8f1636', coreTop: '#ffffff', coreInset: '#ffffff', bridgeTop: '#b3263f', packet: '#d11a45' };
-const T = { walls: [1.6, 2.4], move: [1.9, 3.3], field: [2.8, 4.0], core: [3.0, 4.0], spokes: [3.3, 4.2], ring: [3.7, 4.6], flow: [4.2, 5.0] };
-const R0 = 1.52, R1 = 1.22, PAD = 0.56, PLATE_H = 0.16;
-
+const INK = '#0F2445', CRIMSON = '#8f1636', SEAM = '#b3263f';
+const RI = 0.52, RO = 1.8, RC = (RI + RO) / 2, TH = 0.045, GAP = 0.02, WALL_H = 0.42, PLATE_H = 0.16;
+const T = { walls: [1.3, 2.3], move: [1.7, 3.3], seams: [3.0, 3.9], core: [3.1, 3.9], flow: [3.8, 4.6] };
+const TAU = Math.PI * 2;
 const clamp = (x) => Math.max(0, Math.min(1, x));
 const seg = (t, [a, b]) => clamp((t - a) / (b - a));
 const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
-// Each silo gets its own symbol. Builders return an optional per-frame animator (clock) => void.
-const SYMBOLS = {
-  data({ sym, side, top, edge, id, mesh }) {          // database: stacked discs
-    for (let k = 0; k < 3; k++) mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.04, 48).translate(0, 0.02 + k * 0.058, 0), side, top, id, 0.06 + k * 0.058, id + '.disc', sym, edge);
+// ---------- line-languages (world x,z polylines, clipped to the fragment) ----------
+const arc = (r, t0, t1, n = 72) => Array.from({ length: n + 1 }, (_, k) => { const t = t0 + ((t1 - t0) * k) / n; return [r * Math.cos(t), r * Math.sin(t)]; });
+const circ = (x, z, r, n = 24) => Array.from({ length: n + 1 }, (_, k) => { const t = (k / n) * TAU; return [x + r * Math.cos(t), z + r * Math.sin(t)]; });
+const PATTERNS = {
+  data: (S) => { const o = []; for (let r = RI + 0.12; r < RO - 0.06; r += 0.12) o.push(arc(r, S.t0, S.t1)); return o; },
+  clients: (S) => {
+    const o = [];
+    for (let r = RI + 0.16; r < RO - 0.08; r += 0.18) {
+      const n = Math.max(1, Math.floor((r * (S.t1 - S.t0)) / 0.18));
+      for (let k = 0; k < n; k++) { const t = S.t0 + ((S.t1 - S.t0) * (k + 0.5)) / n; o.push(circ(r * Math.cos(t), r * Math.sin(t), 0.026)); }
+    }
+    return o;
   },
-  clients({ sym, side, top, edge, id, mesh, box2, lineMat, col, KEY }) {   // client office: tower + podium + floor lines
-    mesh(box2(0.26, 0.04, 0.2).translate(0, 0.02, 0), side, top, id, 0.04, id + '.podium', sym, edge);
-    const w = 0.13, h = 0.26;
-    mesh(box2(w, h, w).translate(0, 0.04 + h / 2, 0), side, top, id, 0.04 + h, id + '.tower', sym, edge);
-    const pos = [], e = w / 2 + 0.0015;
-    for (let y = 0.08; y < 0.04 + h - 0.02; y += 0.034) pos.push(-e, y, e, e, y, e, e, y, e, e, y, -e);
-    for (const x of [-0.02, 0.02]) pos.push(x, 0.06, e, x, 0.04 + h - 0.02, e);
-    for (const z of [-0.02, 0.02]) pos.push(e, 0.06, z, e, 0.04 + h - 0.02, z);
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    const ls = new THREE.LineSegments(g, lineMat('#' + col.clone().lerp(new THREE.Color('#fff'), 0.55).getHexString(), id + '.windows')); ls.raycast = () => {}; ls.name = KEY + '.' + id + '.windows'; sym.add(ls);
+  internal: (S) => {
+    const o = [];
+    for (let r = RI + 0.25; r < RO - 0.06; r += 0.25) o.push(arc(r, S.t0, S.t1));
+    for (let k = 1; k < 4; k++) { const t = S.t0 + ((S.t1 - S.t0) * k) / 4; o.push([[RI * Math.cos(t), RI * Math.sin(t)], [RO * Math.cos(t), RO * Math.sin(t)]].flatMap((p, j, a) => j ? Array.from({ length: 40 }, (_, q) => [a[0][0] + (p[0] - a[0][0]) * (q + 1) / 40, a[0][1] + (p[1] - a[0][1]) * (q + 1) / 40]) : [p])); }
+    return o;
   },
-  internal({ sym, side, top, edge, id, mesh, box2, std, materials, meshes }) {   // systems: Salesforce · SAP · Jira logo cards
-    const loader = new THREE.TextureLoader();
-    const logos = [
-      { file: 'assets/logo-salesforce.webp', x: -0.09, z: 0.04, yaw: 0.35 },
-      { file: 'assets/logo-sap.webp', x: 0.09, z: 0.04, yaw: -0.35 },
-      { file: 'assets/logo-jira.webp', x: 0, z: -0.08, yaw: 0 },
-    ];
-    const back = std('#ffffff', id + '.card', 0.7);
-    const w = 0.11, h = 0.09;
-    logos.forEach((L, i) => {
-      const face = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true });
-      face.name = `data.${id}.logo.${i}`;
-      face.userData.baseOpacity = 1;
-      materials.push(face);
-      loader.load(L.file, (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        face.map = tex;
-        face.needsUpdate = true;
-      });
-      const card = new THREE.Mesh(new THREE.PlaneGeometry(w, h), face);
-      card.name = `data.${id}.logo.${i}`;
-      card.userData = { layer: 'data', part: id, eTop: h };
-      card.position.set(L.x, 0.055 + h / 2, L.z);
-      card.rotation.y = L.yaw;
-      card.castShadow = false;
-      sym.add(card);
-      meshes.push(card);
-      mesh(box2(w * 0.85, 0.008, 0.018).translate(0, 0.004, 0), back, back, id, 0.008, id + '.pedestal.' + i, sym);
-      const ped = sym.children[sym.children.length - 1];
-      ped.position.set(L.x, 0, L.z);
-      ped.rotation.y = L.yaw;
-    });
+  rules: (S) => {
+    const o = [], u = [Math.cos(S.a), Math.sin(S.a)], v = [-u[1], u[0]];
+    for (let d = RI + 0.08; d < RO; d += 0.09) { const l = []; for (let s = -1.2; s <= 1.2; s += 0.01) l.push([u[0] * d + v[0] * s, u[1] * d + v[1] * s]); o.push(l); }
+    return o;
   },
-  rules({ sym, side, top, edge, id, mesh, box2 }) {          // regulation: balance scales
-    mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.025, 40).translate(0, 0.0125, 0), side, top, id, 0.025, id + '.base', sym, edge);
-    mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.24, 12).translate(0, 0.145, 0), side, side, id, 0.265, id + '.pole', sym);
-    const beam = new THREE.Group(); beam.position.y = 0.26; sym.add(beam);
-    mesh(box2(0.3, 0.008, 0.008), side, side, id, 0.27, id + '.beam', beam);
-    const pans = [-0.14, 0.14].map((x) => {
-      const p = new THREE.Group(); p.position.x = x; beam.add(p);
-      mesh(box2(0.002, 0.1, 0.002).translate(0, -0.05, 0), side, side, id, 0.26, id + '.string', p);
-      mesh(new THREE.CylinderGeometry(0.055, 0.04, 0.012, 40).translate(0, -0.106, 0), side, top, id, 0.16, id + '.pan', p, edge);
-      return p;
-    });
-    return (t) => { const r = Math.sin(t * 0.8) * 0.08; beam.rotation.z = r; pans.forEach((p) => (p.rotation.z = -r)); };
+  markets: (S) => {
+    const o = [];
+    for (let r0 = RI + 0.16; r0 < RO - 0.08; r0 += 0.17) { const l = []; for (let k = 0; k <= 180; k++) { const t = S.t0 + ((S.t1 - S.t0) * k) / 180, r = r0 + 0.022 * Math.sin(t * 24 + r0 * 22); l.push([r * Math.cos(t), r * Math.sin(t)]); } o.push(l); }
+    return o;
   },
-  markets({ sym, side, top, edge, id, mesh, box2 }) {       // markets: moving bar chart
-    const base = [0.08, 0.14, 0.11, 0.2], bars = base.map((h, k) => { const b = mesh(box2(0.045, 1, 0.045).translate(0, 0.5, 0), side, top, id, h, id + '.bar', sym, edge); b.position.x = -0.09 + k * 0.06; b.scale.y = h; return b; });
-    return (t) => bars.forEach((b, k) => { b.scale.y = base[k] * (0.8 + 0.25 * Math.sin(t * 1.1 + k * 1.3)); });
-  },
-  people({ sym, side, top, edge, id, mesh }) {                 // people: three figures
-    [[0, -0.05, 1], [-0.085, 0.05, 0.86], [0.085, 0.05, 0.86]].forEach(([x, z, s]) => {
-      const body = mesh(new THREE.CylinderGeometry(0.028 * s, 0.05 * s, 0.1 * s, 32).translate(0, 0.05 * s, 0), side, top, id, 0.1 * s, id + '.body', sym, edge); body.position.set(x, 0, z);
-      const hg = new THREE.SphereGeometry(0.032 * s, 24, 16).translate(0, 0.14 * s, 0); hg.addGroup(0, hg.index.count, 0);
-      const head = mesh(hg, side, top, id, 0.172 * s, id + '.head', sym); head.position.set(x, 0, z);
-    });
+  people: (S, i) => {
+    let s = 17 + i * 131; const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    const pts = [];
+    for (let tries = 0; tries < 400 && pts.length < 16; tries++) {
+      const r = RI + 0.1 + rnd() * (RO - RI - 0.18), t = S.t0 + rnd() * (S.t1 - S.t0), rr = 0.014 + rnd() * 0.034;
+      const x = r * Math.cos(t), z = r * Math.sin(t);
+      if (pts.every((p) => Math.hypot(p[0] - x, p[1] - z) > p[2] + rr + 0.07)) pts.push([x, z, rr]);
+    }
+    return pts.map(([x, z, r]) => circ(x, z, r));
   },
 };
+const dashArc = (r, t0, t1, on = 0.03, offd = 0.03) => { const o = [], step = (on + offd) / r; for (let t = t0; t < t1; t += step) o.push(arc(r, t, Math.min(t1, t + on / r), 4)); return o; };
+const line = (p, q, n = 30) => Array.from({ length: n + 1 }, (_, k) => [p[0] + ((q[0] - p[0]) * k) / n, p[1] + ((q[1] - p[1]) * k) / n]);
+// Secondary, finer line-language drawn in a lighter tint beneath the primary one.
+const FINE = {
+  data: (S) => {
+    const o = [];
+    for (let r = RI + 0.18; r < RO - 0.06; r += 0.12) o.push(...dashArc(r, S.t0, S.t1, 0.025, 0.02));
+    for (let r = RI + 0.12; r < RO - 0.06; r += 0.12) for (let k = 1; k < 10; k++) { const t = S.t0 + ((S.t1 - S.t0) * k) / 10; o.push(line([r * Math.cos(t), r * Math.sin(t)], [(r + 0.03) * Math.cos(t), (r + 0.03) * Math.sin(t)], 2)); }
+    return o;
+  },
+  clients: (S) => {
+    const o = [];
+    for (let r = RI + 0.16; r < RO - 0.08; r += 0.18) {
+      o.push(arc(r, S.t0, S.t1));
+      const n = Math.max(1, Math.floor((r * (S.t1 - S.t0)) / 0.18));
+      for (let k = 0; k < n; k++) { const t = S.t0 + ((S.t1 - S.t0) * (k + 0.5)) / n; o.push(circ(r * Math.cos(t), r * Math.sin(t), 0.045, 28)); o.push(circ(r * Math.cos(t), r * Math.sin(t), 0.009, 10)); }
+    }
+    return o;
+  },
+  internal: (S) => {
+    const o = [];
+    for (let r = RI + 0.125; r < RO - 0.04; r += 0.0625) o.push(arc(r, S.t0, S.t1));
+    for (let k = 1; k < 16; k++) { const t = S.t0 + ((S.t1 - S.t0) * k) / 16; o.push(line([RI * Math.cos(t), RI * Math.sin(t)], [RO * Math.cos(t), RO * Math.sin(t)], 60)); }
+    return o;
+  },
+  rules: (S) => {
+    const o = [], u = [Math.cos(S.a), Math.sin(S.a)], v = [-u[1], u[0]];
+    for (let d = RI + 0.125; d < RO; d += 0.09) { const l = []; for (let s = -1.2; s <= 1.2; s += 0.01) l.push([u[0] * d + v[0] * s, u[1] * d + v[1] * s]); o.push(l); }
+    const w = [Math.cos(S.a + 0.9), Math.sin(S.a + 0.9)], wn = [-w[1], w[0]];
+    for (let d = -2; d < 2; d += 0.16) { const l = []; for (let s = -2; s <= 2; s += 0.01) l.push([w[0] * s + wn[0] * d, w[1] * s + wn[1] * d]); o.push(l); }
+    return o;
+  },
+  markets: (S) => {
+    const o = [];
+    for (let r0 = RI + 0.16; r0 < RO - 0.08; r0 += 0.17) {
+      o.push(...dashArc(r0, S.t0, S.t1, 0.012, 0.02));
+      for (const ph of [0.9, 1.8]) { const l = []; for (let k = 0; k <= 180; k++) { const t = S.t0 + ((S.t1 - S.t0) * k) / 180, r = r0 + 0.045 + 0.012 * Math.sin(t * 48 + r0 * 22 + ph); l.push([r * Math.cos(t), r * Math.sin(t)]); } o.push(l); }
+    }
+    return o;
+  },
+  people: (S, i, main) => {
+    const o = [], cs = main.map((c) => { const xs = c.map((p) => p[0]), zs = c.map((p) => p[1]); return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...zs) + Math.max(...zs)) / 2, (Math.max(...xs) - Math.min(...xs)) / 2]; });
+    cs.forEach(([x, z, r]) => { o.push(circ(x, z, r * 0.55, 20)); o.push(circ(x, z, r + 0.018, 28)); });
+    cs.forEach((p, j) => cs.slice(j + 1).forEach((q) => { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < 0.3) { const ux = (q[0] - p[0]) / d, uz = (q[1] - p[1]) / d; o.push(line([p[0] + ux * (p[2] + 0.02), p[1] + uz * (p[2] + 0.02)], [q[0] - ux * (q[2] + 0.02), q[1] - uz * (q[2] + 0.02)], 6)); } }));
+    return o;
+  },
+};
+function clip(S, lines) {
+  const inside = ([x, z]) => {
+    const r = Math.hypot(x, z), dt = Math.atan2(Math.sin(Math.atan2(z, x) - S.a), Math.cos(Math.atan2(z, x) - S.a));
+    return r > RI + 0.04 && r < RO - 0.04 && Math.abs(dt) < S.half - 0.04 / r;
+  };
+  const out = [];
+  for (const l of lines) { let run = []; for (const p of l) { if (inside(p)) run.push(p); else { if (run.length > 1) out.push(run); run = []; } } if (run.length > 1) out.push(run); }
+  return out;
+}
 
 export function buildDataLayer(opts = {}) {
   const KEY = opts.key || 'data';
   const group = new THREE.Group(); group.name = KEY;
   const meshes = [], materials = [], lineMats = [], roots = [];
+  const white = new THREE.Color('#ffffff');
 
-  const std = (hex, name, k = 0.1) => {
+  const std = (hex, name, k = 0.25) => {
     const m = new THREE.MeshStandardMaterial({ color: hex, roughness: 0.9, metalness: 0 });
-    m.emissive = new THREE.Color(hex).multiplyScalar(k); m.name = `${KEY}.${name}`; m.userData.base = hex;
-    materials.push(m); return m;
+    m.emissive = new THREE.Color(hex).multiplyScalar(k); m.name = `${KEY}.${name}`; m.userData.base = hex; materials.push(m); return m;
   };
-  const lineMat = (hex, name) => { const m = new THREE.LineBasicMaterial({ color: hex }); m.name = `${KEY}.${name}`; m.userData.baseOpacity = 1; lineMats.push(m); return m; };
-  const box2 = (w, h, d) => { const g = new THREE.BoxGeometry(w, h, d); g.clearGroups(); for (let f = 0; f < 6; f++) g.addGroup(f * 6, 6, f === 2 ? 1 : 0); return g; };
+  const lineMat = (hex, name, op = 1) => { const m = new THREE.LineBasicMaterial({ color: hex, transparent: op < 1, opacity: op }); m.name = `${KEY}.${name}`; m.userData.baseOpacity = op; lineMats.push(m); return m; };
+  const segs = (lines, y, mat, name, parent, dx = 0, dz = 0) => {
+    const pos = []; for (const l of lines) for (let k = 0; k + 1 < l.length; k++) pos.push(l[k][0] - dx, y, l[k][1] - dz, l[k + 1][0] - dx, y, l[k + 1][1] - dz);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const ls = new THREE.LineSegments(g, mat); ls.name = `${KEY}.${name}`; ls.raycast = () => {}; parent.add(ls); return ls;
+  };
   const mesh = (geo, side, top, part, eTop, name, parent, edge) => {
     const m = new THREE.Mesh(geo, [side, top]); m.name = `${KEY}.${name}`;
     m.userData = { layer: KEY, part, eTop }; parent.add(m); meshes.push(m);
     if (edge) { const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edge); e.name = m.name + '.edges'; e.raycast = () => {}; m.add(e); }
     return m;
   };
+  const box2 = (w, h, d) => { const g = new THREE.BoxGeometry(w, h, d); g.clearGroups(); for (let f = 0; f < 6; f++) g.addGroup(f * 6, 6, f === 2 ? 1 : 0); return g; };
+  const cyl2 = (r, h, n) => { const g = new THREE.CylinderGeometry(r, r, h, n); g.groups.forEach((gr) => (gr.materialIndex = gr.materialIndex === 1 ? 1 : 0)); return g; };
 
   // plate
-  const plateSide = std(U.plateSide, 'plate.side', 0.25), plateTop = std(U.plateTop0, 'plate.top', 0.55);
-  const plate = mesh(box2(4, PLATE_H, 4).translate(0, -PLATE_H / 2, 0), plateSide, plateTop, null, 0, 'plate', group, lineMat(U.plateEdge, 'plate.edge'));
+  const plateSide = std('#8f1636', 'plate.side'), plateTop = std('#fbfbfc', 'plate.top', 0.55);
+  const plate = mesh(box2(4, PLATE_H, 4).translate(0, -PLATE_H / 2, 0), plateSide, plateTop, null, 0, 'plate', group, lineMat('#6E1F2B', 'plate.edge'));
   roots.push(plate);
-  const c0 = new THREE.Color(U.plateTop0), c1 = new THREE.Color(U.plateTop1);
-  { // dot grid + border inset (the fine "board" texture)
-    const pts = []; for (let x = -1.85; x <= 1.851; x += 0.15) for (let z = -1.85; z <= 1.851; z += 0.15) pts.push(x, 0.002, z);
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    const pm = new THREE.PointsMaterial({ color: '#c98a98', size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0.55 }); pm.name = KEY + '.grid'; pm.userData.baseOpacity = 0.55; lineMats.push(pm);
-    const p = new THREE.Points(g, pm); p.name = KEY + '.grid'; p.raycast = () => {}; group.add(p);
-    const b = 1.94, inset = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([[-b, -b], [b, -b], [b, b], [-b, b]].map(([x, z]) => new THREE.Vector3(x, 0.002, z))), lineMat('#e3b5bf', 'plate.inset'));
-    inset.name = KEY + '.plate.inset'; inset.raycast = () => {}; group.add(inset);
-  }
+  segs([[[-1.94, -1.94], [1.94, -1.94], [1.94, 1.94], [-1.94, 1.94], [-1.94, -1.94]]], 0.002, lineMat('#e3b5bf', 'plate.inset'), 'plate.inset', group);
+  segs([[-1, -1], [1, -1], [1, 1], [-1, 1]].flatMap(([sx, sz]) => [[[sx * 1.72, sz * 1.8], [sx * 1.88, sz * 1.8]], [[sx * 1.8, sz * 1.72], [sx * 1.8, sz * 1.88]]]), 0.002, lineMat('#c98a98', 'plate.marks'), 'plate.marks', group);
 
-  // unified foundation (spreads out from the centre)
-  const fieldTop = std(U.field, 'field.top', 0.6), fieldSide = std(U.field, 'field.side', 0.6);
-  const fieldGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.003, 6).translate(0, 0.0015, 0);
-  const field = mesh(fieldGeo, fieldSide, fieldTop, 'core', 0.003, 'field', group, lineMat('#b3263f', 'field.edge'));
+  // foundation disc
+  const fTop = std('#fae6ea', 'field.top', 0.6);
+  const field = mesh(cyl2(RO + 0.12, 0.002, 160).translate(0, 0.001, 0), fTop, fTop, 'core', 0.002, 'field', group);
   field.scale.set(0.001, 1, 0.001);
 
-  // core
+  // fragments
+  const frags = SILOS.map((d, i) => {
+    const a = Math.PI / 2 + (i * TAU) / 6, half = Math.PI / 6 - GAP;
+    const S = { a, half, t0: a - half, t1: a + half };
+    const dir = new THREE.Vector3(Math.cos(a), 0, Math.sin(a)), cx = dir.x * RC, cz = dir.z * RC;
+    const g = new THREE.Group(); g.name = `${KEY}.fragment.${d.id}`; group.add(g);
+    const col = new THREE.Color(d.color);
+    const side = std(d.color, `${d.id}.side`), top = std('#' + col.clone().lerp(white, 0.92).getHexString(), `${d.id}.top`, 0.6);
+    const edge = lineMat('#' + col.clone().multiplyScalar(0.85).getHexString(), `${d.id}.edge`);
+    const outline = [...arc(RO, S.t0, S.t1, 64), ...arc(RI, S.t1, S.t0, 32)];
+    const shape = new THREE.Shape(); outline.forEach(([x, z], k) => (k ? shape.lineTo(x - cx, -(z - cz)) : shape.moveTo(x - cx, -(z - cz))));
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: TH, bevelEnabled: false, curveSegments: 1 }); geo.rotateX(-Math.PI / 2);
+    geo.groups.forEach((gr) => (gr.materialIndex = 1 - gr.materialIndex));
+    mesh(geo, side, top, d.id, TH, `${d.id}.fragment`, g, edge);
+    const main = PATTERNS[d.id](S, i);
+    segs(clip(S, FINE[d.id](S, i, main)), TH + 0.001, lineMat('#' + col.clone().lerp(white, 0.62).getHexString(), `${d.id}.pattern.fine`), `${d.id}.pattern.fine`, g, cx, cz);
+    segs(clip(S, main), TH + 0.0015, lineMat(d.color, `${d.id}.pattern`), `${d.id}.pattern`, g, cx, cz);
+    // wire silo cage (unit height, scaled)
+    const cage = new THREE.Group(); cage.name = `${KEY}.${d.id}.cage`; g.add(cage);
+    const cm = new THREE.LineBasicMaterial({ color: d.color, transparent: true, opacity: 0.35 }); cm.name = `${KEY}.${d.id}.cage`;
+    const ring = [...outline, outline[0]], pos = [];
+    for (const y of [0, 1]) for (let k = 0; k + 1 < ring.length; k++) pos.push(ring[k][0] - cx, y, ring[k][1] - cz, ring[k + 1][0] - cx, y, ring[k + 1][1] - cz);
+    for (const p of [outline[0], outline[32], outline[64], outline[65], outline[outline.length - 1]]) pos.push(p[0] - cx, 0, p[1] - cz, p[0] - cx, 1, p[1] - cz);
+    const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const cl = new THREE.LineSegments(cg, cm); cl.raycast = () => {}; cl.name = cm.name; cage.add(cl);
+    const hy = 0.08 + ((i * 3) % 6) * 0.035, tw = (i % 2 ? 1 : -1) * (0.06 + (i % 3) * 0.04);
+    const anchor = new THREE.Object3D(); anchor.position.set(dir.x * (RO - RC - 0.12), 0.08, dir.z * (RO - RC - 0.12)); g.add(anchor);
+    const c = new THREE.Vector3(cx, 0, cz);
+    return { d, S, g, cage, cm, dir, c, hy, tw, col, anchor };
+  });
+
+  // kintsugi seams
+  const seamMat = lineMat(SEAM, 'seams', 0); seamMat.transparent = true;
+  const radials = frags.map((f) => { const b = f.S.a + Math.PI / 6; return [[(RI - 0.02) * Math.cos(b), (RI - 0.02) * Math.sin(b)], [(RO + 0.04) * Math.cos(b), (RO + 0.04) * Math.sin(b)]]; });
+  segs(radials, 0.004, seamMat, 'seams.radial', group);
+  const outerPts = arc(RO + 0.07, Math.PI / 2, Math.PI / 2 + TAU, 256).map(([x, z]) => new THREE.Vector3(x, 0.004, z));
+  const outerMat = new THREE.LineBasicMaterial({ color: SEAM }); outerMat.name = KEY + '.seams.outer'; outerMat.userData.baseOpacity = 1; lineMats.push(outerMat);
+  const outer = new THREE.Line(new THREE.BufferGeometry().setFromPoints(outerPts), outerMat); outer.name = KEY + '.seams.outer'; outer.raycast = () => {}; group.add(outer);
+
+  // Phaeron core
   const core = new THREE.Group(); core.name = `${KEY}.core`; group.add(core);
-  const coreSide = std(U.coreSide, 'core.side', 0.25), coreTop = std(U.coreTop, 'core.top', 0.6), coreInset = std(U.coreInset, 'core.inset', 0.6);
-  const coreEdge = lineMat('#6E1F2B', 'core.edge');
-  mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.07, 6).translate(0, 0.035, 0), coreSide, coreTop, 'core', 0.07, 'core.base', core, coreEdge);
-  mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.035, 48).translate(0, 0.0875, 0), coreSide, coreInset, 'core', 0.105, 'core.inset', core, coreEdge);
-  const wheel = new THREE.Group(); wheel.name = KEY + '.core.phaeron-mark'; wheel.position.y = 0.1065; core.add(wheel);
+  const coreSide = std(CRIMSON, 'core.side'), coreTop = std('#ffffff', 'core.top', 0.6), coreEdge = lineMat('#6E1F2B', 'core.edge');
+  mesh(cyl2(0.43, 0.06, 96).translate(0, 0.03, 0), coreSide, coreTop, 'core', 0.06, 'core.base', core, coreEdge);
+  const wheel = new THREE.Group(); wheel.name = KEY + '.core.phaeron-mark'; wheel.position.y = 0.0615; wheel.scale.set(1.15, 1, 1.15); core.add(wheel);
   {
-    const ink = lineMat('#0F2445', 'core.mark'), pos = [];
-    const ringP = (r, n = 64) => { for (let k = 0; k < n; k++) { const t0 = (k / n) * Math.PI * 2, t1 = ((k + 1) / n) * Math.PI * 2; pos.push(Math.cos(t0) * r, 0, Math.sin(t0) * r, Math.cos(t1) * r, 0, Math.sin(t1) * r); } };
-    ringP(0.24); ringP(0.055); ringP(0.2, 48);
-    for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2, c = Math.cos(t), s = Math.sin(t); pos.push(c * 0.065, 0, s * 0.065, c * 0.19, 0, s * 0.19); }
-    for (const [x, z] of [[0.3, 0], [-0.3, 0], [0, 0.3], [0, -0.3]]) pos.push(x * 0.8, 0, z * 0.8, x * 1.08, 0, z * 1.08);
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    const ls = new THREE.LineSegments(g, ink); ls.name = KEY + '.core.mark'; ls.raycast = () => {}; wheel.add(ls);
-    const dotM = std('#0F2445', 'core.mark.dot', 0.3);
-    for (let k = 0; k < 8; k++) { const t = ((k + 0.5) / 8) * Math.PI * 2; const dm = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.003, 12), dotM, dotM, 'core', 0.108, 'core.mark.dot', wheel); dm.position.set(Math.cos(t) * 0.16, 0.0015, Math.sin(t) * 0.16); }
-    const star = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.006, 4).translate(0, 0.003, 0), dotM, dotM, 'core', 0.11, 'core.mark.star', wheel); star.rotation.y = Math.PI / 4;
+    const L = [];
+    const ringL = (r, n = 96) => L.push(circ(0, 0, r, n));
+    ringL(0.29); ringL(0.235, 80); ringL(0.06, 40);
+    for (let k = 0; k < 8; k++) { const t = (k / 8) * TAU; L.push([[Math.cos(t) * 0.07, Math.sin(t) * 0.07], [Math.cos(t) * 0.225, Math.sin(t) * 0.225]]); }
+    for (let k = 0; k < 4; k++) { const t = (k / 4) * TAU; L.push([[Math.cos(t) * 0.3, Math.sin(t) * 0.3], [Math.cos(t) * 0.345, Math.sin(t) * 0.345]]); }
+    segs(L, 0, lineMat(INK, 'core.mark'), 'core.mark', wheel);
+    const ink = std(INK, 'core.mark.fill', 0.3);
+    for (let k = 0; k < 8; k++) { const t = ((k + 0.5) / 8) * TAU; const dm = mesh(cyl2(0.009, 0.003, 12), ink, ink, 'core', 0.064, 'core.mark.dot', wheel); dm.position.set(Math.cos(t) * 0.185, 0.0015, Math.sin(t) * 0.185); }
+    const star = mesh(cyl2(0.032, 0.005, 4).translate(0, 0.0025, 0), ink, ink, 'core', 0.066, 'core.mark.star', wheel); star.rotation.y = Math.PI / 4;
   }
   core.scale.y = 0.001; core.visible = false;
-  const coreAnchor = new THREE.Object3D(); coreAnchor.position.set(0, 0.26, 0); group.add(coreAnchor);
+  const coreAnchor = new THREE.Object3D(); coreAnchor.position.set(0, 0.1, 0); group.add(coreAnchor);
 
-  // core pulse ring
-  const pulseMat = new THREE.LineBasicMaterial({ color: '#b3263f', transparent: true, opacity: 0 }); pulseMat.name = `${KEY}.pulse`;
-  const circ = []; for (let i = 0; i <= 6; i++) { const a = (i / 6) * Math.PI * 2; circ.push(new THREE.Vector3(Math.sin(a), 0, Math.cos(a))); }
-  const pulses = [0, 0.5].map((off) => { const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(circ), pulseMat.clone()); l.name = `${KEY}.pulse`; l.raycast = () => {}; l.position.y = 0.004; group.add(l); return { l, off }; });
+  const pulseMat = new THREE.LineBasicMaterial({ color: SEAM, transparent: true, opacity: 0 }); pulseMat.name = KEY + '.pulse';
+  const pulse = new THREE.Line(new THREE.BufferGeometry().setFromPoints(circ(0, 0, 1, 128).map(([x, z]) => new THREE.Vector3(x, 0.005, z))), pulseMat);
+  pulse.name = KEY + '.pulse'; pulse.raycast = () => {}; group.add(pulse);
 
-  // silos
-  const white = new THREE.Color('#ffffff');
-  const silos = SILOS.map((d, i) => {
-    const a = Math.PI / 2 + (i * Math.PI) / 3, dir = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
-    const jit = new THREE.Vector3(Math.sin(i * 2.3) * 0.1, 0, Math.cos(i * 1.7) * 0.1);
-    const g = new THREE.Group(); g.name = `${KEY}.silo.${d.id}`; group.add(g);
-    const col = new THREE.Color(d.color), tint = col.clone().lerp(white, 0.94);
-    const side = std(d.color, `${d.id}.side`, 0.25), top = std('#' + tint.getHexString(), `${d.id}.top`, 0.6);
-    const padTop = std('#ffffff', `${d.id}.pad`, 0.6);
-    const edge = lineMat('#' + col.clone().multiplyScalar(0.85).getHexString(), `${d.id}.edge`);
-    mesh(box2(PAD, 0.008, PAD).translate(0, 0.004, 0), padTop, padTop, d.id, 0.008, `${d.id}.pad`, g, edge);
-    const walls = new THREE.Group(); walls.name = `${KEY}.${d.id}.walls`; g.add(walls);
-    const wallTop = std('#ffffff', `${d.id}.wall`, 0.6);
-    const h = 0.14, t = 0.008, o = PAD / 2 - t / 2;
-    [[0, o, PAD, t], [0, -o, PAD, t], [o, 0, t, PAD], [-o, 0, t, PAD]].forEach(([x, z, w, dd]) => {
-      const m = mesh(box2(w, h, dd).translate(0, h / 2, 0), wallTop, wallTop, d.id, h, `${d.id}.wall`, walls, edge); m.position.set(x, 0, z);
-    });
-    const sym = new THREE.Group(); sym.name = `${KEY}.${d.id}.symbol`; g.add(sym);
-    const anim = SYMBOLS[d.id]({ sym, side, top, edge, id: d.id, mesh, box2, std, lineMat, col, KEY, materials, meshes });
-    const dy = 0.02 + ((i * 37) % 5) * 0.012;
-    const p0 = dir.clone().multiplyScalar(R0).add(jit), p1 = dir.clone().multiplyScalar(R1);
-    g.position.copy(p0); const r0 = Math.sin(i * 1.9) * 0.4; g.rotation.y = r0;
-    const anchor = new THREE.Object3D(); anchor.position.copy(dir).multiplyScalar(0.22).setY(0.46); g.add(anchor);
-    return { d, g, walls, sym, anim, dy, dir, p0, p1, r0, top, tint, anchor, col };
-  });
-
-  // bridges: spokes to core + ring between neighbours
-  const bridgeSide = std(U.bridgeTop, 'bridge.side', 0.3), bridgeTop = std(U.bridgeTop, 'bridge.top', 0.3);
-  const strip = (from, to, name) => {
-    const len = from.distanceTo(to);
-    const m = mesh(box2(0.014, 0.004, 1).translate(0, 0.002, 0.5), bridgeSide, bridgeTop, 'core', 0.004, name, group);
-    m.position.copy(from); m.rotation.y = Math.atan2(to.x - from.x, to.z - from.z); m.userData.len = len; m.scale.z = 0.001; m.visible = false; return m;
-  };
-  const spokes = silos.map((s) => strip(s.dir.clone().multiplyScalar(0.36), s.dir.clone().multiplyScalar(R1 - PAD / 2), `spoke.${s.d.id}`));
-  const ring = silos.map((s, i) => {
-    const n = silos[(i + 1) % 6], ab = n.p1.clone().sub(s.p1).normalize();
-    return strip(s.p1.clone().addScaledVector(ab, PAD / 2), n.p1.clone().addScaledVector(ab, -PAD / 2), `ring.${s.d.id}`);
-  });
-
-  // packets
-  const N = 6 * 3 + 6 + 6 * 3;
-  const pk = new THREE.InstancedMesh(new THREE.SphereGeometry(0.016, 12, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }), N);
+  // packets: 12 trapped · 6 in · 6 out · 3 orbit
+  const N = 27;
+  const pk = new THREE.InstancedMesh(new THREE.SphereGeometry(0.014, 12, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }), N);
   pk.name = `${KEY}.packets`; pk.raycast = () => {}; pk.frustumCulled = false; pk.castShadow = false; group.add(pk);
-  const hot = new THREE.Color(U.packet);
-  for (let i = 0; i < N; i++) pk.setColorAt(i, hot);
-  silos.forEach((s, i) => { for (let k = 0; k < 4; k++) pk.setColorAt(i * 4 + k, s.col); pk.setColorAt(24 + i * 3, s.col); });
+  const crim = new THREE.Color(SEAM);
+  for (let i = 0; i < N; i++) pk.setColorAt(i, crim);
+  frags.forEach((f, i) => { pk.setColorAt(i * 2, f.col); pk.setColorAt(i * 2 + 1, f.col); pk.setColorAt(12 + i, f.col); });
   pk.instanceColor.needsUpdate = true;
 
-  const labels = silos.map((s) => ({ text: s.d.name, sub: s.d.sub, part: s.d.id, pos: s.anchor.position.clone(), obj: s.g, visible: true }));
+  const labels = frags.map((f) => ({ text: f.d.name, sub: f.d.sub, part: f.d.id, pos: f.anchor.position.clone(), obj: f.g, visible: true }));
   labels.push({ text: 'Phaeron', sub: 'Unified data foundation', part: 'core', brand: true, pos: new THREE.Vector3(), obj: coreAnchor, visible: false });
   const parts = [...SILOS.map((d) => ({ id: d.id, name: d.name })), { id: 'core', name: 'Phaeron · unified foundation' }];
 
-  // timeline
   let time = opts.start ?? 0, playing = opts.autoplay ?? true, clock = 0;
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), v = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3();
-  const put = (i, pos, s) => { sc.setScalar(Math.max(0.0001, s)); m4.compose(pos, q, sc); pk.setMatrixAt(i, m4); };
+  const put = (i, p, s) => { sc.setScalar(Math.max(0.0001, s)); m4.compose(p, q, sc); pk.setMatrixAt(i, m4); };
   const env = (u) => Math.pow(Math.sin(Math.PI * u), 0.4);
+  const polar = (r, t, y, out) => out.set(r * Math.cos(t), y, r * Math.sin(t));
 
   function animate(dt) {
     if (playing) time += dt; clock += dt;
-    const layerOp = plateSide.opacity ?? 1;
-    const w = ease(seg(time, T.walls)), m = ease(seg(time, T.move)), f = ease(seg(time, T.field)), c = ease(seg(time, T.core));
-    const sp = ease(seg(time, T.spokes)), rg = ease(seg(time, T.ring)), fl = seg(time, T.flow);
+    const op = plateSide.opacity ?? 1;
+    const w = ease(seg(time, T.walls)), m = ease(seg(time, T.move)), s = ease(seg(time, T.seams)), c = ease(seg(time, T.core)), fl = seg(time, T.flow);
 
-    plateTop.color.lerpColors(c0, c1, f); plateTop.emissive.copy(plateTop.color).multiplyScalar(0.55);
-    field.scale.set(Math.max(0.001, f), 1, Math.max(0.001, f)); field.visible = f > 0.001;
-    core.visible = c > 0.001; core.scale.y = Math.max(0.001, c); wheel.rotation.y = clock * 0.18;
-    
-    spokes.forEach((s) => { s.visible = sp > 0.001; s.scale.z = Math.max(0.001, sp) * s.userData.len; });
-    ring.forEach((s) => { s.visible = rg > 0.001; s.scale.z = Math.max(0.001, rg) * s.userData.len; });
+    field.visible = s > 0.001; field.scale.set(Math.max(0.001, s), 1, Math.max(0.001, s));
+    seamMat.opacity = s * op; outer.geometry.setDrawRange(0, Math.floor(outerPts.length * s)); outer.visible = s > 0.001;
+    core.visible = c > 0.001; core.scale.y = Math.max(0.001, c); wheel.rotation.y = clock * 0.12;
+    const pu = (clock / 3.2) % 1, pr = 0.4 + pu * (RO + 0.3); pulse.scale.set(pr, 1, pr); pulseMat.opacity = (1 - pu) * 0.4 * fl * op;
 
-    silos.forEach((s) => {
-      s.g.position.lerpVectors(s.p0, s.p1, m); s.g.rotation.y = s.r0 * (1 - m);
-      s.walls.position.y = -0.15 * w; s.walls.visible = w < 0.999;
-      s.sym.position.y = s.dy * (1 - m); s.anim && s.anim(clock);
-      s.top.color.copy(s.tint).lerp(white, m); s.top.emissive.copy(s.top.color).multiplyScalar(0.6);
+    frags.forEach((f) => {
+      const off = 0.16 * (1 - m), y = f.hy * (1 - m);
+      f.g.position.set(f.c.x + f.dir.x * off, y, f.c.z + f.dir.z * off);
+      f.g.rotation.y = f.tw * (1 - m);
+      f.cage.visible = w < 0.999; f.cage.position.y = -y; f.cage.scale.y = Math.max(0.0001, (WALL_H + y) * (1 - w)); f.cm.opacity = 0.35 * (1 - w) * op;
     });
-    pulses.forEach((p) => { const u = ((clock / 2.4) + p.off) % 1, r = 0.55 + u * 1.2; p.l.scale.set(r, 1, r); p.l.material.opacity = (1 - u) * 0.45 * fl * layerOp; });
 
     const sil = 1 - w;
-    silos.forEach((s, i) => {
-      const P = s.g.position;
-      for (let k = 0; k < 3; k++) {       // circling inside the silo
-        const ang = clock * (1.2 + i * 0.07) + (k * Math.PI * 2) / 3;
-        v.set(P.x + Math.cos(ang) * 0.2, 0.02, P.z + Math.sin(ang) * 0.2); put(i * 4 + k, v, sil);
+    frags.forEach((f, i) => {
+      for (let k = 0; k < 2; k++) {   // trapped: sweeping inside the fragment, never leaving
+        const t = f.S.a + f.S.half * 0.75 * Math.sin(clock * (1.1 + i * 0.07) + k * Math.PI + i);
+        polar(RC + (k ? 0.26 : -0.2), t, TH + 0.014, v).sub(f.c).applyAxisAngle(THREE.Object3D.DEFAULT_UP, f.g.rotation.y).add(f.g.position);
+        put(i * 2 + k, v, sil);
       }
-      const u = Math.abs(Math.sin(clock * 1.7 + i));   // tries to leave, hits the wall
-      v.copy(P).addScaledVector(s.dir, -0.25 * u); v.y = 0.02; put(i * 4 + 3, v, sil * (0.6 + 0.4 * u));
-
-      const ui = (clock * 0.42 + i / 6) % 1;            // silo -> core (its own colour)
-      a.copy(P).setY(0.02); b.set(0, 0.11, 0); v.lerpVectors(a, b, ui); v.y += Math.sin(Math.PI * ui) * 0.05; put(24 + i * 3, v, fl * env(ui));
-      const uo = (clock * 0.42 + i / 6 + 0.5) % 1;      // core -> silo (shared context)
-      v.lerpVectors(b, a, uo); v.y += Math.sin(Math.PI * uo) * 0.05; put(24 + i * 3 + 1, v, fl * env(uo));
-      const ur = (clock * 0.3 + i / 6) % 1, n = silos[(i + 1) % 6].g.position;  // around the ring
-      v.lerpVectors(P, n, ur); v.y = 0.012; put(24 + i * 3 + 2, v, fl * env(ur) * 0.9);
+      const ui = (clock * 0.32 + i / 6) % 1;  // fragment -> Phaeron
+      polar(RO - 0.08, f.S.a, TH + 0.014, a); polar(0.44, f.S.a, 0.07, b); v.lerpVectors(a, b, ui); put(12 + i, v, fl * env(ui));
+      const uo = (clock * 0.32 + i / 6 + 0.5) % 1;  // Phaeron -> fragment (shared context)
+      polar(0.44, f.S.a + 0.08, 0.07, a); polar(RO - 0.08, f.S.a + 0.08, TH + 0.014, b); v.lerpVectors(a, b, uo); put(18 + i, v, fl * env(uo));
     });
+    for (let k = 0; k < 3; k++) put(24 + k, polar(RO + 0.07, Math.PI / 2 + clock * 0.28 + (k * TAU) / 3, 0.012, v), fl);
     pk.instanceMatrix.needsUpdate = true;
 
     labels[labels.length - 1].visible = c > 0.6;
@@ -288,7 +295,7 @@ export function buildDataLayer(opts = {}) {
     plateH: PLATE_H, hub: new THREE.Vector3(0, 0, 0), duration: T.flow[1],
     animate,
     replay() { time = 0; playing = true; },
-    seek(s) { time = Math.max(0, s); },
+    seek(x) { time = Math.max(0, x); },
     setPlaying(p) { playing = !!p; },
     get time() { return time; },
   };
