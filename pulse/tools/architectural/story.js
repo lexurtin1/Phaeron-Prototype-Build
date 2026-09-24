@@ -23,13 +23,8 @@
   'Executive surfaces'
  ];
  const captionIds=['01','02','03','04','08A','08B'];
- // Port centers in 1600×700 tile assets (group translate + port at cy=132)
- const PORTS_A=[[380/1600,(310+132)/700],[720/1600,(345+132)/700],[1120/1600,(295+132)/700],[1420/1600,(330+132)/700]];
- const PORTS_B=[[220/1600,(140+132)/700],[640/1600,(110+132)/700],[980/1600,(155+132)/700],[1360/1600,(130+132)/700]];
- // Distinct back-edge anchors on the top slate (layer 3), left to right, no shared hub
- // UV points near the far ridge of the isometric plate (small u+v)
- const BACK_A=[[55,95],[145,55],[305,55],[395,95]];
- const BACK_B=[[85,55],[175,35],[275,35],[365,55]];
+ const tilePorts=window.PHAERON_TILE_PORTS||{a:[],b:[]};
+ const VB={x:0,y:75,w:1280,h:960};
  let anchors=[],frame=0,last=-1,spokeNodes=null;
  const clamp=x=>Math.max(0,Math.min(1,x));
  const mix=(a,b,t)=>a+(b-a)*t;
@@ -42,53 +37,29 @@
   return {y:i<scene-1?640:-640,scale:.8,opacity:0};
  }
 
- function tilePose(scene,bank,small){
+ function tilePose(scene,bank){
   const showA=scene>=4;
   const showB=scene>=5;
   const visible=bank==='a'?showA:showB;
-  // Push tiles down onto the back of the top slate
-  const baseY=bank==='b'?(small?72:98):(small?108:142);
-  const scale=small?.88:.94;
-  if(!visible)return {y:baseY-18,scale,opacity:0};
-  return {y:baseY,scale,opacity:1};
+  // Native tiles already sit on the ridge; only a tiny settle
+  const baseY=bank==='b'?-6:0;
+  if(!visible)return {y:baseY+10,scale:.98,opacity:0};
+  // Keep 8a readable under 8b without competing for the same ridge
+  if(bank==='a'&&showB)return {y:baseY+4,scale:.96,opacity:.38};
+  return {y:baseY,scale:1,opacity:1};
  }
 
- function pointOnImg(img,nx,ny){
-  if(!img||!art)return null;
-  const r=img.getBoundingClientRect();
-  const d=art.getBoundingClientRect();
-  if(r.width<2||r.height<2)return null;
-  const vbW=1600,vbH=700;
-  const scale=Math.min(r.width/vbW,r.height/vbH);
-  const drawW=vbW*scale,drawH=vbH*scale;
-  // object-fit:contain + object-position:center top
-  const ox=r.left-d.left+(r.width-drawW)/2;
-  const oy=r.top-d.top;
-  return {x:ox+nx*vbW*scale,y:oy+ny*vbH*scale};
- }
-
- // Map isometric UV on the top layer plate into art-local pixels
- function slatePoint(u,v,z=2){
+ // Map architecture viewBox coords into art-local pixels (same framing as #architecture)
+ function viewBoxPoint(vx,vy){
   if(!art||!svg)return null;
   const d=art.getBoundingClientRect();
   const s=svg.getBoundingClientRect();
   if(s.width<2)return null;
-  const vbX=0,vbY=75,vbW=1280,vbH=960;
-  const scale=Math.min(s.width/vbW,s.height/vbH);
-  const drawW=vbW*scale,drawH=vbH*scale;
+  const scale=Math.min(s.width/VB.w,s.height/VB.h);
+  const drawW=VB.w*scale,drawH=VB.h*scale;
   const ox=s.left-d.left+(s.width-drawW)/2;
   const oy=s.top-d.top+(s.height-drawH)/2;
-  // Local plate point
-  const lx=600+.9*(u-v);
-  const ly=290+.52*(u+v)-z;
-  // Assembled top-layer transform: translate(600, 540-185) scale(.96) translate(-600,-540)
-  const ty=540-185;
-  const ax=600+.96*(lx-600);
-  const ay=ty+.96*(ly-540);
-  return {
-   x:ox+(ax-vbX)*scale,
-   y:oy+(ay-vbY)*scale
-  };
+  return {x:ox+(vx-VB.x)*scale,y:oy+(vy-VB.y)*scale};
  }
 
  function ensureSpokes(){
@@ -116,19 +87,17 @@
   systemLinks.setAttribute('viewBox',`0 0 ${Math.max(1,dbox.width)} ${Math.max(1,dbox.height)}`);
 
   const links=[];
-  if(alphaA>.12&&tileImgA){
-   PORTS_A.forEach(([nx,ny],i)=>{
-    const from=pointOnImg(tileImgA,nx,ny);
-    const [u,v]=BACK_A[i];
-    const to=slatePoint(u,v,4);
+  if(alphaA>.12){
+   (tilePorts.a||[]).forEach(entry=>{
+    const from=viewBoxPoint(entry.port[0],entry.port[1]);
+    const to=viewBoxPoint(entry.anchor[0],entry.anchor[1]);
     if(from&&to)links.push({from,to,alpha:alphaA});
    });
   }
-  if(alphaB>.12&&tileImgB){
-   PORTS_B.forEach(([nx,ny],i)=>{
-    const from=pointOnImg(tileImgB,nx,ny);
-    const [u,v]=BACK_B[i];
-    const to=slatePoint(u,v,8);
+  if(alphaB>.12){
+   (tilePorts.b||[]).forEach(entry=>{
+    const from=viewBoxPoint(entry.port[0],entry.port[1]);
+    const to=viewBoxPoint(entry.anchor[0],entry.anchor[1]);
     if(from&&to)links.push({from,to,alpha:alphaB});
    });
   }
@@ -136,7 +105,6 @@
   links.forEach(({from,to,alpha},i)=>{
    const path=nodes.paths[i];
    if(!path)return;
-   // Short straight drop to the matching back-edge anchor; LTR order avoids crossings
    path.setAttribute('d',`M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${to.x.toFixed(1)} ${to.y.toFixed(1)}`);
    path.style.opacity=String(clamp(alpha*.55,0,.55));
   });
@@ -149,7 +117,6 @@
   const next=Math.min(scene+1,anchors.length-1),start=Math.max(0,anchors[scene]-offset),end=anchors[next]-offset;
   const local=next===scene?0:clamp((scrollY-start)/Math.max(1,end-start));
   let t=clamp((local-.62)/.38);t=t*t*(3-2*t);if(reduced.matches)t=0;
-  const small=mobile.matches;
   svg.classList.toggle('final-state',scene>=4);
   layers.forEach((el,i)=>{
    const a=pose(scene,i),b=pose(next,i);
@@ -163,7 +130,7 @@
 
   let alphaA=0,alphaB=0;
   if(tileA){
-   const a=tilePose(scene,'a',small),b=tilePose(next,'a',small);
+   const a=tilePose(scene,'a'),b=tilePose(next,'a');
    alphaA=mix(a.opacity,b.opacity,t);
    tileA.style.setProperty('--y',mix(a.y,b.y,t)+'px');
    tileA.style.setProperty('--scale',mix(a.scale,b.scale,t));
@@ -171,7 +138,7 @@
    tileA.setAttribute('aria-hidden',alphaA<.05?'true':'false');
   }
   if(tileB){
-   const a=tilePose(scene,'b',small),b=tilePose(next,'b',small);
+   const a=tilePose(scene,'b'),b=tilePose(next,'b');
    alphaB=mix(a.opacity,b.opacity,t);
    tileB.style.setProperty('--y',mix(a.y,b.y,t)+'px');
    tileB.style.setProperty('--scale',mix(a.scale,b.scale,t));

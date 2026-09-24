@@ -1,67 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
-  <title id="title">Phaeron Layer 08A  -  front-end system tiles</title>
-  <desc id="desc">Four application tiles on a lower irregular band, clear of Layer 08.</desc>
-  <defs>
-    <style>
-      .edge{fill:#fff;stroke:#008cff;stroke-width:1;stroke-linejoin:round}
-      .side{fill:#fafcfe;stroke:#7ab8e8;stroke-width:.85}
-      .line{fill:none;stroke:#008cff;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#7ab8e8;stroke-width:.75}
-      .faint{fill:#e8f4ff;stroke:#7ab8e8;stroke-width:.7}
-      .blue{fill:#008cff;fill-opacity:.55}
-      .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
-      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .port{fill:#008cff;fill-opacity:.3;stroke:none}
-    </style>
-    <symbol id="tile" overflow="visible">
-      <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
-      <path class="edge" d="M0 0 120 64 0 132-120 64Z"/>
-      <path class="soft" d="M-104 64 0 12 104 64 0 120Z"/>
-    </symbol>
-  </defs>
-
-  <!-- Lower band raised clear of Layer 08  -  ports at (0,132) -->
-  <g id="commercial-analytics" transform="translate(380 310)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Commercial Analytics</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">PIPELINE · REVENUE</text>
-    <use href="#tile"/>
-    <path class="line" d="m-64 72 14-8 10 5 14-8 12 7 16-9 10 5"/>
-    <circle cx="22" cy="66" r="2.5" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-
-  <g id="client-intelligence" transform="translate(720 345)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Client Intelligence</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">PROFILE · HISTORY</text>
-    <use href="#tile"/>
-    <circle cx="-22" cy="66" r="14" class="edge"/>
-    <circle cx="-22" cy="62" r="5" class="faint"/>
-    <path class="line" d="M-32 76q10-10 20 0"/>
-    <path class="line" d="M6 52 62 90"/>
-    <circle cx="54" cy="84" r="2.5" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-
-  <g id="opportunity-radar" transform="translate(1120 295)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Opportunity Radar</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">SIGNALS · PRIORITY</text>
-    <use href="#tile"/>
-    <ellipse cx="0" cy="68" rx="58" ry="32" class="soft"/>
-    <ellipse cx="0" cy="68" rx="38" ry="21" class="soft"/>
-    <ellipse cx="0" cy="68" rx="16" ry="9" class="soft"/>
-    <path class="line" d="M-58 68h116M0 36v64"/>
-    <circle cx="32" cy="54" r="3" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-
-  <g id="service-operations" transform="translate(1420 330)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Service Operations</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">WORKFLOW · EXCEPTIONS</text>
-    <use href="#tile"/>
-    <path class="line" d="m-66 50 28 15-14 9-28-16Z"/>
-    <path class="line" d="m-26 70 28 15-14 9-28-16Z"/>
-    <path class="line" d="m14 50 28 15-14 9-28-16Z"/>
-    <circle cx="16" cy="60" r="2.5" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 75 1280 960" role="img" aria-label="Phaeron Layer 08A front-end system tiles"><title>Phaeron Layer 08A front-end system tiles</title><style>
+.tile-edge{fill:#fff;stroke:#008cff;stroke-width:1;stroke-linejoin:round}
+.tile-side{fill:#f5faff;stroke:#7ab8e8;stroke-width:.85;stroke-linejoin:round}
+.tile-line{fill:none;stroke:#008cff;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+.tile-soft{fill:none;stroke:#7ab8e8;stroke-width:.75}
+.tile-faint{fill:#e8f4ff;stroke:#7ab8e8;stroke-width:.7}
+.tile-dot{fill:#008cff;fill-opacity:.55}
+.tile-label{font:600 10px "Open Sans",system-ui,sans-serif;letter-spacing:.02em;fill:#0c1a2e;text-anchor:middle}
+.tile-micro{font:7.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.04em;fill:#3d4f66;text-anchor:middle}
+.tile-port{fill:#008cff;fill-opacity:.35;stroke:none}
+</style><g class="surf-tile" data-port-x="406.77" data-port-y="195.48" transform="translate(406.77 142.68)"><text class="tile-label" x="0" y="-7.20">Commercial Analytics</text><text class="tile-micro" x="0" y="-2.00">PIPELINE · REVENUE</text><path class="tile-side" d="M-48.00 25.60 0 52.80 48.00 25.60v2.40L0 55.20 -48.00 28.00Z"/><path class="tile-edge" d="M0 0 48.00 25.60 0 52.80 -48.00 25.60Z"/><path class="tile-soft" d="M-41.60 25.60 0 4.80 41.60 25.60 0 48.00Z"/><path class="tile-line" d="m-25.60 28.80 5.60 -3.20 4.00 2.00 5.60 -3.20 4.80 2.80 6.40 -3.60 4.00 2.00"/><circle cx="8.80" cy="26.40" r="1.00" class="tile-dot"/><circle class="tile-port" cx="0" cy="52.80" r="0.88"/></g><g class="surf-tile" data-port-x="535.59" data-port-y="189.48" transform="translate(535.59 136.68)"><text class="tile-label" x="0" y="-7.20">Client Intelligence</text><text class="tile-micro" x="0" y="-2.00">PROFILE · HISTORY</text><path class="tile-side" d="M-48.00 25.60 0 52.80 48.00 25.60v2.40L0 55.20 -48.00 28.00Z"/><path class="tile-edge" d="M0 0 48.00 25.60 0 52.80 -48.00 25.60Z"/><path class="tile-soft" d="M-41.60 25.60 0 4.80 41.60 25.60 0 48.00Z"/><circle cx="-8.80" cy="26.40" r="5.60" class="tile-edge"/><circle cx="-8.80" cy="24.80" r="2.00" class="tile-faint"/><path class="tile-line" d="M-12.80 30.40q4.00 -4.00 8.00 0"/><path class="tile-line" d="M2.40 20.80 24.80 36.00"/><circle cx="21.60" cy="33.60" r="1.00" class="tile-dot"/><circle class="tile-port" cx="0" cy="52.80" r="0.88"/></g><g class="surf-tile" data-port-x="664.41" data-port-y="189.48" transform="translate(664.41 136.68)"><text class="tile-label" x="0" y="-7.20">Opportunity Radar</text><text class="tile-micro" x="0" y="-2.00">SIGNALS · PRIORITY</text><path class="tile-side" d="M-48.00 25.60 0 52.80 48.00 25.60v2.40L0 55.20 -48.00 28.00Z"/><path class="tile-edge" d="M0 0 48.00 25.60 0 52.80 -48.00 25.60Z"/><path class="tile-soft" d="M-41.60 25.60 0 4.80 41.60 25.60 0 48.00Z"/><ellipse cx="0" cy="27.20" rx="23.20" ry="12.80" class="tile-soft"/><ellipse cx="0" cy="27.20" rx="15.20" ry="8.40" class="tile-soft"/><ellipse cx="0" cy="27.20" rx="6.40" ry="3.60" class="tile-soft"/><path class="tile-line" d="M-23.20 27.20h46.40M0 14.40v25.60"/><circle cx="12.80" cy="21.60" r="1.20" class="tile-dot"/><circle class="tile-port" cx="0" cy="52.80" r="0.88"/></g><g class="surf-tile" data-port-x="793.23" data-port-y="195.48" transform="translate(793.23 142.68)"><text class="tile-label" x="0" y="-7.20">Service Operations</text><text class="tile-micro" x="0" y="-2.00">WORKFLOW · EXCEPTIONS</text><path class="tile-side" d="M-48.00 25.60 0 52.80 48.00 25.60v2.40L0 55.20 -48.00 28.00Z"/><path class="tile-edge" d="M0 0 48.00 25.60 0 52.80 -48.00 25.60Z"/><path class="tile-soft" d="M-41.60 25.60 0 4.80 41.60 25.60 0 48.00Z"/><path class="tile-line" d="m-26.40 20.00 11.20 6.00 -5.60 3.60 -11.20 -6.40Z"/><path class="tile-line" d="m-10.40 20.00 11.20 6.00 -5.60 3.60 -11.20 -6.40Z"/><path class="tile-line" d="m5.60 20.00 11.20 6.00 -5.60 3.60 -11.20 -6.40Z"/><circle cx="6.40" cy="24.00" r="1.00" class="tile-dot"/><circle class="tile-port" cx="0" cy="52.80" r="0.88"/></g></svg>

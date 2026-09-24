@@ -1,64 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
-  <title id="title">Phaeron Layer 08B  -  executive surfaces</title>
-  <desc id="desc">Four executive tiles on an upper irregular band, clear of Layer 08.</desc>
-  <defs>
-    <style>
-      .edge{fill:#fff;stroke:#008cff;stroke-width:1;stroke-linejoin:round}
-      .side{fill:#fafcfe;stroke:#7ab8e8;stroke-width:.85}
-      .line{fill:none;stroke:#008cff;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
-      .soft{fill:none;stroke:#7ab8e8;stroke-width:.75}
-      .faint{fill:#e8f4ff;stroke:#7ab8e8;stroke-width:.7}
-      .blue{fill:#008cff;fill-opacity:.55}
-      .label{font:600 16px 'Open Sans',system-ui,sans-serif;letter-spacing:.02em;fill:#102538}
-      .micro{font:10px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;fill:#62717e}
-      .port{fill:#008cff;fill-opacity:.3;stroke:none}
-    </style>
-    <symbol id="tile" overflow="visible">
-      <path class="side" d="M-120 64 0 132 120 64v6L0 138-120 70Z"/>
-      <path class="edge" d="M0 0 120 64 0 132-120 64Z"/>
-      <path class="soft" d="M-104 64 0 12 104 64 0 120Z"/>
-    </symbol>
-  </defs>
-
-  <!-- Upper band raised clear of Layer 08  -  ports at (0,132) -->
-  <g id="market-globe" transform="translate(220 140)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Market Globe</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">MARKETS · EVENTS</text>
-    <use href="#tile"/>
-    <ellipse cx="0" cy="68" rx="54" ry="30" class="line"/>
-    <ellipse cx="0" cy="68" rx="20" ry="30" class="soft"/>
-    <path class="soft" d="M-50 56h100M-52 70h104M0 38v60"/>
-    <circle cx="24" cy="56" r="2.5" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-
-  <g id="executive-dashboard" transform="translate(640 110)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Executive Dashboard</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">KPI · EXPOSURE</text>
-    <use href="#tile"/>
-    <path class="line" d="M-60 78V52h22v26ZM-28 78V44h22v34ZM4 78V56h22v22ZM36 78V40h22v38Z"/>
-    <circle cx="50" cy="44" r="2.5" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-
-  <g id="research-insights" transform="translate(980 155)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Research &amp; Insights</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">BRIEFING · EVIDENCE</text>
-    <use href="#tile"/>
-    <path class="line" d="m-46 48 34-18 58 32-34 18Z"/>
-    <path class="faint" d="m-28 58 34-18 44 24-34 18Z"/>
-    <path class="line" d="m-32 62 22-12M-24 72l22-12"/>
-    <circle cx="42" cy="56" r="2.5" class="blue"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-
-  <g id="reporting-packs" transform="translate(1360 130)">
-    <text class="label" x="0" y="-22" text-anchor="middle">Reporting Packs</text>
-    <text class="micro" x="0" y="-6" text-anchor="middle">BOARD · CLIENT</text>
-    <use href="#tile"/>
-    <path class="edge" d="m-42 50 30-16 52 28-30 16Z"/>
-    <path class="faint" d="m-32 60 30-16 42 23-30 16Z"/>
-    <path class="line" d="m-24 64 16-9M-16 74l16-9"/>
-    <circle class="port" cx="0" cy="132" r="2"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 75 1280 960" role="img" aria-label="Phaeron Layer 08B executive surfaces"><title>Phaeron Layer 08B executive surfaces</title><style>
+.tile-edge{fill:#fff;stroke:#008cff;stroke-width:1;stroke-linejoin:round}
+.tile-side{fill:#f5faff;stroke:#7ab8e8;stroke-width:.85;stroke-linejoin:round}
+.tile-line{fill:none;stroke:#008cff;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
+.tile-soft{fill:none;stroke:#7ab8e8;stroke-width:.75}
+.tile-faint{fill:#e8f4ff;stroke:#7ab8e8;stroke-width:.7}
+.tile-dot{fill:#008cff;fill-opacity:.55}
+.tile-label{font:600 10px "Open Sans",system-ui,sans-serif;letter-spacing:.02em;fill:#0c1a2e;text-anchor:middle}
+.tile-micro{font:7.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.04em;fill:#3d4f66;text-anchor:middle}
+.tile-port{fill:#008cff;fill-opacity:.35;stroke:none}
+</style><g class="surf-tile" data-port-x="451.35" data-port-y="162.03" transform="translate(451.35 114.51)"><text class="tile-label" x="0" y="-6.48">Market Globe</text><text class="tile-micro" x="0" y="-1.80">MARKETS · EVENTS</text><path class="tile-side" d="M-43.20 23.04 0 47.52 43.20 23.04v2.16L0 49.68 -43.20 25.20Z"/><path class="tile-edge" d="M0 0 43.20 23.04 0 47.52 -43.20 23.04Z"/><path class="tile-soft" d="M-37.44 23.04 0 4.32 37.44 23.04 0 43.20Z"/><ellipse cx="0" cy="24.48" rx="19.44" ry="10.80" class="tile-line"/><ellipse cx="0" cy="24.48" rx="7.20" ry="10.80" class="tile-soft"/><path class="tile-soft" d="M-18.00 20.16h36.00M-18.72 25.20h37.44M0 13.68v21.60"/><circle cx="8.64" cy="20.16" r="0.90" class="tile-dot"/><circle class="tile-port" cx="0" cy="47.52" r="0.79"/></g><g class="surf-tile" data-port-x="550.45" data-port-y="157.03" transform="translate(550.45 109.51)"><text class="tile-label" x="0" y="-6.48">Executive Dashboard</text><text class="tile-micro" x="0" y="-1.80">KPI · EXPOSURE</text><path class="tile-side" d="M-43.20 23.04 0 47.52 43.20 23.04v2.16L0 49.68 -43.20 25.20Z"/><path class="tile-edge" d="M0 0 43.20 23.04 0 47.52 -43.20 23.04Z"/><path class="tile-soft" d="M-37.44 23.04 0 4.32 37.44 23.04 0 43.20Z"/><path class="tile-line" d="M-21.60 28.08V18.72h7.92v9.36ZM-10.08 28.08V15.84h7.92v12.24ZM1.44 28.08V20.16h7.92v7.92ZM12.96 28.08V14.40h7.92v13.68Z"/><circle cx="18.00" cy="15.84" r="0.90" class="tile-dot"/><circle class="tile-port" cx="0" cy="47.52" r="0.79"/></g><g class="surf-tile" data-port-x="649.55" data-port-y="157.03" transform="translate(649.55 109.51)"><text class="tile-label" x="0" y="-6.48">Research &amp; Insights</text><text class="tile-micro" x="0" y="-1.80">BRIEFING · EVIDENCE</text><path class="tile-side" d="M-43.20 23.04 0 47.52 43.20 23.04v2.16L0 49.68 -43.20 25.20Z"/><path class="tile-edge" d="M0 0 43.20 23.04 0 47.52 -43.20 23.04Z"/><path class="tile-soft" d="M-37.44 23.04 0 4.32 37.44 23.04 0 43.20Z"/><path class="tile-line" d="m-16.56 17.28 12.24 -6.48 20.88 11.52 -12.24 6.48Z"/><path class="tile-faint" d="m-10.08 20.88 12.24 -6.48 15.84 8.64 -12.24 6.48Z"/><path class="tile-line" d="m-11.52 22.32 7.92 -4.32M-8.64 25.92l7.92 -4.32"/><circle cx="15.12" cy="20.16" r="0.90" class="tile-dot"/><circle class="tile-port" cx="0" cy="47.52" r="0.79"/></g><g class="surf-tile" data-port-x="748.65" data-port-y="162.03" transform="translate(748.65 114.51)"><text class="tile-label" x="0" y="-6.48">Reporting Packs</text><text class="tile-micro" x="0" y="-1.80">BOARD · CLIENT</text><path class="tile-side" d="M-43.20 23.04 0 47.52 43.20 23.04v2.16L0 49.68 -43.20 25.20Z"/><path class="tile-edge" d="M0 0 43.20 23.04 0 47.52 -43.20 23.04Z"/><path class="tile-soft" d="M-37.44 23.04 0 4.32 37.44 23.04 0 43.20Z"/><path class="tile-edge" d="m-15.12 18.00 10.80 -5.76 18.72 10.08 -10.80 5.76Z"/><path class="tile-faint" d="m-11.52 21.60 10.80 -5.76 15.12 8.28 -10.80 5.76Z"/><path class="tile-line" d="m-8.64 23.04 5.76 -3.24M-5.76 26.64l5.76 -3.24"/><circle class="tile-port" cx="0" cy="47.52" r="0.79"/></g></svg>
