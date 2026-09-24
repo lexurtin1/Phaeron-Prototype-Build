@@ -46,7 +46,10 @@
   .eyebrow{font:600 11px/1.5 var(--mono);letter-spacing:.035em;margin:0 0 24px;color:var(--muted)}
   #copy h1{font-size:clamp(40px,4.6vw,80px);line-height:1.045;font-weight:400;letter-spacing:-.055em;margin:0 0 26px;text-wrap:balance}
   #copy h1 em{font-style:normal;color:var(--acc)}
-  .description{font-size:clamp(16px,1.3vw,21px);line-height:1.55;max-width:420px;color:var(--muted);margin:0 0 28px;text-wrap:pretty}
+  .description{font-size:clamp(16px,1.3vw,21px);line-height:1.55;max-width:420px;color:var(--muted);margin:0 0 20px;text-wrap:pretty}
+  .points{list-style:none;margin:0 0 28px;padding:0;max-width:420px;display:flex;flex-direction:column;gap:8px}
+  .points li{position:relative;padding-left:14px;font:500 13px/1.45 var(--mono);letter-spacing:.02em;color:var(--muted)}
+  .points li:before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--acc,#008cff)}
   .parts-label{font:600 11px/1.4 var(--mono);letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:0 0 10px}
   .parts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;max-width:440px}
   .parts button{white-space:nowrap;background:#fff;border:1px solid var(--line);padding:6px 10px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;transition:border-color 120ms,color 120ms}
@@ -55,6 +58,7 @@
   .detail{margin:0 0 24px;max-width:420px;border-left:2px solid var(--acc);padding-left:12px}
   .detail span{display:block;font:600 11px/1.4 var(--mono);letter-spacing:.06em;color:var(--muted);margin:0 0 4px;text-transform:uppercase}
   .detail p{margin:0;font-size:16px;line-height:1.5;color:var(--ink);font-weight:600}
+  .detail .detail-blurb{margin-top:6px;font-size:14px;line-height:1.5;font-weight:400;color:var(--muted)}
   .detail .mc{font:400 11px var(--mono);letter-spacing:.04em;color:var(--muted);font-style:normal;margin-left:6px}
   .explore{white-space:nowrap;display:inline-flex;align-items:center;gap:18px;font-size:15px;font-weight:600;background:none;border:0;padding:0;cursor:pointer;color:var(--ink)}
   .explore span{color:var(--crimson);height:40px;width:30px;display:grid;place-items:center;border:1px solid var(--line);transition:border-color 120ms}

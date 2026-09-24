@@ -4,31 +4,46 @@ import { buildDataLayer } from './layers/data-layer.js';
 
 const LAYERS = [
   { key: 'data', file: 'layers/01-data.svg', kind: 'plate', num: '01', short: 'Data', accent: '#9f1239', pkt: '#e11d48', side: 'right',
-    callout: ['Data, Logic', '& Action Services'], what: 'Connects every system',
-    eyebrow: '01 / DATA', title: 'Every system,<br>one <em>foundation.</em>', body: 'Connects the messy reality of enterprise systems into one usable foundation.', caption: 'Every source, connected.',
+    callout: ['Data, Logic', '& Action Services'], what: 'Connect · refresh · provenance',
+    eyebrow: '01 / DATA', title: 'Context starts with<br>live <em>source material.</em>', body: 'Connects the systems where the firm’s information already lives — with source, freshness, and permission intact.', caption: 'Raw material for context.',
+    points: ['Connects sources', 'Preserves provenance', 'Keeps permissions aligned'],
     cfg: { stroke: '#9f1239', plateThick: 1.6, faintOpacity: 0.4, pal: { plateTop: '#f5dde2', plateSide: '#9f1239', stroke: '#7d0f2e', blockTop: '#fff7f8', blockSide: '#c9435f', inlay: '#f0bcc7', faint: '#b0405a' } } },
   { key: 'security', file: 'layers/02-security.svg', kind: 'plate', num: '02', short: 'Governance', accent: '#1b3a6b', pkt: '#2f7be0', side: 'left',
-    callout: ['Security', '& Governance'], what: 'Permissions · audit · control',
-    eyebrow: '02 / GOVERNANCE', title: 'Controlled<br>by <em>design.</em>', body: 'Makes the intelligence trustworthy, controlled, and enterprise-safe.', caption: 'Governed at every step.',
+    callout: ['Security', '& Governance'], what: 'Identity · policy · audit',
+    eyebrow: '02 / GOVERNANCE', title: 'Context needs control<br>to be <em>usable.</em>', body: 'Governs requests, tools, outputs, and actions so shared context can operate safely inside the enterprise.', caption: 'Trusted access and use.',
+    points: ['Identity and policy', 'Controls tools and write-backs', 'Audits activity'],
     cfg: { stroke: '#1b3a6b', plateThick: 1.6, faintOpacity: 0.35, pal: { plateTop: '#dce4f0', plateSide: '#1b3a6b', stroke: '#112a52', blockTop: '#f6f8fc', blockSide: '#46669a', inlay: '#c2d0e6', faint: '#1b3a6b' } } },
   { key: 'ontology', file: 'layers/03-ontology.svg', kind: 'plate', num: '03', short: 'Context', accent: '#2f5285', pkt: '#3f7fd8', side: 'right',
-    callout: ['Ontology', 'Context Engine'], what: 'Facts become meaning',
-    eyebrow: '03 / CONTEXT', title: 'Phaeron connects<br>the <em>picture.</em>', body: 'Phaeron connects information to the clients, people and relationships it belongs to, with permissions built in.', caption: 'The context that brings it together.',
+    callout: ['Ontology', 'Context Engine'], what: 'Facts become business context',
+    eyebrow: '03 / CONTEXT', title: 'This is the core<br>of the <em>product.</em>', body: 'Turns records from different systems into a shared understanding of clients, products, obligations, and events.', caption: 'Shared meaning across the firm.',
+    points: ['Resolves entities across systems', 'Maintains the shared business model', 'Feeds retrieval and reasoning'],
     cfg: { stroke: '#2f5285', plateThick: 1.6, faintOpacity: 0.35, nodeE: 22, pal: { plateTop: '#e0e8f4', plateSide: '#2f5285', stroke: '#22426f', blockTop: '#ffffff', blockSide: '#6d8bb8', nodeTop: '#ffffff', nodeSide: '#2f5285', faint: '#2f5285' } } },
   { key: 'departments', file: 'layers/04-departments.svg', kind: 'plate', num: '04', short: 'Departments', accent: '#0a6fd6', pkt: '#008cff', side: 'left',
-    callout: ['Ontology Language', '& Toolchain'], what: 'One context, every team',
-    eyebrow: '04 / DEPARTMENTS', title: 'Every team,<br>one <em>context.</em>', body: 'Teams usually work from separate views. Here they share one context, so the connections that reveal an opportunity or a risk are not missed.', caption: 'Separate views. Shared context.',
+    callout: ['Ontology Language', '& Toolchain'], what: 'The language of shared context',
+    eyebrow: '04 / DEPARTMENTS', title: 'Same context.<br>Different <em>views.</em>', body: 'Commercial, Legal, Product, Operations, and Finance work from one truth — each through the relationships that matter to them.', caption: 'Role-specific views. One truth.',
+    points: ['Shared entities underneath', 'Team-specific relationships', 'Definitions stay consistent'],
     cfg: { stroke: '#008cff', plateThick: 1.6, faintOpacity: 0.35, anchorE: 24, pal: { plateTop: '#d8e9fb', plateSide: '#0a6fd6', stroke: '#0a5bb0', blockTop: '#ffffff', blockSide: '#4c9ae6', inlay: '#b9d8f7', faint: '#0a6fd6' } } },
   { key: 'frontend', file: 'layers/05a-frontend.svg', kind: 'tiles', num: '05', short: 'Applications', accent: '#386888', pkt: '#008cff', side: 'right',
-    callout: ['Front-end', 'Systems'], what: 'Signals, ranked',
-    eyebrow: '05 / APPLICATIONS', title: 'See what needs<br><em>attention.</em>', body: 'Understand what a new signal means for your business, so the right opportunities and risks reach the right people.', caption: 'From information to relevance.',
+    callout: ['Product', 'Surfaces'], what: 'Live and scheduled use',
+    eyebrow: '05 / APPLICATIONS', title: 'Applications are how<br>context gets <em>used.</em>', body: 'Pulse and other surfaces expose the same governed context through dashboards, conversation, reports, and workflows.', caption: 'Surfaces on shared context.',
+    points: ['On-demand or scheduled', 'Same governed layer underneath', 'Embeddable via APIs'],
     cfg: { scale: 0.72, cy: 386, anchorScale: 0.72, anchorDepth: -40, pal: { top: '#ffffff', side: '#386888', stroke: '#244d6b', line: '#1769b3', soft: '#8fb0cf', accent: '#008cff' } } },
   { key: 'executive', file: 'layers/05b-executive.svg', kind: 'tiles', num: '06', short: 'Executive', accent: '#0F2445', pkt: '#008cff', side: 'left',
-    callout: ['Executive', 'Surfaces'], what: 'Ready for decision',
-    eyebrow: '06 / EXECUTIVE', title: 'Business knowledge,<br>put to <em>work.</em>', body: 'Surfaces what matters now, ranked and ready for action.', caption: 'Business knowledge, put to work.',
+    callout: ['Executive', 'Surfaces'], what: 'Drill-down · traceable',
+    eyebrow: '06 / EXECUTIVE', title: 'Leadership sees the firm<br>through shared <em>context.</em>', body: 'Performance, risk, delivery, and commercial change in one governed view — without stitched-together summaries.', caption: 'Cross-firm clarity.',
+    points: ['Same context as below', 'Connects ops, finance, commercial', 'Evidence on drill-down'],
     cfg: { scale: 0.72, cy: 200, anchorScale: 0.72, anchorDepth: 40, pal: { top: '#ffffff', side: '#0F2445', stroke: '#0F2445', line: '#1b3a6b', soft: '#8a9bb8', accent: '#008cff' } } },
 ];
-const OVERVIEW = { eyebrow: '00 / SYSTEM VIEW', title: 'Your firm knows more<br>than it can <em>see.</em>', body: 'Information sits across your systems, your people and the market. Its value is harder to see when it stays apart.', caption: 'Information, everywhere.', accent: '#008cff' };
+const OVERVIEW = { eyebrow: '00 / SYSTEM VIEW', title: 'Phaeron is a<br><em>context</em> company.', body: 'It connects distributed information, gives it shared meaning, governs how it is used, and turns that context into useful views across the firm.', caption: 'One context system.', accent: '#008cff' };
+
+const DEPT_COPY = {
+  Commercial: { headline: 'See which work is likely to matter.', blurb: 'Account activity, pipeline, client history, and market context in one place.' },
+  Legal: { headline: 'Understand the business context around an obligation.', blurb: 'Documents, approvals, and policies linked to the clients and work they affect.' },
+  Product: { headline: 'Use business context when deciding what to build.', blurb: 'Demand, feedback, and operational issues connected to product decisions.' },
+  Operations: { headline: 'See where work is getting stuck.', blurb: 'Service activity and workflow steps with the client and commercial impact beyond one process.' },
+  Finance: { headline: 'Understand what is behind the numbers.', blurb: 'Revenue and forecast linked to pipeline, delivery, and client activity.' },
+  'Shared Context': { headline: 'The common model every team draws from.', blurb: '' },
+};
 
 const G = 1.2, GE = 1.55, LIFT = 1.2;
 function targetsFor(sel) { const gap = sel == null ? G : GE; return [0, 1, 2, 3, 4.35, 5.6].map((k, i) => k * gap + (sel != null && i > sel ? LIFT : 0)); }
@@ -170,17 +185,22 @@ built.forEach((b, i) => { b.y = tgt[i]; b.group.position.y = b.y; });
 stage.setObject(root);
 root.traverse((o) => { if (o.isMesh) { o.receiveShadow = false; o.castShadow = o.userData.layer === 'data' && o.parent === built[0].group; } });
 const cam = stage._camera, controls = stage._controls;
-const frameY = (t) => t[5] * 0.44 + 0.05;
+const frameY = (t, sel = null) => (sel != null ? t[sel] + 0.05 : t[5] * 0.44 + 0.05);
 function frameD(t) {
   const asp = stage.clientWidth / Math.max(1, stage.clientHeight), fv = (cam.fov * Math.PI) / 180, fh = 2 * Math.atan(Math.tan(fv / 2) * asp);
   const vs = t[5] * 0.95 + 4.1, hs = 5.8 + 3.4;
   return Math.max(vs / (2 * Math.tan(fv / 2)), hs / (2 * Math.tan(fh / 2))) * 1.02;
 }
+let camAnim = null;
+function startFrameAnim() {
+  const toY = frameY(tgt, state.layer), toD = frameD(tgt);
+  camAnim = { fromY: controls.target.y, toY, fromD: cam.position.distanceTo(controls.target), toD, t: 0, dur: 0.55 };
+}
 {
   const target = new THREE.Vector3(0, frameY(tgt), 0);
   cam.position.copy(target).add(new THREE.Vector3(1, 0.78, 1).normalize().multiplyScalar(frameD(tgt)));
   cam.near = 0.1; cam.far = 400; cam.updateProjectionMatrix();
-  controls.target.copy(target); controls.minDistance = 4; controls.maxDistance = 40; controls.update();
+  controls.target.copy(target); controls.minDistance = 1.2; controls.maxDistance = 40; controls.update();
 }
 
 // assemble on load
@@ -221,13 +241,19 @@ function project(p, obj) { v.copy(p); obj.localToWorld(v); v.project(cam); retur
 function placeOverlay() {
   for (const { el, lb, b } of labelEls) {
     if (lb.visible === false) { el.style.opacity = '0'; continue; }
+    const asTile = lb.tile || b.key === 'data';
+    const isolated = state.layer === b.index;
+    // Tile labels only when that layer is isolated — never on assembled hover (rays hit data through gaps).
+    if (asTile && !isolated) { el.style.opacity = '0'; el.classList.remove('open', 'hov', 'on'); continue; }
+    // Plate labels hide when another layer is isolated.
+    if (!asTile && state.layer != null && !isolated) { el.style.opacity = '0'; el.classList.remove('open', 'hov', 'on'); continue; }
     const [x, y, z] = project(lb.pos, lb.obj || b.group);
     const vis = z < 1 && b.opacity > 0.4;
     el.style.opacity = vis ? String(Math.min(1, (b.opacity - 0.4) / 0.6)) : '0';
     el.style.transform = `translate(${x}px, ${y}px) ${lb.micro === true ? 'translate(-50%, 30%)' : 'translate(-50%, -100%)'}`;
-    el.classList.toggle('on', state.part === lb.part && state.layer === b.index);
-    el.classList.toggle('open', state.layer === b.index);
-    el.classList.toggle('hov', state.hover === b.index);
+    el.classList.toggle('on', state.part === lb.part && isolated);
+    el.classList.toggle('open', isolated);
+    el.classList.toggle('hov', isolated && state.hover === b.index);
   }
   for (const c of callouts) {
     const pr = c.corners.map((p) => project(p, c.b.group));
@@ -257,7 +283,7 @@ function applyHighlight() {
 function select(layer, part = null) {
   state.layer = layer; state.part = layer == null ? null : part;
   if (layer === 0) built[0].replay();
-  tgt = targetsFor(layer); applyHighlight(); renderCopy();
+  tgt = targetsFor(layer); applyHighlight(); renderCopy(); startFrameAnim();
 }
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -276,7 +302,9 @@ stage.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clien
 stage.addEventListener('pointerup', (e) => {
   if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) return;
   const p = pick(e); if (!p) return;
-  if (p.part) select(p.layer, p.part); else if (!(state.layer === p.layer && !state.part)) select(p.layer, null);
+  if (state.layer === p.layer && !state.part && !p.part) select(null);
+  else if (p.part) select(p.layer, p.part);
+  else select(p.layer, null);
 });
 let hoverQ = null;
 stage.addEventListener('pointermove', (e) => { hoverQ = e; });
@@ -300,13 +328,23 @@ let lastKey = '';
 function renderCopy() {
   const l = state.layer == null ? OVERVIEW : LAYERS[state.layer], b = built[state.layer];
   const part = b && b.parts.find((p) => p.id === state.part);
+  const dept = part && DEPT_COPY[part.name];
   const cta = state.layer == null ? ['↓', 'Explore the layers'] : state.layer === 5 ? ['↺', 'Explore again'] : ['↑', 'Next layer · ' + LAYERS[state.layer + 1].short];
+  const points = l.points && l.points.length
+    ? `<ul class="points" style="--acc:${l.accent}">${l.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`
+    : '';
+  const detail = part
+    ? dept
+      ? `<div class="detail" style="--acc:${l.accent}"><span>${esc(part.name)}</span><p>${esc(dept.headline)}</p>${dept.blurb ? `<p class="detail-blurb">${esc(dept.blurb)}</p>` : ''}</div>`
+      : `<div class="detail" style="--acc:${l.accent}"><span>Selected · ${esc(l.short)}</span><p>${esc(part.name)}${part.micro ? ` <em class="mc">${esc(part.micro)}</em>` : ''}</p></div>`
+    : '';
   const html = `
     <p class="eyebrow">${l.eyebrow}</p>
     <h1 style="--acc:${l.accent}">${l.title}</h1>
     <p class="description">${esc(l.body)}</p>
+    ${points}
     ${b && b.parts.length ? `<div class="parts-label">Components</div><div class="parts">${b.parts.map((p) => `<button type="button" data-part="${p.id}" class="${p.id === state.part ? 'on' : ''}" style="--acc:${l.accent}">${esc(p.name)}</button>`).join('')}</div>` : ''}
-    ${part ? `<div class="detail" style="--acc:${l.accent}"><span>Selected · ${esc(l.short)}</span><p>${esc(part.name)}${part.micro ? ` <em class="mc">${esc(part.micro)}</em>` : ''}</p></div>` : ''}
+    ${detail}
     <button type="button" class="explore" id="cta"><span aria-hidden="true">${cta[0]}</span>${cta[1]}</button>`;
   const key = String(state.layer);
   const copy = $('#copy');
@@ -322,8 +360,8 @@ function renderCopy() {
 renderCopy();
 
 // ---------- loop ----------
-let last = performance.now(), pd = frameD(tgt);
-const pa = connGeo.attributes.position.array, tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+let last = performance.now();
+const pa = connGeo.attributes.position.array, tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), camOff = new THREE.Vector3();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   const k = 1 - Math.exp(-dt * 7);
@@ -343,10 +381,22 @@ function frame(now) {
   const minOp = Math.min(...built.slice(3).map((b) => b.opacity));
   connMat.opacity = 0.9 * minOp; connPk.list.forEach((a) => (a.p = prep(connPaths[connPk.list.indexOf(a) >> 1])));
   connPk.update(dt); connPk.mesh.visible = minOp > 0.95;
-  const wantY = frameY(tgt), wantD = frameD(tgt);
-  const dy = (wantY - controls.target.y) * k; controls.target.y += dy; cam.position.y += dy;
-  const off = cam.position.clone().sub(controls.target); const npd = pd + (wantD - pd) * k;
-  off.multiplyScalar(npd / pd); cam.position.copy(controls.target).add(off); pd = npd;
+  // One-shot distance+Y ease on select; otherwise only gentle Y recenter so OrbitControls owns zoom.
+  if (camAnim) {
+    camAnim.t += dt;
+    const u = ease(Math.min(1, camAnim.t / camAnim.dur));
+    const y = camAnim.fromY + (camAnim.toY - camAnim.fromY) * u;
+    const d = camAnim.fromD + (camAnim.toD - camAnim.fromD) * u;
+    const dy = y - controls.target.y;
+    controls.target.y = y; cam.position.y += dy;
+    camOff.copy(cam.position).sub(controls.target).setLength(Math.max(controls.minDistance, d));
+    cam.position.copy(controls.target).add(camOff);
+    if (u >= 1) camAnim = null;
+  } else {
+    const wantY = frameY(tgt, state.layer);
+    const dy = (wantY - controls.target.y) * k;
+    controls.target.y += dy; cam.position.y += dy;
+  }
   if (hoverQ) { const p = pick(hoverQ); stage.style.cursor = p ? 'pointer' : ''; state.hover = p ? p.layer : null; hoverQ = null; }
   placeOverlay();
   requestAnimationFrame(frame);

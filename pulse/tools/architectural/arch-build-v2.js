@@ -278,11 +278,15 @@ export function buildPlateLayer(svgText, key, cfg) {
       const tc = t.getAttribute('class') || '';
       if (tc === 'department-label') {
         let best = 0, bd = 1e9; anchors.forEach((a, i) => { const d = Math.abs(a.x - x) + Math.abs(a.y - 46 - y) * 0.3; if (d < bd) { bd = d; best = i; } });
-        const a = anchors[best]; partNames['a' + best] = t.textContent.trim();
-        labels.push({ text: t.textContent.trim(), part: 'a' + best, pos: toW(a.x, a.yb, 0).add(new THREE.Vector3(0, (a.yb - a.y + 22) * PXV, 0)) });
+        const a = anchors[best], partId = 'a' + best;
+        partNames[partId] = t.textContent.trim();
+        const mesh = L.roots.find((m) => m.userData.part === partId);
+        const pos = toW(a.x, a.yb, 0).add(new THREE.Vector3(0, (a.yb - a.y + 22) * PXV, 0));
+        labels.push({ text: t.textContent.trim(), part: partId, pos, obj: mesh || L.group });
       } else if (tc === 'hub-label') {
         partNames.hub = 'Shared Context';
-        labels.push({ text: t.textContent.trim(), part: 'hub', micro: true, pos: toW(600, 500, 10).add(new THREE.Vector3(0, 0.1, 0)) });
+        const hubMesh = L.roots.find((m) => m.userData.part === 'hub');
+        labels.push({ text: t.textContent.trim(), part: 'hub', micro: true, pos: toW(600, 500, 10).add(new THREE.Vector3(0, 0.1, 0)), obj: hubMesh || L.group });
       }
     }
   }
