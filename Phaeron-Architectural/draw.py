@@ -2,7 +2,6 @@ from pathlib import Path
 from math import sin,cos,pi,hypot
 import random
 from html import escape
-import json
 
 ROOT=Path(__file__).resolve().parent
 ART=ROOT/'source'/'assets'
@@ -37,7 +36,6 @@ polygon,path,line,circle,ellipse{vector-effect:non-scaling-stroke}
 .callout[data-layer="0"]{color:#9f1239}.callout[data-layer="1"]{color:#1b3a6b}.callout[data-layer="2"]{color:#2f5285}.callout[data-layer="3"]{color:#008cff}
 .flow{fill:none;stroke:#008cff;stroke-width:1.15;stroke-dasharray:4 8;opacity:.55}
 .spotlight .surface{stroke-width:1.15}.spotlight .edge-left,.spotlight .edge-right{stroke-width:1.15}
-.final-state .department-copy{opacity:0}
 '''
 
 # Explicit colours also render consistently in SVG viewers without CSS variables.
@@ -216,159 +214,6 @@ def outcomes():
 
 BUILDERS=[information,context,ontology,outcomes]
 NAMES=['Data, Logic & Action Services','Security & Governance','Ontology Context Engine','Ontology Language & Toolchain']
-
-# Assembled top-layer transform (matches story.js pose for scene >= 4)
-TOP_Y=-185
-TOP_SCALE=.96
-
-def assembled_xy(u,v,z=0):
-    """Map plate UV into final architecture viewBox coords (top layer assembled)."""
-    lx,ly=p(u,v,z)
-    ax=600+TOP_SCALE*(lx-600)
-    ay=(540+TOP_Y)+TOP_SCALE*(ly-540)
-    return ax,ay
-
-TILE_STYLE='''
-.tile-edge{fill:#fff;stroke:#008cff;stroke-width:1;stroke-linejoin:round}
-.tile-side{fill:#f5faff;stroke:#7ab8e8;stroke-width:.85;stroke-linejoin:round}
-.tile-line{fill:none;stroke:#008cff;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round}
-.tile-soft{fill:none;stroke:#7ab8e8;stroke-width:.75}
-.tile-faint{fill:#e8f4ff;stroke:#7ab8e8;stroke-width:.7}
-.tile-dot{fill:#008cff;fill-opacity:.55}
-.tile-label{font:600 10px "Open Sans",system-ui,sans-serif;letter-spacing:.02em;fill:#0c1a2e;text-anchor:middle}
-.tile-micro{font:7.5px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.04em;fill:#3d4f66;text-anchor:middle}
-.tile-port{fill:#008cff;fill-opacity:.35;stroke:none}
-'''
-
-def iso_tile_paths(s=.55):
-    """Presentation-style isometric diamond scaled into architecture space."""
-    # Original tile roughly 240×138; scale keeps four tiles on the top-plate ridge
-    w,h=120*s,64*s
-    tip=132*s
-    edge=f'M0 0 {n(w)} {n(h)} 0 {n(tip)} {n(-w)} {n(h)}Z'
-    side=f'M{n(-w)} {n(h)} 0 {n(tip)} {n(w)} {n(h)}v{n(6*s)}L0 {n(tip+6*s)} {n(-w)} {n(h+6*s)}Z'
-    soft=f'M{n(-104*s)} {n(h)} 0 {n(12*s)} {n(104*s)} {n(h)} 0 {n(120*s)}Z'
-    return edge,side,soft,tip
-
-def tile_detail(kind,s=.55):
-    g=''
-    if kind=='chart':
-        g+=f'<path class="tile-line" d="m{n(-64*s)} {n(72*s)} {n(14*s)} {n(-8*s)} {n(10*s)} {n(5*s)} {n(14*s)} {n(-8*s)} {n(12*s)} {n(7*s)} {n(16*s)} {n(-9*s)} {n(10*s)} {n(5*s)}"/>'
-        g+=f'<circle cx="{n(22*s)}" cy="{n(66*s)}" r="{n(2.5*s)}" class="tile-dot"/>'
-    elif kind=='profile':
-        g+=f'<circle cx="{n(-22*s)}" cy="{n(66*s)}" r="{n(14*s)}" class="tile-edge"/>'
-        g+=f'<circle cx="{n(-22*s)}" cy="{n(62*s)}" r="{n(5*s)}" class="tile-faint"/>'
-        g+=f'<path class="tile-line" d="M{n(-32*s)} {n(76*s)}q{n(10*s)} {n(-10*s)} {n(20*s)} 0"/>'
-        g+=f'<path class="tile-line" d="M{n(6*s)} {n(52*s)} {n(62*s)} {n(90*s)}"/>'
-        g+=f'<circle cx="{n(54*s)}" cy="{n(84*s)}" r="{n(2.5*s)}" class="tile-dot"/>'
-    elif kind=='radar':
-        g+=f'<ellipse cx="0" cy="{n(68*s)}" rx="{n(58*s)}" ry="{n(32*s)}" class="tile-soft"/>'
-        g+=f'<ellipse cx="0" cy="{n(68*s)}" rx="{n(38*s)}" ry="{n(21*s)}" class="tile-soft"/>'
-        g+=f'<ellipse cx="0" cy="{n(68*s)}" rx="{n(16*s)}" ry="{n(9*s)}" class="tile-soft"/>'
-        g+=f'<path class="tile-line" d="M{n(-58*s)} {n(68*s)}h{n(116*s)}M0 {n(36*s)}v{n(64*s)}"/>'
-        g+=f'<circle cx="{n(32*s)}" cy="{n(54*s)}" r="{n(3*s)}" class="tile-dot"/>'
-    elif kind=='workflow':
-        for dx in (-66,-26,14):
-            g+=f'<path class="tile-line" d="m{n(dx*s)} {n(50*s)} {n(28*s)} {n(15*s)} {n(-14*s)} {n(9*s)} {n(-28*s)} {n(-16*s)}Z"/>'
-        g+=f'<circle cx="{n(16*s)}" cy="{n(60*s)}" r="{n(2.5*s)}" class="tile-dot"/>'
-    elif kind=='globe':
-        g+=f'<ellipse cx="0" cy="{n(68*s)}" rx="{n(54*s)}" ry="{n(30*s)}" class="tile-line"/>'
-        g+=f'<ellipse cx="0" cy="{n(68*s)}" rx="{n(20*s)}" ry="{n(30*s)}" class="tile-soft"/>'
-        g+=f'<path class="tile-soft" d="M{n(-50*s)} {n(56*s)}h{n(100*s)}M{n(-52*s)} {n(70*s)}h{n(104*s)}M0 {n(38*s)}v{n(60*s)}"/>'
-        g+=f'<circle cx="{n(24*s)}" cy="{n(56*s)}" r="{n(2.5*s)}" class="tile-dot"/>'
-    elif kind=='bars':
-        g+=f'<path class="tile-line" d="M{n(-60*s)} {n(78*s)}V{n(52*s)}h{n(22*s)}v{n(26*s)}ZM{n(-28*s)} {n(78*s)}V{n(44*s)}h{n(22*s)}v{n(34*s)}ZM{n(4*s)} {n(78*s)}V{n(56*s)}h{n(22*s)}v{n(22*s)}ZM{n(36*s)} {n(78*s)}V{n(40*s)}h{n(22*s)}v{n(38*s)}Z"/>'
-        g+=f'<circle cx="{n(50*s)}" cy="{n(44*s)}" r="{n(2.5*s)}" class="tile-dot"/>'
-    elif kind=='brief':
-        g+=f'<path class="tile-line" d="m{n(-46*s)} {n(48*s)} {n(34*s)} {n(-18*s)} {n(58*s)} {n(32*s)} {n(-34*s)} {n(18*s)}Z"/>'
-        g+=f'<path class="tile-faint" d="m{n(-28*s)} {n(58*s)} {n(34*s)} {n(-18*s)} {n(44*s)} {n(24*s)} {n(-34*s)} {n(18*s)}Z"/>'
-        g+=f'<path class="tile-line" d="m{n(-32*s)} {n(62*s)} {n(22*s)} {n(-12*s)}M{n(-24*s)} {n(72*s)}l{n(22*s)} {n(-12*s)}"/>'
-        g+=f'<circle cx="{n(42*s)}" cy="{n(56*s)}" r="{n(2.5*s)}" class="tile-dot"/>'
-    else:  # pack
-        g+=f'<path class="tile-edge" d="m{n(-42*s)} {n(50*s)} {n(30*s)} {n(-16*s)} {n(52*s)} {n(28*s)} {n(-30*s)} {n(16*s)}Z"/>'
-        g+=f'<path class="tile-faint" d="m{n(-32*s)} {n(60*s)} {n(30*s)} {n(-16*s)} {n(42*s)} {n(23*s)} {n(-30*s)} {n(16*s)}Z"/>'
-        g+=f'<path class="tile-line" d="m{n(-24*s)} {n(64*s)} {n(16*s)} {n(-9*s)}M{n(-16*s)} {n(74*s)}l{n(16*s)} {n(-9*s)}"/>'
-    return g
-
-def place_tile(cx,cy,label,micro,kind,s=.55):
-    edge,side,soft,tip=iso_tile_paths(s)
-    port_y=cy+tip
-    body=f'<g class="surf-tile" data-port-x="{n(cx)}" data-port-y="{n(port_y)}" transform="translate({n(cx)} {n(cy)})">'
-    body+=f'<text class="tile-label" x="0" y="{n(-18*s)}">{escape(label)}</text>'
-    body+=f'<text class="tile-micro" x="0" y="{n(-5*s)}">{escape(micro)}</text>'
-    body+=f'<path class="tile-side" d="{side}"/><path class="tile-edge" d="{edge}"/><path class="tile-soft" d="{soft}"/>'
-    body+=tile_detail(kind,s)
-    body+=f'<circle class="tile-port" cx="0" cy="{n(tip)}" r="{n(2.2*s)}"/>'
-    body+='</g>'
-    return body,(cx,port_y)
-
-def ridge_positions(bank='a'):
-    """Four LTR seats on the far ridge of the assembled top plate.
-
-    Anchors sit on a tip-side u+v contour (behind the department ring).
-    Seats fan wider in screen-x so diamonds clear each other, with short
-    non-crossing spokes back to the ridge ports.
-    """
-    # Contour behind the dept ring (Commercial ~sumuv 251). Seats mildly
-    # fanned so four diamonds clear each other; dept labels hide in final-state.
-    if bank=='a':
-        sumuv=175
-        s=.40
-        gap=10
-        fan=1.42
-        stagger=(6,0,0,6)
-    else:
-        # One step further toward the tip / higher on screen
-        sumuv=118
-        s=.36
-        gap=14
-        fan=1.62
-        stagger=(5,0,0,5)
-    tip=132*s
-    lift=tip+gap
-    left=assembled_xy(0,sumuv,z=3)
-    right=assembled_xy(sumuv,0,z=3)
-    midx=(left[0]+right[0])/2
-    seats=[]
-    anchors=[]
-    for i,t in enumerate((0.05,0.35,0.65,0.95)):
-        ax=left[0]+(right[0]-left[0])*t
-        # recover u from screen-x on the contour
-        u=(sumuv+(ax-600)/0.864)/2
-        v=sumuv-u
-        ax,ay=assembled_xy(u,v,z=3)
-        anchors.append((ax,ay))
-        sx=midx+(ax-midx)*fan
-        seats.append((sx,ay-lift+stagger[i],s))
-    return seats,anchors
-
-def build_tile_bank(bank):
-    if bank=='a':
-        meta=[
-            ('Commercial Analytics','PIPELINE · REVENUE','chart'),
-            ('Client Intelligence','PROFILE · HISTORY','profile'),
-            ('Opportunity Radar','SIGNALS · PRIORITY','radar'),
-            ('Service Operations','WORKFLOW · EXCEPTIONS','workflow'),
-        ]
-        title='Phaeron Layer 08A front-end system tiles'
-    else:
-        meta=[
-            ('Market Globe','MARKETS · EVENTS','globe'),
-            ('Executive Dashboard','KPI · EXPOSURE','bars'),
-            ('Research & Insights','BRIEFING · EVIDENCE','brief'),
-            ('Reporting Packs','BOARD · CLIENT','pack'),
-        ]
-        title='Phaeron Layer 08B executive surfaces'
-    seats,anchors=ridge_positions(bank)
-    body=''
-    ports=[]
-    for (cx,cy,s),(label,micro,kind),anchor in zip(seats,meta,anchors):
-        g,(px,py)=place_tile(cx,cy,label,micro,kind,s)
-        body+=g
-        ports.append((px,py,anchor[0],anchor[1]))
-    svg=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 75 1280 960" role="img" aria-label="{escape(title)}"><title>{escape(title)}</title><style>{TILE_STYLE}</style>{body}</svg>'
-    return svg,ports
-
 def callouts():
     s='<g id="stack-labels">'
     for i,(right,words) in enumerate([(True,['DATA, LOGIC','& ACTION SERVICES']),(False,['SECURITY','& GOVERNANCE']),(True,['ONTOLOGY','CONTEXT ENGINE']),(False,['ONTOLOGY','LANGUAGE &','TOOLCHAIN'])]):
@@ -389,18 +234,6 @@ def build():
     for i,body in enumerate(layers):
         assembled+=f'<g transform="translate(600 {540+[160,45,-70,-185][i]}) scale(.96) translate(-600 -540)">{body}</g>'
     (ART/'Phaeron-complete.svg').write_text(wrap(shadow+assembled+callouts(),'Phaeron complete architecture'))
-    # Architecture-native 8a / 8b tiles (same viewBox as the stack)
-    svg_a,ports_a=build_tile_bank('a')
-    svg_b,ports_b=build_tile_bank('b')
-    (ART/'tiles-8a.svg').write_text(svg_a)
-    (ART/'tiles-8b.svg').write_text(svg_b)
-    # Port map for story.js (viewBox absolute coords)
-    port_map={
-        'a':[{'port':[round(px,1),round(py,1)],'anchor':[round(ax,1),round(ay,1)]} for px,py,ax,ay in ports_a],
-        'b':[{'port':[round(px,1),round(py,1)],'anchor':[round(ax,1),round(ay,1)]} for px,py,ax,ay in ports_b],
-    }
-    (ART/'tile-ports.js').write_text('/* generated by draw.py */\nwindow.PHAERON_TILE_PORTS='+json.dumps(port_map)+';\n')
     return '<svg xmlns="http://www.w3.org/2000/svg" id="architecture" viewBox="0 75 1280 960" role="img" aria-label="Phaeron complete architecture"><title id="art-title">Phaeron complete architecture</title><style>'+STYLE+'</style>'+shadow+''.join(layers)+callouts()+'</svg>'
 
 if __name__=='__main__':build()
-
