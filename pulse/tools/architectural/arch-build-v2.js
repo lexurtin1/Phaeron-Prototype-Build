@@ -393,7 +393,14 @@ export function buildTileLayer(svgText, key, cfg) {
       gl.position.copy(rec.center).add(new THREE.Vector3(0, r + 0.04, 0)); tile.add(gl); rec.globe = gl;
     }
     recs.push(rec);
-    labels.push({ text: name, micro: micro ? micro.textContent.trim() : '', part: id, tile: true, pos: rec.center.clone().add(new THREE.Vector3(0, id === 'market-globe' ? 0.42 : 0.14, 0)), obj: tile });
+    // Label anchor on the plate top only (ignore chart-bar / globe children for height).
+    if (!tile.geometry.boundingBox) tile.geometry.computeBoundingBox();
+    const gb = tile.geometry.boundingBox;
+    const anchor = new THREE.Object3D();
+    anchor.name = `${id}.lbl`;
+    anchor.position.set((gb.min.x + gb.max.x) / 2, gb.max.y + (id === 'market-globe' ? 0.22 : 0.03), (gb.min.z + gb.max.z) / 2);
+    tile.add(anchor);
+    labels.push({ text: name, micro: micro ? micro.textContent.trim() : '', part: id, tile: true, pos: new THREE.Vector3(0, 0, 0), obj: anchor });
   }
   const anchors = [];
   const conn = svg.querySelector('#downward-connectors');

@@ -240,6 +240,9 @@ const v = new THREE.Vector3(), _box = new THREE.Box3(), _top = new THREE.Vector3
 function project(p, obj) { v.copy(p); obj.localToWorld(v); v.project(cam); return [((v.x + 1) / 2) * stage.clientWidth, ((1 - v.y) / 2) * stage.clientHeight, v.z]; }
 function projectLabel(lb, fallbackObj) {
   const obj = lb.obj || fallbackObj;
+  // Tile labels: use authored local offset on the tile (not AABB). Chart bars / globe
+  // children inflate setFromObject max.y and float labels far above the plate.
+  if (lb.tile && lb.pos) return project(lb.pos, obj);
   _box.setFromObject(obj);
   if (_box.isEmpty()) return project(lb.pos || v.set(0, 0, 0), obj);
   _box.getCenter(_top);
@@ -264,7 +267,7 @@ function placeOverlay() {
     const vis = z < 1 && b.opacity > 0.35;
     el.style.display = 'flex';
     el.style.opacity = vis ? String(Math.min(1, (b.opacity - 0.35) / 0.65)) : '0';
-    el.style.transform = `translate(${x}px, ${y}px) ${lb.micro === true ? 'translate(-50%, 30%)' : 'translate(-50%, -100%)'}`;
+    el.style.transform = `translate(${x}px, ${y}px) ${lb.micro === true ? 'translate(-50%, 30%)' : asTile ? 'translate(-50%, -70%)' : 'translate(-50%, -100%)'}`;
     el.classList.toggle('on', state.part === lb.part && isolated);
     el.classList.toggle('open', isolated || (assembled && !asTile));
     el.classList.toggle('hov', false);
