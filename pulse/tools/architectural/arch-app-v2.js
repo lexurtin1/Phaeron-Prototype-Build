@@ -45,7 +45,7 @@ const DEPT_COPY = {
   'Shared Context': { headline: 'The common model every team draws from.', blurb: '' },
 };
 
-const G = 1.2, GE = 1.55, LIFT = 1.2;
+const G = 1.2, GE = 2.4, LIFT = 2.2;
 function targetsFor(sel) { const gap = sel == null ? G : GE; return [0, 1, 2, 3, 4.35, 5.6].map((k, i) => k * gap + (sel != null && i > sel ? LIFT : 0)); }
 
 const stage = document.querySelector('three-d-stage');
@@ -236,31 +236,45 @@ const callouts = built.map((b) => {
   else { const bx = new THREE.Box3(); b.tiles.forEach((r) => bx.expandByObject(r.mesh)); const y = bx.min.y + 0.02; corners = [[bx.min.x, bx.min.z], [bx.max.x, bx.min.z], [bx.max.x, bx.max.z], [bx.min.x, bx.max.z]].map(([x, z]) => new THREE.Vector3(x, y, z)); }
   return { el, b, corners };
 });
-const v = new THREE.Vector3();
+const v = new THREE.Vector3(), _box = new THREE.Box3(), _top = new THREE.Vector3();
 function project(p, obj) { v.copy(p); obj.localToWorld(v); v.project(cam); return [((v.x + 1) / 2) * stage.clientWidth, ((1 - v.y) / 2) * stage.clientHeight, v.z]; }
+function projectLabel(lb, fallbackObj) {
+  const obj = lb.obj || fallbackObj;
+  _box.setFromObject(obj);
+  if (_box.isEmpty()) return project(lb.pos || v.set(0, 0, 0), obj);
+  _box.getCenter(_top);
+  _top.y = _box.max.y + 0.06;
+  _top.project(cam);
+  return [((_top.x + 1) / 2) * stage.clientWidth, ((1 - _top.y) / 2) * stage.clientHeight, _top.z];
+}
 function placeOverlay() {
   for (const { el, lb, b } of labelEls) {
-    if (lb.visible === false) { el.style.opacity = '0'; continue; }
+    if (lb.visible === false) { el.style.display = 'none'; continue; }
     const asTile = lb.tile || b.key === 'data';
     const isolated = state.layer === b.index;
-    // Tile labels only when that layer is isolated — never on assembled hover (rays hit data through gaps).
-    if (asTile && !isolated) { el.style.opacity = '0'; el.classList.remove('open', 'hov', 'on'); continue; }
-    // Plate labels hide when another layer is isolated.
-    if (!asTile && state.layer != null && !isolated) { el.style.opacity = '0'; el.classList.remove('open', 'hov', 'on'); continue; }
-    const [x, y, z] = project(lb.pos, lb.obj || b.group);
-    const vis = z < 1 && b.opacity > 0.4;
-    el.style.opacity = vis ? String(Math.min(1, (b.opacity - 0.4) / 0.6)) : '0';
+    const assembled = state.layer == null;
+    // Assembled: department/hub only. Isolated: that layer only. Never reveal tiles via hover.
+    const show = isolated || (assembled && !asTile);
+    if (!show) {
+      el.style.display = 'none';
+      el.classList.remove('open', 'hov', 'on');
+      continue;
+    }
+    const [x, y, z] = projectLabel(lb, b.group);
+    const vis = z < 1 && b.opacity > 0.35;
+    el.style.display = 'flex';
+    el.style.opacity = vis ? String(Math.min(1, (b.opacity - 0.35) / 0.65)) : '0';
     el.style.transform = `translate(${x}px, ${y}px) ${lb.micro === true ? 'translate(-50%, 30%)' : 'translate(-50%, -100%)'}`;
     el.classList.toggle('on', state.part === lb.part && isolated);
-    el.classList.toggle('open', isolated);
-    el.classList.toggle('hov', isolated && state.hover === b.index);
+    el.classList.toggle('open', isolated || (assembled && !asTile));
+    el.classList.toggle('hov', false);
   }
   for (const c of callouts) {
     const pr = c.corners.map((p) => project(p, c.b.group));
-    const pick = pr.reduce((a, p) => (c.b.def.side === 'left' ? (p[0] < a[0] ? p : a) : (p[0] > a[0] ? p : a)));
-    c.el.style.transform = `translate(${pick[0]}px, ${pick[1]}px)`;
+    const pickPt = pr.reduce((a, p) => (c.b.def.side === 'left' ? (p[0] < a[0] ? p : a) : (p[0] > a[0] ? p : a)));
+    c.el.style.transform = `translate(${pickPt[0]}px, ${pickPt[1]}px)`;
     const dim = state.layer != null && state.layer !== c.b.index;
-    c.el.style.opacity = c.b.opacity > 0.5 ? (dim ? '0.32' : '1') : '0';
+    c.el.style.opacity = c.b.opacity > 0.35 ? (dim ? '0.28' : '1') : '0';
     c.el.classList.toggle('on', state.layer === c.b.index);
   }
 }
@@ -295,20 +309,23 @@ function pick(e) {
   const hit = ray.intersectObjects(pickables, false)[0];
   if (!hit) return null;
   const b = built.find((x) => x.key === hit.object.userData.layer);
-  return { layer: b.index, part: hit.object.userData.part };
+  if (!b) return null;
+  return { layer: b.index, part: hit.object.userData.part || null };
 }
 let down = null;
-stage.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
-stage.addEventListener('pointerup', (e) => {
-  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) return;
+const canvas = stage._renderer.domElement;
+function onPointerDown(e) { down = { x: e.clientX, y: e.clientY }; }
+function onPointerUp(e) {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 10) return;
   const p = pick(e); if (!p) return;
   if (state.layer === p.layer && !state.part && !p.part) select(null);
-  else if (p.part) select(p.layer, p.part);
-  else select(p.layer, null);
-});
+  else select(p.layer, p.part);
+}
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointerup', onPointerUp);
 let hoverQ = null;
-stage.addEventListener('pointermove', (e) => { hoverQ = e; });
-stage.addEventListener('pointerleave', () => { hoverQ = null; state.hover = null; stage.style.cursor = ''; });
+canvas.addEventListener('pointermove', (e) => { hoverQ = e; });
+canvas.addEventListener('pointerleave', () => { hoverQ = null; state.hover = null; stage.style.cursor = ''; });
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') select(null);
   if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { const d = e.key === 'ArrowUp' ? 1 : -1; select(state.layer == null ? (d > 0 ? 0 : 5) : Math.max(0, Math.min(5, state.layer + d))); e.preventDefault(); }
@@ -368,7 +385,12 @@ function frame(now) {
   built.forEach((b, i) => {
     const le = ease(Math.max(0, Math.min(1, (now - t0 - b.load.delay) / b.load.dur)));
     b.y += (tgt[i] - b.y) * k; b.group.position.y = b.y + (1 - le) * b.load.from;
-    if (b.opacity !== le) { b.opacity = le; setLayerOpacity(b, le); (b.pk ||= b.group.children.filter((o) => o.isInstancedMesh)).forEach((o) => (o.visible = le > 0.95)); }
+    const focus = state.layer == null || state.layer === i ? 1 : 0.2;
+    const wantOp = le * focus;
+    if (b.opacity < 0) b.opacity = wantOp;
+    else b.opacity += (wantOp - b.opacity) * k;
+    setLayerOpacity(b, b.opacity);
+    (b.pk ||= b.group.children.filter((o) => o.isInstancedMesh)).forEach((o) => (o.visible = b.opacity > 0.9));
   });
   anims.forEach((f) => f(dt));
   root.updateMatrixWorld(true);

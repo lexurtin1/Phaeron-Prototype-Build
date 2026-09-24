@@ -277,16 +277,51 @@ export function buildPlateLayer(svgText, key, cfg) {
       const x = num(t.getAttribute('x')), y = num(t.getAttribute('y'));
       const tc = t.getAttribute('class') || '';
       if (tc === 'department-label') {
-        let best = 0, bd = 1e9; anchors.forEach((a, i) => { const d = Math.abs(a.x - x) + Math.abs(a.y - 46 - y) * 0.3; if (d < bd) { bd = d; best = i; } });
-        const a = anchors[best], partId = 'a' + best;
+        let best = 0, bd = 1e9;
+        anchors.forEach((a, i) => { const d = Math.hypot(a.x - x, a.y - y); if (d < bd) { bd = d; best = i; } });
+        const partId = 'a' + best;
         partNames[partId] = t.textContent.trim();
-        const mesh = L.roots.find((m) => m.userData.part === partId);
-        const pos = toW(a.x, a.yb, 0).add(new THREE.Vector3(0, (a.yb - a.y + 22) * PXV, 0));
-        labels.push({ text: t.textContent.trim(), part: partId, pos, obj: mesh || L.group });
+        let mesh = null, bestH = -1;
+        for (const m of L.roots) {
+          if (m.userData.part !== partId) continue;
+          m.updateMatrixWorld(true);
+          const box = new THREE.Box3().setFromObject(m);
+          const h = box.max.y - box.min.y;
+          if (h > bestH) { bestH = h; mesh = m; }
+        }
+        let obj = L.group, pos = toW(anchors[best].x, anchors[best].yb, 0);
+        if (mesh) {
+          mesh.updateMatrixWorld(true);
+          const box = new THREE.Box3().setFromObject(mesh);
+          const top = box.getCenter(new THREE.Vector3());
+          top.y = box.max.y + 0.04;
+          mesh.worldToLocal(top);
+          const anchor = new THREE.Object3D();
+          anchor.name = `${partId}.lbl`;
+          anchor.position.copy(top);
+          mesh.add(anchor);
+          obj = anchor;
+          pos = new THREE.Vector3(0, 0, 0);
+        }
+        labels.push({ text: t.textContent.trim(), part: partId, pos, obj });
       } else if (tc === 'hub-label') {
         partNames.hub = 'Shared Context';
         const hubMesh = L.roots.find((m) => m.userData.part === 'hub');
-        labels.push({ text: t.textContent.trim(), part: 'hub', micro: true, pos: toW(600, 500, 10).add(new THREE.Vector3(0, 0.1, 0)), obj: hubMesh || L.group });
+        let obj = L.group, pos = toW(600, 500, 10).add(new THREE.Vector3(0, 0.1, 0));
+        if (hubMesh) {
+          hubMesh.updateMatrixWorld(true);
+          const box = new THREE.Box3().setFromObject(hubMesh);
+          const top = box.getCenter(new THREE.Vector3());
+          top.y = box.max.y + 0.04;
+          hubMesh.worldToLocal(top);
+          const anchor = new THREE.Object3D();
+          anchor.name = 'hub.lbl';
+          anchor.position.copy(top);
+          hubMesh.add(anchor);
+          obj = anchor;
+          pos = new THREE.Vector3(0, 0, 0);
+        }
+        labels.push({ text: t.textContent.trim(), part: 'hub', micro: true, pos, obj });
       }
     }
   }
